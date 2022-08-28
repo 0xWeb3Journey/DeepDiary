@@ -1,0 +1,265 @@
+import os
+from datetime import datetime
+
+from PIL import Image
+from django.contrib.auth.models import User
+from django.db import models
+# Create your models here.
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill, ResizeToFit
+from taggit.managers import TaggableManager
+
+from project.models import Issue
+
+# Create your models here.
+from user_info.models import Profile
+
+
+def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/%Y/%m/%d/file
+    sub_folder = "img"
+    print('INFO: instance.user.username！' + instance.user.username)
+    p = Image.open(instance.src)  # 创建图像实例
+    if p._getexif() and 36867 in p._getexif():
+        date_str = p._getexif()[36867]  # 获取时间戳
+        print('照片日期：' + date_str)  # 照片日期：2021:07:31 18:13:31
+    else:
+        date_str = '1970:01:01 00:00:00'
+        print('跳过：未找到时间信息！')
+
+    instance.capture_date, instance.capture_time, instance.year, instance.month, instance.day, \
+    instance.is_weekend, instance.earthly_branches, date_path = get_date_info(date_str)  # 通过时间戳，计算出时间相关的属性，并赋值给数据库字段
+
+    instance.filename = filename
+    instance.type = filename.split('.')[-1]
+    # instance = get_img_info(instance)  # 本打算在这里获取更多的图片元数据，但是这里的实例还没保存，图片路径还不存在
+
+    if not instance.user.username:
+        instance.user.username = 'unauthorized'
+    user_img_path = os.path.join(instance.user.username, sub_folder, date_path, filename)  # 生成照片保存的路径
+    print('照片存放路径为：' + user_img_path)  # dir struct MEDIA/user/subfolder/%Y/%m/%d/file
+
+    return user_img_path
+
+
+class ImgCategory(models.Model):
+    """文章分类"""
+    title = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片类别", help_text='图片按应用进行划分')
+    # 数据库更新日期
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间")
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Img(models.Model):
+    ## 图片基本属性：basic
+    FLAG_OPTION = (
+        (0, "无旗标"),
+        (1, "选中旗标"),
+        (2, "排除旗标"),
+    )
+    EARTHLY_BRANCHES_OPTION = (
+        (0, "凌晨"),
+        (1, "早上"),
+        (2, "上班"),
+        (3, "晚上"),
+        (4, "深夜"),
+    )
+    STATE_OPTION = (
+        (0, "正常"),
+        (1, "禁用"),
+        (9, "已经删除"),
+    )
+    HOLIDAY_OPTION = (
+        (0, "元旦"),
+        (1, "春节"),
+        (2, "元宵节"),
+        (3, "情人节"),
+        (4, "妇女节"),
+        (5, "清明节"),
+        (6, "劳动节"),
+        (7, "端午节"),
+        (8, "儿童节"),
+        (9, "七夕节"),
+        (10, "中秋节"),
+        (11, "国庆节"),
+        (12, "生日"),
+        (13, "结婚纪念日"),
+    )
+    # 所属用户
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name="所属用户")
+    src = models.ImageField(upload_to=user_directory_path,
+                            verbose_name="照片路径",
+                            help_text='请选择需要上传的图片',
+                            null=True, blank=True,
+                            default='sys_img/logo_lg.png',
+                            )
+    # image = ProcessedImageField(upload_to=user_directory_path,    # 使用这个字段，会导致图像元数据丢失
+    #                             processors=[ResizeToFit(width=1500, height=1500)],
+    #                             format='JPEG',
+    #                             options={'quality': 90},
+    #                             verbose_name='图片',
+    #                             help_text='请选择需要上传的图片',
+    #                             null=True, blank=True,
+    #                             default='sys_img/logo_lg.png'
+    #                             )
+    thumb = ImageSpecField(source='src',
+                           # processors=[ResizeToFill(400, 400)],
+                           processors=[ResizeToFit(width=500, height=500)],
+                           # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
+                           format='JPEG',
+                           options={'quality': 80},
+                           )
+    category = models.ForeignKey(
+        ImgCategory,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='img',
+        help_text='对图片按应用进行分类'
+    )
+    issue = models.ForeignKey(
+        Issue,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='img',
+        help_text='这张照片隶属于哪个问题清单'
+    )
+    year = models.IntegerField(default=1970, blank=True, verbose_name="拍摄年", help_text='拍摄年')
+    month = models.IntegerField(default=1, blank=True, verbose_name="拍摄月", help_text='拍摄月')
+    day = models.IntegerField(default=1, blank=True, verbose_name="拍摄日", help_text='拍摄日')
+
+    filename = models.CharField(default='unnamed', max_length=40, null=True, blank=True, unique=False,
+                                verbose_name="图片名", help_text='')  # unique=False, 方便调试
+    type = models.CharField(max_length=10, null=True, blank=True, verbose_name="图片格式", help_text='图片格式')
+    wid = models.IntegerField(default=0, blank=True, verbose_name="图片宽度", help_text='图片宽度')
+    height = models.IntegerField(default=0, blank=True, verbose_name="图片高度", help_text='图片高度')
+    aspect_ratio = models.DecimalField(default=0.0, max_digits=3, decimal_places=2, null=True, blank=True, verbose_name="长宽比")
+    is_exist = models.BooleanField(default=True, null=True, blank=True,
+                                   verbose_name="路径是否存在", help_text='路径是否存在')
+
+    ## 标签属性: label
+    title = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片标题", help_text='图片标题')
+    caption = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片描述", help_text='图片描述')
+    label = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片说明", help_text='图片说明')
+    tags = TaggableManager(blank=True, verbose_name="照片标签", help_text='照片标签')
+
+    ## 地点属性:location
+    is_located = models.BooleanField(default=False, blank=True, verbose_name="是否有GPS 信息", help_text='是否有GPS 信息')
+    longitude_ref = models.CharField(default='E', max_length=5, null=True, blank=True, verbose_name="东西经", help_text='东西经')
+    longitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="经度", help_text='经度')
+    latitude_ref = models.CharField(default='N', max_length=5, null=True, blank=True, verbose_name="南北纬", help_text='南北纬')
+    latitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="纬度", help_text='纬度')
+    altitude_ref = models.FloatField(default=0.0, max_length=5, null=True, blank=True, verbose_name="参考高度", help_text='参考高度')
+    altitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="高度", help_text='高度')
+    location = models.CharField(max_length=50, null=True, blank=True, verbose_name="拍摄地", help_text='拍摄地')
+    district = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄区县", help_text='拍摄区县')
+    city = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄城市", help_text='拍摄城市')
+    province = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄省份", help_text='拍摄省份')
+    country = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄国家", help_text='拍摄国家')
+
+    ## 评价属性:evaluate
+    flag = models.SmallIntegerField(default=0, choices=FLAG_OPTION, null=True, blank=True, verbose_name="旗标",
+                                    help_text="0：无旗标，1：选中旗标，2，排除旗标")
+    rating = models.IntegerField(default=0, null=True, blank=True, verbose_name="星标等级", help_text='星标等级')
+    color = models.IntegerField(default=0, null=True, blank=True, verbose_name="主体颜色", help_text='主体颜色')
+
+    ## 拍摄属性: capture
+    capture_date = models.DateField(null=True, blank=True, verbose_name="拍摄日期", help_text='拍摄日期')
+    capture_time = models.TimeField(null=True, blank=True, verbose_name="拍摄时间", help_text='拍摄时间')
+    earthly_branches = models.SmallIntegerField(choices=EARTHLY_BRANCHES_OPTION, null=True, blank=True, default=0,
+                                                verbose_name="时间段",
+                                                help_text="0: 凌晨，0~5;1: 早上，5~8;  2: 上班，8~17; 3. 晚上，17~21; 4: 深夜,21~24")
+    is_weekend = models.BooleanField(null=True, blank=True, verbose_name="是否为周末", help_text='是否为周末')
+    # 法定节假日类型(法定节假日往往会有一些不一样的记忆)
+    holiday_type = models.SmallIntegerField(choices=HOLIDAY_OPTION, null=True, blank=True, default=0,
+                                            verbose_name="节假日",
+                                            help_text="法定节假日，纪念日，生日")
+    digitized_date = models.DateTimeField(null=True, blank=True, verbose_name="照片修改日期", help_text='照片修改日期')
+    camera_brand = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机品牌", help_text='相机品牌')
+    camera_model = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机型号", help_text='相机型号')
+
+    ## 其它属性: 互动记录
+    total_views = models.PositiveIntegerField(null=True, blank=True, default=0, verbose_name="照片浏览量", help_text='照片浏览量')
+    likes = models.PositiveIntegerField(null=True, blank=True, default=0, verbose_name="点赞个数", help_text='点赞个数')
+
+    ## 其它属性: others
+    is_publish = models.BooleanField(null=True, blank=True, default=True, verbose_name="是否公开", help_text='是否公开')
+    state = models.SmallIntegerField(choices=STATE_OPTION, null=True, blank=True, default=0,
+                                     verbose_name="图片状态",
+                                     help_text="0:正常，1：禁用, 9: 已经删除")
+    # 数据库更新日期
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
+
+    def __str__(self):
+        return self.src.name
+
+    def to_dict(self):
+        return {'id': self.id,
+                'src': self.src,
+                }
+
+    @property  # 表示这个函数不能有参数
+    def custom_face(self):
+        queryset = self.face.all()  # 获取所有子对象
+        #  "name": "face/unknown/blue_1v6aCXIc.jpg"
+        # ret = [{"id": item.id, "name": item.name, "face": f'{item.face.path}'} for item in queryset]   # 不报错
+        ret = [{"id": item.id, "name": item.name, "face": item.face.path} for item in queryset]  # 可能报错
+        return ret
+
+    class Meta:
+        ordering = ('-created_at',)
+        get_latest_by = 'id'
+
+
+class Mcs(models.Model):
+    img = models.OneToOneField(
+        Img,
+        related_name='mcs',
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    file_upload_id = models.IntegerField(default=0, null=True, blank=True, verbose_name="文件上传id", help_text='文件上传id')
+    nft_url = models.URLField(default='https://calibration-ipfs.filswan.com/ipfs/QmQzPDUheTnFYA7HanxwCLw3QrR7choBvh8pswF4LgxguV', null=True, blank=True, verbose_name="NFT 站点", help_text='相当于一个图片源，可以展示图片')
+
+    def __str__(self):
+        return self.img.filename
+
+
+def get_date_info(date_str):  # '%Y:%m:%d %H:%M:%S'
+
+    if not date_str:
+        date_str = '1970:01:01 00:00:00'
+
+    tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
+    t_date = tt.strftime("%Y-%m-%d")
+    t_time = tt.strftime("%H:%M:%S")
+    year = str(tt.year).rjust(2, '0')
+    month = str(tt.month).rjust(2, '0')
+    day = str(tt.day).rjust(2, '0')
+
+    if tt.weekday() < 5:
+        is_weekend = False
+    else:
+        is_weekend = True
+    if 0 < tt.hour < 5:
+        earthly_branches = 0  # 这个判断需要后续完善，可以直接把字符串格式化后，再判读时间是否属于朝九晚五
+    elif 5 < tt.hour < 8:
+        earthly_branches = 1
+    elif 8 < tt.hour < 17:
+        earthly_branches = 2
+    elif 17 < tt.hour < 21:
+        earthly_branches = 3
+    else:
+        earthly_branches = 4
+
+    date_path = os.path.join(year, month, day)
+
+    # print(t_date, t_time)
+    return t_date, t_time, tt.year, tt.month, tt.day, is_weekend, earthly_branches, date_path
