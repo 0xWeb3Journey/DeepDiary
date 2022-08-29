@@ -1,9 +1,9 @@
 {
-  "name": "vue-admin-beautiful",
+  "name": "deep-diary",
   "version": "1.0.0",
-  "author": "vue-admin-beautiful",
+  "author": "deep-diary",
   "participants": [],
-  "homepage": "https://chu1204505056.gitee.io/vue-admin-better",
+  "homepage": "www.deep-diary.com",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
