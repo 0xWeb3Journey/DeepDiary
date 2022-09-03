@@ -27,6 +27,7 @@ export function mockXHR() {
 
   function XHRHttpRequst(respond) {
     return function (options) {
+      console.log('XHRHttpRequst: options:%o', options)
       let result
       if (respond instanceof Function) {
         const { body, type, url } = options
@@ -35,6 +36,7 @@ export function mockXHR() {
           body: JSON.parse(body),
           query: paramObj(url),
         })
+        console.log('XHRHttpRequst result: %o', result)
       } else {
         result = respond
       }
@@ -43,6 +45,7 @@ export function mockXHR() {
   }
 
   mocks.forEach((item) => {
+    console.log('mocks.forEach')
     Mock.mock(
       new RegExp(item.url),
       item.type || 'get',

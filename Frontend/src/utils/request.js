@@ -25,6 +25,7 @@ let loadingInstance
  * @param {*} msg
  */
 const handleCode = (code, msg) => {
+  console.log('this is code:%d， masg: %s', code, msg)
   switch (code) {
     case invalidCode:
       Vue.prototype.$baseMessage(msg || `后端接口${code}异常`, 'error')
@@ -61,19 +62,29 @@ instance.interceptors.request.use(
     }
     // console.log('here is interceptors.request %o', config)
     //这里会过滤所有为空、0、false的key，如果不需要请自行注释
-    if (config.data)
+    if (config.data) {
+      console.log('config data is null %o', config)
       config.data = Vue.prototype.$baseLodash.pickBy(
         config.data,
         Vue.prototype.$baseLodash.identity
       )
+    }
+
     if (
       config.data &&
       config.headers['Content-Type'] ===
         'application/x-www-form-urlencoded;charset=UTF-8'
-    )
+    ) {
+      console.log('this is the second condition %o', config)
       config.data = qs.stringify(config.data)
-    if (debounce.some((item) => config.url.includes(item)))
+      console.log('this is the second condition after stringify %o', config)
+    }
+
+    if (debounce.some((item) => config.url.includes(item))) {
+      console.log('this is the third condition %o', config)
       loadingInstance = Vue.prototype.$baseLoading()
+    }
+
     return config
   },
   (error) => {

@@ -27,9 +27,8 @@ const FileManagerPlugin = require('filemanager-webpack-plugin')
 const dayjs = require('dayjs')
 const date = dayjs().format('YYYY_M_D')
 const time = dayjs().format('YYYY-M-D HH:mm:ss')
-process.env.VUE_APP_TITLE = title || 'vue-admin-beautiful'
-process.env.VUE_APP_AUTHOR =
-  author || 'https://gitee.com/chu1204505056/vue-admin-better'
+process.env.VUE_APP_TITLE = title || 'deep-diary'
+process.env.VUE_APP_AUTHOR = author || 'https://www.deep-diary.com'
 process.env.VUE_APP_UPDATE_TIME = time
 process.env.VUE_APP_VERSION = version
 
@@ -54,6 +53,15 @@ module.exports = {
     overlay: {
       warnings: true,
       errors: true,
+    },
+    proxy: {
+      '/api': {
+        target: `http://127.0.0.1:8000/api`,
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': '',
+        },
+      },
     },
     // proxy: 'http://127.0.0.1:8000',
     // proxy: {

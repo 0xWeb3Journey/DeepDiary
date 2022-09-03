@@ -45,21 +45,21 @@ def create_face_info(sender, instance, created, **kwargs):
     if created:  # 仅创建的时候执行
         print(f'INFO: **************img instance have been created, saving face info now...')
         # save_LM_faces(instance)  # 保存lightroom 结果
-        config = Config()
-        # 关系图中包括(include)哪些函数名。
-        # 如果是某一类的函数，例如类gobang，则可以直接写'gobang.*'，表示以gobang.开头的所有函数。（利用正则表达式）。
-        # config.trace_filter = GlobbingFilter(include=[
-        #     'draw_chessboard',
-        #     'draw_chessman',
-        # ])
-        # 该段作用是关系图中不包括(exclude)哪些函数。(正则表达式规则)
-        # config.trace_filter = GlobbingFilter(exclude=[
-        #     'pycallgraph.*',
-        # ])
-        graphviz = GraphvizOutput()
-        graphviz.output_file = 'graph.png'
-        with PyCallGraph(output=graphviz, config=config):
-            save_insight_faces(instance)  # 保存insightface识别结果
+        # config = Config()
+        # # 关系图中包括(include)哪些函数名。
+        # # 如果是某一类的函数，例如类gobang，则可以直接写'gobang.*'，表示以gobang.开头的所有函数。（利用正则表达式）。
+        # # config.trace_filter = GlobbingFilter(include=[
+        # #     'draw_chessboard',
+        # #     'draw_chessman',
+        # # ])
+        # # 该段作用是关系图中不包括(exclude)哪些函数。(正则表达式规则)
+        # # config.trace_filter = GlobbingFilter(exclude=[
+        # #     'pycallgraph.*',
+        # # ])
+        # graphviz = GraphvizOutput()
+        # graphviz.output_file = 'graph.png'
+        # with PyCallGraph(output=graphviz, config=config):
+        save_insight_faces(instance)  # 保存insightface识别结果
     pass
 
 

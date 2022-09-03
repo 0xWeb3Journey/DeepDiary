@@ -1,5 +1,7 @@
 # .gitignore
 *.mp4
 *.jpg
-media/
+media
 deep_diary/config.py
+frontend
+env

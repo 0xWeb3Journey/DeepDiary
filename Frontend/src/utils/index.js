@@ -128,6 +128,7 @@ export function translateDataToTree(data) {
     parent.forEach((parent) => {
       children.forEach((current, index) => {
         if (current.parentId === parent.id) {
+          console.log('translateDataToTree')
           const temp = JSON.parse(JSON.stringify(children))
           temp.splice(index, 1)
           translator([current], temp)

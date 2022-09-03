@@ -2,7 +2,73 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/frontend/dist/favicon.ico" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/robots.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/app.5b4d7291.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-0b4404b9.4b4e9f6d.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-1788f7ae.9127a7d3.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-20d8dc3e.e4cc302c.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-324f994e.4d6091c4.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-339e5e4d.29d8775a.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-412b4481.29d8775a.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-5bd1caf4.b8387f05.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-9dd8a12c.29d8775a.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-9e7c9e88.650671f4.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-aac6b75e.77a2dad4.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-b094e9dc.b5e71182.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-bb91ac06.4d6091c4.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/element-ui.0e3a750b.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/loading.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/vab-chunk-70aabc29.377639f8.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/css/vab-layouts.c433bfbb.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/element-icons.535877f5.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/element-icons.732389de.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/fontawesome-webfont.674f50d2.674f50d2.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/fontawesome-webfont.af7ae505.af7ae505.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/fontawesome-webfont.b06871f2.b06871f2.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/fontawesome-webfont.fee66e71.fee66e71.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/lg.13e892a2.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/fonts/lg.ba38ec74.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/401.475d4b80.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/404.36bda403.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/background.e2e4b37d.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/fontawesome-webfont.912ec66d.912ec66d.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/lg.db9f4533.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/loading.87776ebd.gif" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/lqr_logo.d3cbef1d.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/lqr_logo_bk.bce44563.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/img/pro.a013cf99.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/app.2cfc2477.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-0b4404b9.cbd23d5e.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-1788f7ae.eafc53d8.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-20d8dc3e.e1d5dd78.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-2d0ac96a.5dd08242.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-2d0b3287.db01c7f5.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-324f994e.a6b5d379.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-339e5e4d.3fe5b5cf.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-412b4481.85c1ba1b.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-5bd1caf4.b9757ed8.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-9dd8a12c.64d59fa9.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-9e7c9e88.f3b888ef.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-aac6b75e.97c2dd17.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-b094e9dc.6ee10a56.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/chunk-bb91ac06.b7757abc.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/element-ui.6c77b9ee.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/vab-chunk-70aabc29.2648473e.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/vab-chunk-d939e436.a2c59ef2.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/dist/static/js/vab-layouts.76296a7a.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Backend.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Backend.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/signals.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graph.png" beforeDir="false" afterPath="$PROJECT_DIR$/graph.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/register/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/register/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/vue.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/vue.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

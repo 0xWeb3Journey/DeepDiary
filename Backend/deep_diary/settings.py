@@ -28,6 +28,7 @@ SECRET_KEY = 'django-insecure-0&&*)ta)v&qxbb!7yiz(pnz+%q2me614u21n3qoi!u1qozb56h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# 允许所有的IP访问网络服务
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -110,9 +111,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': mysql_account['DatabaseName'],  # mysql 下的数据库名
-        'USER': mysql_account['USER'],  # 服务器端数据库用户名和密码都为blue
+        'USER': mysql_account['USER'],
         'PASSWORD': mysql_account['PASSWORD'],
-        'HOST': 'localhost',
+        'HOST': mysql_account['HOST'],
         'PORT': '3306',
     },
     # 'OPTIONS': {
@@ -160,9 +161,14 @@ USE_TZ = True
 
 # 静态文件收集目录,使用本地静态资源文件
 STATIC_URL = '/static/'
+
+# 指定需要收集的静态文件的位置
+# 即前端打包文件所在位置
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
+    os.path.join(BASE_DIR, 'frontend/dist/')
 ]
+# 静态文件收集目录
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -243,8 +249,8 @@ CKEDITOR_CONFIGS = {
 
 SIMPLE_JWT = {
     # 'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=10),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=20),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=20),
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
