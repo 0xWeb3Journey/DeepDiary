@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+from celery.result import AsyncResult
 from django.db.models import Count, Max
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
@@ -9,8 +12,12 @@ from deep_diary.config import wallet_info
 from library.models import Img, ImgCategory, Mcs
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer
-from library.signals import save_img_info
-from utils.web3 import upload_file_pay
+from library.task import save_img_info, upload_img_to_mcs
+from library.task import send_email
+
+from mycelery.library.tasks import send_sms
+from mycelery.main import app
+from utils.mcs_storage import upload_file_pay
 
 
 class ImgCategoryViewSet(viewsets.ModelViewSet):
@@ -54,7 +61,9 @@ class ImgViewSet(viewsets.ModelViewSet):
         instance = serializer.save(user=self.request.user)
         # instance = serializer.save(user_id=5)
         print(f'INFO: start perform_create........{instance.src}')
-        save_img_info(instance)
+        save_img_info.delay(instance)
+        upload_img_to_mcs.delay(instance)
+        # send_email.delay('blue')
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
         # print(f'图片更新：{self.request.data}')
@@ -132,15 +141,44 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
     def check_mcs(self, request, pk=None):
-        img = self.get_object()  # 获取详情的实例对象
-        mcs = img.mcs
-        if mcs.file_upload_id == 0:  # The file is not synchronized to the MCS
-            mcs.file_upload_id, mcs.nft_url = upload_file_pay(wallet_info, img.src.path)
-            mcs.save()
-
-            msg = 'The file is not synchronized to the MCS'
+        print('---------------------------------------checking mcs')
+        result = send_email.delay('blue')
+        # result = send_sms.delay('111111')
+        async_result = AsyncResult(id=result.id, app=app)
+        if async_result.successful():
+            result = async_result.get()
+            print(result)
+            # result.forget() # 将结果删除
+        elif async_result.failed():
+            print('执行失败')
+        elif async_result.status == 'PENDING':
+            print('任务等待中被执行')
+        elif async_result.status == 'RETRY':
+            print('任务异常后正在重试')
+        elif async_result.status == 'STARTED':
+            print('任务已经开始被执行')
         else:
-            msg = 'The file already synchronized to the MCS, the file_upload_id is %d' % mcs.file_upload_id
+            print('无法识别错误')
+
+        ################################# 定时任务
+
+        # ctime = datetime.now()
+        # # 默认用utc时间
+        # utc_ctime = datetime.utcfromtimestamp(ctime.timestamp())
+        # time_delay = timedelta(seconds=5)
+        # task_time = utc_ctime + time_delay
+        # result = send_sms.apply_async(["911", ], eta=task_time)
+        # print(result.id)
+
+        # img = self.get_object()  # 获取详情的实例对象
+        # mcs = img.mcs
+        # if mcs.file_upload_id == 0:  # The file is not synchronized to the MCS
+        #     mcs.file_upload_id, mcs.nft_url = upload_file_pay(wallet_info, img.src.path)
+        #     mcs.save()
+        #
+        #     msg = 'The file is not synchronized to the MCS'
+        # else:
+        #     msg = 'The file already synchronized to the MCS, the file_upload_id is %d' % mcs.file_upload_id
 
 
         # print(img.src.path)
@@ -174,9 +212,10 @@ class ImgViewSet(viewsets.ModelViewSet):
         # else:
         #     msg = 'there is already have mac info related to this img: file id is %d' % img.mcs.file_upload_id
 
-        print(msg)
+        # print(msg)
 
-        return Response({"data": msg, 'code': 200})
+        # return Response({"data": msg, 'code': 200})
+        return Response({"data": 'msg', 'code': 200})
 
 
 class McsViewSet(viewsets.ModelViewSet):

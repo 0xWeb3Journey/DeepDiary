@@ -13,7 +13,7 @@
       ref="gallery"
       name="相片"
       disp-type="thumb"
-      storage-type="mcs"
+      storage-type="oss"
       :items="gallerys"
     ></Gallery>
   </div>

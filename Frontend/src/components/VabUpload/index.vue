@@ -108,7 +108,7 @@
         loading: false,
         dialogVisible: false,
         dialogImageUrl: '',
-        action: 'http://121.43.166.145:8000/api/img/',
+        action: 'http://127.0.0.1:8000/api/img/',
         headers: {
           Authorization: 'Bearer ' + store.getters['user/accessToken'],
         },
