@@ -5,7 +5,7 @@ from pyexiv2 import Image as exivImg
 
 from deep_diary.config import wallet_info
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
-from library.serializers import McsSerializer
+from library.serializers import McsSerializer, McsDetailSerializer
 from mycelery.main import app
 from utils.mcs_storage import upload_file_pay
 
@@ -88,38 +88,22 @@ def save_img_info(instance):
 # @app.task
 @ shared_task
 def upload_img_to_mcs(img):  # img = self.get_object()  # 获取详情的实例对象
-
-    # mcs = img.mcs
-    # if mcs.file_upload_id == 0:  # The file is not synchronized to the MCS
-    #     mcs.file_upload_id, mcs.nft_url = upload_file_pay(wallet_info, img.src.path)
-    #     mcs.save()
-    #
-    #     msg = 'The file is not synchronized to the MCS'
-    # else:
-    #     msg = 'The file already synchronized to the MCS, the file_upload_id is %d' % mcs.file_upload_id
-
-    # print(img.src.path)
     if not hasattr(img, 'mcs'):  # 判断是否又对应的mcs存储
 
-        source_file_upload_id, nft_uri = upload_file_pay(wallet_info, img)
-        # data = {
-        #     "img": img.id,
-        #     "file_upload_id": source_file_upload_id,
-        #     "nft_url": nft_uri,
-        # }
-        # # 调用序列化器进行反序列化验证和转换
-        # serializer = McsSerializer(data=data)
-        # # 当验证失败时,可以直接通过声明 raise_exception=True 让django直接跑出异常,那么验证出错之后，直接就再这里报错，程序中断了就
-        #
-        # result = serializer.is_valid(raise_exception=True)
-        # print("验证结果:%s" % result)
-        #
-        # print(serializer.errors)  # 查看错误信息
-        #
-        # # 获取通过验证后的数据
-        # print(serializer.validated_data)  # form -- clean_data
-        # # 保存数据
-        # mcs_obj = serializer.save()
+        data = upload_file_pay(wallet_info, img.src.path)
+        # 调用序列化器进行反序列化验证和转换
+        data.update(id=img.id)
+        print(data)
+        serializer = McsDetailSerializer(data=data)
+        # 当验证失败时,可以直接通过声明 raise_exception=True 让django直接跑出异常,那么验证出错之后，直接就再这里报错，程序中断了就
+
+        result = serializer.is_valid(raise_exception=True)
+        print(serializer.errors)  # 查看错误信息
+
+        # 获取通过验证后的数据
+        print(serializer.validated_data)  # form -- clean_data
+        # 保存数据
+        mcs_obj = serializer.save()
 
         msg = 'success to make a copy into mac, the file_upload_id is %d' % mcs_obj.file_upload_id
 

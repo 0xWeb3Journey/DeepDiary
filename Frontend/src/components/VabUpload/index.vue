@@ -110,7 +110,7 @@
         dialogImageUrl: '',
         action: 'http://127.0.0.1:8000/api/img/',
         headers: {
-          Authorization: 'Bearer ' + store.getters['user/accessToken'],
+          Authorization: 'Bearer ' + store.getters['user/accessToken'], // there have a space after Bearer
         },
         fileList: [],
         picture: 'picture',
@@ -217,6 +217,7 @@
 
         this.action = this.api + this.url; */
         this.dialogFormVisible = false
+        // this.$emit('uploadClosed') //自定义事件  传递值“子向父组件传值”
       },
     },
   }

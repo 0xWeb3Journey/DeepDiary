@@ -22,6 +22,13 @@ export function getImg(params) {
     method: 'get',
   })
 }
+export function getMcs(params) {
+  return request({
+    url: '/api/mcs/' + params.id + '/',
+    method: 'get',
+    // params,
+  })
+}
 export function checkImgMcs(params) {
   return request({
     url: '/api/img/' + params.id + '/check_mcs/',
@@ -41,6 +48,13 @@ export function getFaceAlbumDetail(params) {
     url: '/api/faces/' + params.id + '/',
     method: 'get',
     params,
+  })
+}
+export function getFace(params) {
+  return request({
+    url: '/api/face/' + params.id + '/',
+    method: 'get',
+    // params,
   })
 }
 

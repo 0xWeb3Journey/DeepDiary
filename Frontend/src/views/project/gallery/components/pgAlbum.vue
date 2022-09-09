@@ -13,12 +13,15 @@
       :items="albums"
       @albumClick="onGetAlbumId"
     ></Album>
+
+    <Mcs :id="checkedId" mcstype="img" :title="`Mcs Info-${checkedId}`"></Mcs>
   </div>
 </template>
 
 <script>
   import $ from 'jquery'
   import Album from './album.vue'
+  import Mcs from './mcs.vue'
 
   import {
     getGallery,
@@ -28,7 +31,7 @@
   } from '@/api/gallery'
   export default {
     name: 'PgAlbum',
-    components: { Album },
+    components: { Album, Mcs },
     data: function () {
       return {
         checkedIndex: 0,

@@ -5,3 +5,5 @@ media
 deep_diary/config.py
 frontend
 env
+**/__pycache__/
+**/migrations/

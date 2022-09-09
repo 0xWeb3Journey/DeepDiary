@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from deep_diary.config import wallet_info
+from face.views import get_all_fts
 from library.models import Img, ImgCategory, Mcs
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer
@@ -17,7 +18,7 @@ from library.task import send_email
 
 from mycelery.library.tasks import send_sms
 from mycelery.main import app
-from utils.mcs_storage import upload_file_pay
+from utils.mcs_storage import upload_file_pay, approve_usdc
 
 
 class ImgCategoryViewSet(viewsets.ModelViewSet):
@@ -59,11 +60,11 @@ class ImgViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         print(f"INFO:{self.request.user}")
         instance = serializer.save(user=self.request.user)
-        # instance = serializer.save(user_id=5)
         print(f'INFO: start perform_create........{instance.src}')
         save_img_info.delay(instance)
         upload_img_to_mcs.delay(instance)
-        # send_email.delay('blue')
+
+        # w3_api = approve_usdc(wallet_info)
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
         # print(f'图片更新：{self.request.data}')
@@ -142,23 +143,25 @@ class ImgViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
     def check_mcs(self, request, pk=None):
         print('---------------------------------------checking mcs')
-        result = send_email.delay('blue')
-        # result = send_sms.delay('111111')
-        async_result = AsyncResult(id=result.id, app=app)
-        if async_result.successful():
-            result = async_result.get()
-            print(result)
-            # result.forget() # 将结果删除
-        elif async_result.failed():
-            print('执行失败')
-        elif async_result.status == 'PENDING':
-            print('任务等待中被执行')
-        elif async_result.status == 'RETRY':
-            print('任务异常后正在重试')
-        elif async_result.status == 'STARTED':
-            print('任务已经开始被执行')
-        else:
-            print('无法识别错误')
+        names, all_fts = get_all_fts()
+        print(names)
+        # result = send_email.delay('blue')
+        # # result = send_sms.delay('111111')
+        # async_result = AsyncResult(id=result.id, app=app)
+        # if async_result.successful():
+        #     result = async_result.get()
+        #     print(result)
+        #     # result.forget() # 将结果删除
+        # elif async_result.failed():
+        #     print('执行失败')
+        # elif async_result.status == 'PENDING':
+        #     print('任务等待中被执行')
+        # elif async_result.status == 'RETRY':
+        #     print('任务异常后正在重试')
+        # elif async_result.status == 'STARTED':
+        #     print('任务已经开始被执行')
+        # else:
+        #     print('无法识别错误')
 
         ################################# 定时任务
 
@@ -219,7 +222,7 @@ class ImgViewSet(viewsets.ModelViewSet):
 
 
 class McsViewSet(viewsets.ModelViewSet):
-    queryset = Mcs.objects.all().order_by('-img_id')
+    queryset = Mcs.objects.all().order_by('-id')
     serializer_class = McsSerializer
     # permission_classes = (AllowAny,)
     pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web

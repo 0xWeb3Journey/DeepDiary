@@ -16,6 +16,23 @@ class McsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mcs
+        fields = ['nft_url']
+
+    # def to_representation(self, value):
+    #     rst={}
+    #     # 调用父类获取当前序列化数据，value代表每个对象实例ob
+    #     data = super().to_representation(value)
+    #     # 对序列化数据做修改，添加新的数据
+    #     rst['data'] = data
+    #     rst['code'] = 200
+    #     rst['msg'] = 'mcs detail info'
+    #     return rst
+
+
+class McsDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mcs
         fields = '__all__'
 
 
@@ -64,6 +81,7 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     faces = FaceSimpleSerializer(many=True, read_only=True)
 
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
+    mcs = McsDetailSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
 
 
 

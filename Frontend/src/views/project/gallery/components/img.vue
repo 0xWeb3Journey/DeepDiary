@@ -13,6 +13,8 @@
       :items="img.faces"
       @albumClick="onGetAlbumId"
     ></Album>
+
+    <Mcs :id="checkedId" mcstype="face" :title="`Mcs Info-${checkedId}`"></Mcs>
   </div>
 </template>
 
@@ -28,9 +30,10 @@
   } from '@/api/gallery'
 
   import Album from './album.vue'
+  import Mcs from './mcs.vue'
   export default {
     name: 'Img',
-    components: { Album },
+    components: { Album, Mcs },
     //进入守卫：通过路由规则，进入该组件时被调用
     beforeRouteEnter(to, from, next) {
       console.log('beforeRouteEnter....')

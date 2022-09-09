@@ -17,6 +17,7 @@
       :items="albums"
       @albumClick="onGetAlbumId"
     ></Album>
+
     <br />
     <!-- <span>下面是通过路由加载的内容</span>
     <router-view /> -->

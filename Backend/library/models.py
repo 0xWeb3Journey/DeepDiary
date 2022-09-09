@@ -220,7 +220,7 @@ class Img(models.Model):
 
 
 class Mcs(models.Model):
-    img = models.OneToOneField(
+    id = models.OneToOneField(
         Img,
         related_name='mcs',
         on_delete=models.CASCADE,
@@ -229,7 +229,7 @@ class Mcs(models.Model):
     file_upload_id = models.IntegerField(default=0, null=True, blank=True, verbose_name="up load file id",
                                          help_text='up load file id')
     file_name = models.CharField(max_length=40, null=True, blank=True, verbose_name="file name", help_text='file name')
-    fil_size = models.IntegerField(default=0, null=True, blank=True, verbose_name="fil_size", help_text='fil_size')
+    file_size = models.IntegerField(default=0, null=True, blank=True, verbose_name="file_size", help_text='file_size')
     updated_at = models.DateTimeField(default=timezone.now, verbose_name="updated_at", help_text='updated_at')
 
     nft_url = models.URLField(default='https://calibration-ipfs.filswan.com/ipfs/QmQzPDUheTnFYA7HanxwCLw3QrR7choBvh8pswF4LgxguV', null=True, blank=True, verbose_name="NFT 站点", help_text='相当于一个图片源，可以展示图片')
@@ -244,9 +244,8 @@ class Mcs(models.Model):
     mint_address = models.CharField(max_length=80, null=True, blank=True, verbose_name="mint_address", help_text='mint_address')
     nft_tx_hash = models.CharField(max_length=80, null=True, blank=True, verbose_name="nft_tx_hash", help_text='nft_tx_hash')
 
-
     def __str__(self):
-        return self.img.filename
+        return self.id.filename
 
 
 def get_date_info(date_str):  # '%Y:%m:%d %H:%M:%S'

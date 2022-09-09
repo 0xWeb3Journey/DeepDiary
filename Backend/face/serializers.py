@@ -1,8 +1,32 @@
 # face/serializers.py
 from rest_framework import serializers
 
-from face.models import Face, FaceAlbum
+from face.models import Face, FaceAlbum, Mcs
 from utils.serializers import RecursiveField
+
+
+class McsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mcs
+        fields = ['nft_url']
+
+    # def to_representation(self, value):
+    #     rst={}
+    #     # 调用父类获取当前序列化数据，value代表每个对象实例ob
+    #     data = super().to_representation(value)
+    #     # 对序列化数据做修改，添加新的数据
+    #     rst['data'] = data
+    #     rst['code'] = 200
+    #     rst['msg'] = 'mcs detail info'
+    #     return rst
+
+
+class McsDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Mcs
+        fields = '__all__'
 
 
 # 用户装备序列化 一对多数据输出
@@ -26,15 +50,17 @@ class FaceSerializer(serializers.ModelSerializer):
     # img_url = serializers.HyperlinkedIdentityField(view_name='img-detail')
     thumb = serializers.ImageField(source="img.thumb", read_only=True)  # 父节点中的照片缩略图
     thumb_face = serializers.ImageField(source="src", read_only=True)  # 本级节点中的照片缩略图
+    mcs = McsSerializer(serializers.ModelSerializer, read_only=True)
 
     class Meta:
         model = Face
-        fields = ['face_album', 'img', 'src', 'thumb', 'thumb_face', 'id', 'name', 'face_info', 'face_url']
+        fields = ['face_album', 'img', 'src', 'thumb', 'thumb_face', 'id', 'name', 'face_info', 'face_url', 'mcs']
 
 
 class FaceDetailSerializer(FaceSerializer):
     img_url = serializers.HyperlinkedRelatedField(view_name='img-detail', read_only='True')
     img = serializers.ImageField(source="img.image", read_only=True)  # 2. 使用source选项 直接指定外键模型下面的具体字段
+    mcs = McsDetailSerializer(serializers.ModelSerializer, read_only=True)
 
     class Meta:
         model = Face
@@ -43,6 +69,16 @@ class FaceDetailSerializer(FaceSerializer):
             'src': {'read_only': True},  # 这个属性是后台计算生成，对前台输入失效
             'face_info': {'read_only': True}  # 这个属性是后台计算生成，对前台输入失效
         }
+
+    def to_representation(self, value):
+        rst={}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        # 对序列化数据做修改，添加新的数据
+        rst['data'] = data
+        rst['code'] = 200
+        rst['msg'] = 'face detail info'
+        return rst
 
 
 class FaceAlbumChildrenSerializer(serializers.ModelSerializer):

@@ -294,6 +294,10 @@ def get_all_fts():  # 获取所有人脸的中心特征
 
     for album in albums:  # 直接从人脸相册中获取
         names = np.append(names, album.name)
+        if not os.path.exists(album.face_feat.path):  # if the path is not exist due some issues, then, just skip
+            continue
+
+        print('++++++++++++++:', album.face_feat.path)
         fc_info = np.load(album.face_feat.path, allow_pickle=True)
         ft = fc_info.item().normed_embedding.reshape(1, -1)
         # print(ft)
@@ -357,7 +361,12 @@ def get_face_name(ft, based='database'):
     if based == 'database':
         names, all_fts = get_all_fts()  # 得到所有的人名和中心向量
 
-    # print(f'INFO names is {names}')
+    print(f'INFO names is {names}')
+    # if len(names) == 0:  # there is no info in the database
+    if len(names) == 0:  # there is no info in the database
+        print('there is no info in the database')
+        return 'unknown', 0
+
     # print(f'INFO all_fts.shape is {all_fts.shape}')
 
     sims = np.matmul(all_fts, ft.T)
@@ -375,8 +384,6 @@ def get_face_name(ft, based='database'):
         print(f'could not found the similar face from the database')
         name = 'unknown'
     return name, sim
-
-
 
 #
 # # 更新所有人脸中心特征

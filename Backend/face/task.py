@@ -12,7 +12,9 @@ from insightface.app import FaceAnalysis
 
 # os.environ.setdefault('DJANGO_SETTING_MODULE', 'deep-diary.settings')
 # django.setup()
+from deep_diary.config import wallet_info
 from face.models import Face
+from face.serializers import McsSerializer, McsDetailSerializer
 from face.views import get_face_name, update_album_database
 from mycelery.main import app
 import os
@@ -34,6 +36,7 @@ from pyexiv2 import Image as Image_pyexiv2
 from face.models import Face, FaceAlbum
 from face.views import get_face_name, save_people_feats, save_all_feats, update_face_sim, update_album_database
 from library.models import Img
+from utils.mcs_storage import upload_file_pay, upload_file_pay_face
 
 
 class FaceInfo:
@@ -259,6 +262,32 @@ def compute_IOU(rec1, rec2):  # 这里的矩形，包括左上角坐标和右下
 
 # @app.task
 @ shared_task
+def upload_face_to_mcs(fc_obj):  # img = self.get_object()  # 获取详情的实例对象
+    if not hasattr(fc_obj, 'mcs'):  # 判断是否又对应的mcs存储
+
+        data = upload_file_pay_face(wallet_info, fc_obj.src.path)
+        # 调用序列化器进行反序列化验证和转换
+        data.update(id=fc_obj.id)
+        serializer = McsDetailSerializer(data=data)
+        # 当验证失败时,可以直接通过声明 raise_exception=True 让django直接跑出异常,那么验证出错之后，直接就再这里报错，程序中断了就
+
+        result = serializer.is_valid(raise_exception=True)
+        print(serializer.errors)  # 查看错误信息
+
+        # 获取通过验证后的数据
+        print(serializer.validated_data)  # form -- clean_data
+        # 保存数据
+        mcs_obj = serializer.save()
+
+        msg = 'success to make a copy into mac, the file_upload_id is %d' % mcs_obj.file_upload_id
+
+    else:
+        msg = 'there is already have mac info related to this img: file id is %d' % fc_obj.mcs.file_upload_id
+
+    print(msg)
+
+# @app.task
+@ shared_task
 # 通过InsightFace 人脸识别的方式，保存相关人脸信息
 def save_insight_faces(img):
     print(f'INFO: insight face detecting the face now ... ')
@@ -270,13 +299,14 @@ def save_insight_faces(img):
     faces = app.get(req_img)  # 使用insight face 获取人脸信息
 
     names, bboxs = get_LM_face_info(img)  # 从lightroom 中获取人脸信息
-    # print(f'INFO LM names is {names}')
+    print(f'INFO LM names is {names}')
     for face in faces:
         if face.det_score < 0.3:  # 是人脸的可能性 < 0.4
             continue
         fc_obj = save_face_database(img, face, names, bboxs)  # 保存相关信息到数据库
         save_face_info(fc_obj.face_info.path, face, fc_obj.name)  # 保存人脸信息到磁盘
         save_src(fc_obj.src.path, image_path, face.bbox)  # 保存人脸图片到磁盘
+        upload_face_to_mcs(fc_obj)  # update the face to mcs
 
         # if fc_obj.is_confirmed == 1:  # 如果人脸通过LM识别进行了确认，也就是IOU大于一定的程度
         #     # 5. 更新并保存该人脸所有特征和中心特征到文件系统，并返回结果

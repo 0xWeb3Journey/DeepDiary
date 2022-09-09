@@ -141,6 +141,7 @@
 
         checkedIndex: '0',
         checkedId: '0',
+        jumpId: '0',
 
         albumName: '', //相册下面的具体名字
       }
@@ -177,21 +178,25 @@
       },
 
       onAlbumChoose($event, index, item) {
-        console.log('单击事件')
+        console.log('单击事件', this.type)
         this.checkedIndex = index
         this.drawer = true
+        let jumpId
 
         if (this.type === 'face') {
-          this.checkedId = item.face_album
+          this.jumpId = item.face_album //choose the face album
+          this.checkedId = item.id // choose the face img
           this.routeName = 'FaceGallery'
           this.albumName = item.name
         }
         if (this.type === 'personal') {
+          this.jumpId = item.id
           this.checkedId = item.id
           this.routeName = 'FaceGallery'
           this.albumName = item.name
         }
         if (this.type === 'collection') {
+          this.jumpId = item.id
           this.checkedId = item.id
           this.routeName = 'Img'
           // this.albumName = item.names.join(',')
@@ -202,13 +207,18 @@
         this.$emit('albumClick', index, this.checkedId) //自定义事件  传递值“子向父组件传值”
       },
 
+      //upload the img
+      handleShow(data) {
+        this.$refs['vabUpload'].handleShow(data)
+      },
+
       //双击事件
       onDoubleClick(event, index, item) {
         console.log('双击事件')
         this.$router.push({
           name: this.routeName,
           query: {
-            id: this.checkedId,
+            id: this.jumpId,
             title: item.name,
           },
         })

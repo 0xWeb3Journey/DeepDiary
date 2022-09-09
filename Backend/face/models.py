@@ -106,15 +106,15 @@ class Face(models.Model):
     face_info = models.FileField(upload_to=face_info_directory_path, null=True, blank=True, verbose_name='人脸属性',
                                  help_text='已识别的人脸路径')
     src = models.ImageField(upload_to=face_directory_path,
-                                 verbose_name="人脸路径",
-                                 help_text='请选择需要上传的人脸',
-                                 null=True, blank=True,
-                                 default='sys_img/unknown.jpg',
-                                 )
+                            verbose_name="人脸路径",
+                            help_text='请选择需要上传的人脸',
+                            null=True, blank=True,
+                            default='sys_img/unknown.jpg',
+                            )
     thumb = ImageSpecField(source='src',
-                                    processors=[ResizeToFill(400, 400)],
-                                    format='JPEG',
-                                    options={'quality': 80})
+                           processors=[ResizeToFill(400, 400)],
+                           format='JPEG',
+                           options={'quality': 80})
     x = models.IntegerField(null=True, blank=True, verbose_name="左上角x坐标", help_text='人脸左上角x坐标')
     y = models.IntegerField(null=True, blank=True, verbose_name="左上角y坐标", help_text='人脸左上角y坐标')
     wid = models.IntegerField(null=True, blank=True, verbose_name="宽度", help_text='人脸宽度')
@@ -138,7 +138,36 @@ class Face(models.Model):
         get_latest_by = 'created_at'
 
 
+class Mcs(models.Model):
+    id = models.OneToOneField(
+        Face,
+        related_name='mcs',
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    file_upload_id = models.IntegerField(default=0, null=True, blank=True, verbose_name="up load file id",
+                                         help_text='up load file id')
+    file_name = models.CharField(max_length=40, null=True, blank=True, verbose_name="file_name", help_text='file_name')
+    file_size = models.IntegerField(default=0, null=True, blank=True, verbose_name="file_size", help_text='file_size')
+    updated_at = models.DateTimeField(default=timezone.now, verbose_name="updated_at", help_text='updated_at')
 
+    nft_url = models.URLField(
+        default='https://calibration-ipfs.filswan.com/ipfs/QmQzPDUheTnFYA7HanxwCLw3QrR7choBvh8pswF4LgxguV', null=True,
+        blank=True, verbose_name="NFT 站点", help_text='相当于一个图片源，可以展示图片')
+    pin_status = models.CharField(max_length=8, null=True, blank=True, verbose_name="pin_status",
+                                  help_text='pin_status')
+    payload_cid = models.CharField(max_length=80, null=True, blank=True, verbose_name="payload_cid",
+                                   help_text='payload_cid')
+    w_cid = models.CharField(max_length=100, null=True, blank=True, verbose_name="w_cid", help_text='w_cid')
+    status = models.CharField(max_length=8, null=True, blank=True, verbose_name="status", help_text='status')
 
+    deal_success = models.BooleanField(default=False, blank=True, verbose_name="deal_success", help_text='deal_success')
+    is_minted = models.BooleanField(default=False, blank=True, verbose_name="is_minted", help_text='is_minted')
+    token_id = models.CharField(max_length=8, null=True, blank=True, verbose_name="token_id", help_text='token_id')
+    mint_address = models.CharField(max_length=80, null=True, blank=True, verbose_name="mint_address",
+                                    help_text='mint_address')
+    nft_tx_hash = models.CharField(max_length=80, null=True, blank=True, verbose_name="nft_tx_hash",
+                                   help_text='nft_tx_hash')
 
-
+    def __str__(self):
+        return self.id.name

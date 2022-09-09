@@ -117,7 +117,7 @@
       storageType: {
         type: String,
         default: 'oss', // oss, mcs
-        required: true,
+        required: false,
       },
       limit: {
         type: Number,
