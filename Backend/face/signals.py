@@ -1,29 +1,14 @@
-import os
-import random
-import string
-
-import cv2 as cv
-import django
-import numpy as np
-from PIL import Image as Image_PIL
 # Create your models here.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from insightface.app import FaceAnalysis
-from pyexiv2 import Image as Image_pyexiv2
 
 # os.environ.setdefault('DJANGO_SETTING_MODULE', 'deep-diary.settings')
 # django.setup()
-from face.models import Face, FaceAlbum
 from face.task import save_insight_faces
-from face.views import get_face_name, save_people_feats, save_all_feats, update_face_sim, update_album_database
 from library.models import Img
 
+
 ## graph
-from pycallgraph import PyCallGraph
-from pycallgraph.output import GraphvizOutput
-from pycallgraph import Config
-from pycallgraph import GlobbingFilter
 
 
 # 信号接收函数，每当新建 Image 实例时自动调用
@@ -46,7 +31,8 @@ def create_face_info(sender, instance, created, **kwargs):
         # graphviz = GraphvizOutput()
         # graphviz.output_file = 'graph.png'
         # with PyCallGraph(output=graphviz, config=config):
-        save_insight_faces.delay(instance)  # 保存insightface识别结果
+        # save_insight_faces.delay(instance)  # 保存insightface识别结果
+        save_insight_faces(instance)  # 保存insightface识别结果
     pass
 
 

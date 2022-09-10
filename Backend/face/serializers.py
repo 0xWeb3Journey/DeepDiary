@@ -122,10 +122,11 @@ class FaceAlbumSerializer(serializers.ModelSerializer):
     children = FaceAlbumChildrenSerializer(many=True, read_only=True)  # 正常
     # faces = FaceSerializer(many=True, read_only=True)
     src = serializers.ImageField(source="avatar", read_only=True)  # 本级节点中的照片缩略图
+    item_cnt = serializers.IntegerField()
 
     class Meta:
         model = FaceAlbum
-        fields = ['id', 'album_url', 'name', 'face_feat', 'src', 'level', 'children', 'parent'] # 'faces' 人脸id 暂时用不到
+        fields = ['id', 'album_url', 'name', 'src', 'level', 'children', 'parent', 'item_cnt'] # 'faces' 人脸id 暂时用不到
         # fields = '__all__'
         extra_kwargs = {
             'face_feat': {'read_only': True},  # 这个属性是后台计算生成，对前台输入失效

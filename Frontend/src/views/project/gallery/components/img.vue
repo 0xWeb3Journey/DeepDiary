@@ -9,8 +9,9 @@
       v-if="true"
       ref="album"
       title="人脸"
-      type="face"
+      type="img"
       :items="img.faces"
+      :total="img.faces.length"
       @albumClick="onGetAlbumId"
     ></Album>
 
@@ -27,6 +28,7 @@
     getFaceAlbum,
     getFaceGallery,
     getImg,
+    changeFaceName,
   } from '@/api/gallery'
 
   import Album from './album.vue'

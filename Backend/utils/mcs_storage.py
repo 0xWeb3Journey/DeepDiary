@@ -32,7 +32,7 @@ from library.serializers import McsSerializer
 def approve_usdc(wallet_info):
     w3_api = ContractAPI(wallet_info['web3_api'])
     w3_api.approve_usdc(wallet_info['wallet_address'],
-                        wallet_info['private_key'], "100")
+                        wallet_info['private_key'], "1")
 
     return w3_api
 
@@ -73,32 +73,32 @@ def upload_file_pay(wallet_info, filepath):  # img is an object
         "deal_success": True,
     }
 
-    # params = api.get_params()["data"]
-    # # get filcoin price
-    # rate = api.get_price_rate()["data"]
-    # # w3_api = ContractAPI(web3_api)
-    # w3_api = approve_usdc(wallet_info)  # Usdc approve needs to be performed one step before payment.
-    # # upload file and pay contract
-    # tx_hash = w3_api.upload_file_pay(wallet_address, private_key, file_size, w_cid, rate, params)
-    #
-    # # upload nft metadata
-    # meta_url = api.upload_nft_metadata(wallet_address, filename,
-    #                                    nft_uri, tx_hash, file_size)['data']['ipfs_url']
-    # # mint nft contract
-    # tx_hash, token_id = w3_api.mint_nft(wallet_address, private_key, meta_url)
-    # # update mint info
-    # mint_info = api.get_mint_info(source_file_upload_id, None, tx_hash, token_id, wallet_address)
-    # print(mint_info)
-    #
-    # if mint_info["status"] != 'success':
-    #     return upload_rst
-    # mint_rst = {
-    #     "is_minted": True,
-    #     "token_id": token_id,
-    #     "mint_address": mint_info['data']['mint_address'],
-    #     "nft_tx_hash": tx_hash,
-    # }
-    # upload_rst.update(mint_rst)
+    params = api.get_params()["data"]
+    # get filcoin price
+    rate = api.get_price_rate()["data"]
+    # w3_api = ContractAPI(web3_api)
+    w3_api = approve_usdc(wallet_info)  # Usdc approve needs to be performed one step before payment.
+    # upload file and pay contract
+    tx_hash = w3_api.upload_file_pay(wallet_address, private_key, file_size, w_cid, rate, params)
+
+    # upload nft metadata
+    meta_url = api.upload_nft_metadata(wallet_address, filename,
+                                       nft_uri, tx_hash, file_size)['data']['ipfs_url']
+    # mint nft contract
+    tx_hash, token_id = w3_api.mint_nft(wallet_address, private_key, meta_url)
+    # update mint info
+    mint_info = api.get_mint_info(source_file_upload_id, None, tx_hash, token_id, wallet_address)
+    print(mint_info)
+
+    if mint_info["status"] != 'success':
+        return upload_rst
+    mint_rst = {
+        "is_minted": True,
+        "token_id": token_id,
+        "mint_address": mint_info['data']['mint_address'],
+        "nft_tx_hash": tx_hash,
+    }
+    upload_rst.update(mint_rst)
 
     return upload_rst
 

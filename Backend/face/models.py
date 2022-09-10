@@ -57,7 +57,7 @@ class FaceAlbum(MPTTModel):
         related_name='children'
     )
     name = models.CharField(max_length=20, null=True, blank=True, default='unknown', verbose_name="人脸名",
-                            help_text='请对该人脸进行命名')
+                            help_text='请对该人脸相册进行命名')
     face_feat = models.FileField(upload_to=face_info_directory_path, null=True, blank=True, verbose_name='人脸特征',
                                  help_text='已识别的人脸特征路径')
     is_has_feat = models.BooleanField(blank=True, default=False, verbose_name="是否有人脸特征", help_text='是否有人脸特征')

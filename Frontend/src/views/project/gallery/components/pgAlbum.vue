@@ -11,6 +11,7 @@
       type="collection"
       route="Face_detail"
       :items="albums"
+      :total="totalCount"
       @albumClick="onGetAlbumId"
     ></Album>
 
@@ -38,7 +39,7 @@
         checkedId: 0,
         albums: [],
         albumLoading: false,
-        totalAlbumCnt: 0,
+        totalCount: 0,
         queryForm: {
           page: 1,
           pageSize: 10,
@@ -75,7 +76,7 @@
         if (this.albumLoading) return //incase fetch more data during the fetching time
 
         this.albumLoading = true
-        if (this.curAlbumCnt < this.totalAlbumCnt || this.totalAlbumCnt === 0) {
+        if (this.curAlbumCnt < this.totalCount || this.totalCount === 0) {
           const { data, totalCount } = await getAlbum(this.queryForm)
           if (totalCount === 0) return //could fetch any data
           this.queryForm.page += 1
@@ -86,7 +87,7 @@
           )
           this.albums = [...this.albums, ...data]
           this.curAlbumCnt = this.albums.length
-          this.totalAlbumCnt = totalCount
+          this.totalCount = totalCount
           setTimeout(() => {
             this.albumLoading = false
           }, 300)

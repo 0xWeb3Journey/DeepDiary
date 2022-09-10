@@ -50,11 +50,35 @@ export function getFaceAlbumDetail(params) {
     params,
   })
 }
+
+export function changeFaceAlbumName(data) {
+  return request({
+    url: '/api/faces/' + data.id + '/',
+    method: 'put',
+    data,
+  })
+}
+
+export function clear_face_album(params) {
+  return request({
+    url: '/api/faces/clear_face_album/',
+    method: 'get',
+  })
+}
+
 export function getFace(params) {
   return request({
     url: '/api/face/' + params.id + '/',
     method: 'get',
     // params,
+  })
+}
+
+export function changeFaceName(data) {
+  return request({
+    url: '/api/face/' + data.id + '/',
+    method: 'put',
+    data,
   })
 }
 

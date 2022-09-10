@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from deep_diary.config import wallet_info
-from face.views import get_all_fts
+from face.task import get_all_fts
 from library.models import Img, ImgCategory, Mcs
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer
@@ -62,7 +62,8 @@ class ImgViewSet(viewsets.ModelViewSet):
         instance = serializer.save(user=self.request.user)
         print(f'INFO: start perform_create........{instance.src}')
         save_img_info.delay(instance)
-        upload_img_to_mcs.delay(instance)
+        # upload_img_to_mcs.delay(instance)
+        upload_img_to_mcs(instance)
 
         # w3_api = approve_usdc(wallet_info)
 

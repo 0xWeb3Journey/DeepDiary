@@ -19,8 +19,8 @@
     <!-- Album -->
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <span>{{ title }}</span>
-        <span v-if="albumName">> {{ albumName }}</span>
+        <span>{{ title }}({{ checkedIndex + 1 }} / {{ total }})</span>
+        <span v-if="albumName">> {{ albumName }} ({{ albumCnt }})</span>
         <el-page-header
           v-if="false"
           :content="title"
@@ -29,7 +29,11 @@
         <el-button-group style="float: right">
           <el-button type="primary" icon="el-icon-plus"></el-button>
           <el-button type="primary" icon="el-icon-edit"></el-button>
-          <el-button type="primary" icon="el-icon-map-location"></el-button>
+          <el-button
+            type="primary"
+            icon="el-icon-map-location"
+            @click="clear"
+          ></el-button>
           <el-button
             type="primary"
             icon="el-icon-user-solid"
@@ -62,9 +66,29 @@
             :class="checkedIndex === index ? 'img-checked' : 'img-unchecked'"
             :src="album.src"
             :alt="album.name"
-            :title="album.name"
           />
-          <!-- <div class="jg-caption">I'm only in the alt</div> -->
+          <!-- :title="album.name" -->
+          <div class="jg-caption">
+            <el-row>
+              <el-col :span="20">
+                <el-input
+                  v-model="album.name"
+                  placeholder="Change the Name"
+                  style="float: left; font-size: 8px"
+                  @blur="changeName(album.name, index)"
+                  @keyup.enter.native="enterBlur($event)"
+                ></el-input>
+              </el-col>
+              <el-col :span="4">
+                <label
+                  for="name"
+                  style="float: right; display: inline-block; font-size: 15px"
+                >
+                  {{ album.item_cnt }}
+                </label>
+              </el-col>
+            </el-row>
+          </div>
         </div>
       </div>
     </el-card>
@@ -87,6 +111,15 @@
 
   import VabUpload from '@/components/VabUpload'
 
+  import {
+    getGallery,
+    getAlbum,
+    getFaceAlbum,
+    changeFaceAlbumName,
+    changeFaceName,
+    clear_face_album,
+  } from '@/api/gallery'
+
   export default {
     name: 'Album',
     components: { VabUpload },
@@ -96,6 +129,12 @@
         default: () => [],
         required: true,
       },
+      total: {
+        type: Number,
+        default: 50,
+        required: true,
+      },
+
       title: {
         type: String,
         default: '88888888888888', // model field name
@@ -103,22 +142,12 @@
       },
       type: {
         type: String,
-        default: 'face', // could be face, personal, group, collection, address, obect
+        default: 'img', // could be face, personal, group, collection, address, obect
         required: false,
       },
       route: {
         type: String,
         default: 'Face_detail', // could be face, personal, group, collection, address, obect
-        required: false,
-      },
-      limit: {
-        type: Number,
-        default: 50,
-        required: false,
-      },
-      size: {
-        type: Number,
-        default: 8,
         required: false,
       },
     },
@@ -134,16 +163,22 @@
           pageSize: 10,
           search: '',
         },
+        postData: {
+          id: 0,
+          name: '',
+        },
         // albums: [],
         albumLoading: false,
         totalAlbumCnt: 0,
         curAlbumCnt: 0,
 
-        checkedIndex: '0',
-        checkedId: '0',
-        jumpId: '0',
+        checkedIndex: 0,
+        checkedId: 0,
+        checkedName: '',
+        jumpId: 0,
 
         albumName: '', //相册下面的具体名字
+        albumCnt: 1, //某个相册下面的具体数量
       }
     },
     watch: {
@@ -178,22 +213,24 @@
       },
 
       onAlbumChoose($event, index, item) {
-        console.log('单击事件', this.type)
+        console.log('单击事件', this.type, this.total)
         this.checkedIndex = index
         this.drawer = true
         let jumpId
 
-        if (this.type === 'face') {
+        if (this.type === 'img') {
           this.jumpId = item.face_album //choose the face album
           this.checkedId = item.id // choose the face img
           this.routeName = 'FaceGallery'
           this.albumName = item.name
+          // this.albumCnt = item.item_cnt
         }
         if (this.type === 'personal') {
           this.jumpId = item.id
           this.checkedId = item.id
           this.routeName = 'FaceGallery'
           this.albumName = item.name
+          this.albumCnt = item.item_cnt
         }
         if (this.type === 'collection') {
           this.jumpId = item.id
@@ -201,12 +238,78 @@
           this.routeName = 'Img'
           // this.albumName = item.names.join(',')
           this.albumName = item.filename
+          // this.albumCnt = item.item_cnt
         }
-        console.log(this.checkedIndex, this.checkedId)
+        console.log(this.type, this.checkedIndex, this.checkedId)
         // $('#album').justifiedGallery()
         this.$emit('albumClick', index, this.checkedId) //自定义事件  传递值“子向父组件传值”
       },
 
+      async changeFaceAlbumName(value, index) {
+        console.log(value, this.albumName)
+        // this.items[index].name = value
+        if (value !== this.albumName) {
+          this.postData.id = this.checkedId
+          this.postData.name = value
+          // this.$message({
+          //   message: `Success changed ${this.albumName} to ${value}`,
+          //   type: 'success',
+          // })
+
+          const { data, msg } = await changeFaceAlbumName(this.postData)
+          console.log(data, msg)
+          this.$message({
+            message: `Success changed ${this.albumName} to ${value}`,
+            type: 'success',
+          })
+
+          this.albumName = value
+        }
+      },
+
+      async changeFaceName(value, index) {
+        console.log(value, this.albumName)
+        // this.items[index].name = value
+        if (value !== this.albumName) {
+          this.postData.id = this.checkedId
+          this.postData.name = value
+          // this.$message({
+          //   message: `Success changed ${this.albumName} to ${value}`,
+          //   type: 'success',
+          // })
+          const { data, msg } = await changeFaceName(this.postData)
+          console.log(data, msg)
+          this.$message({
+            message: `Success changed ${this.albumName} to ${value}`,
+            type: 'success',
+          })
+
+          this.albumName = value
+        }
+      },
+
+      changeName(value, index) {
+        if (this.type === 'personal') {
+          this.changeFaceAlbumName(value, index)
+        }
+        if (this.type === 'img') {
+          this.changeFaceName(value, index)
+        }
+      },
+
+      //回车失去焦点
+      enterBlur(event) {
+        event.target.blur()
+      },
+
+      async clear() {
+        const { data, msg } = await clear_face_album(this.postData)
+        console.log(msg)
+        this.$message({
+          message: msg,
+          type: 'success',
+        })
+      },
       //upload the img
       handleShow(data) {
         this.$refs['vabUpload'].handleShow(data)
@@ -240,4 +343,8 @@
   .img-unchecked {
     opacity: 0.5;
   }
+  /* .box-card {
+    height: 500x;
+    border: 1px solid rgb(8, 23, 231);
+  } */
 </style>
