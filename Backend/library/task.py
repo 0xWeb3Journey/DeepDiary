@@ -4,7 +4,10 @@ from celery import shared_task
 from pyexiv2 import Image as exivImg
 
 from deep_diary.config import wallet_info
+from face.models import Face
+from face.task import upload_face_to_mcs
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
+from library.models import Img
 from library.serializers import McsSerializer, McsDetailSerializer
 from mycelery.main import app
 from utils.mcs_storage import upload_file_pay
@@ -111,3 +114,22 @@ def upload_img_to_mcs(img):  # img = self.get_object()  # 获取详情的实例�
         msg = 'there is already have mac info related to this img: file id is %d' % img.mcs.file_upload_id
 
     print(msg)
+
+
+@ shared_task
+def upload_to_mcs():
+    print('-----------------start upload all the imgs to mcs-----------------')
+    imgs = Img.objects.filter(mcs__isnull=True)
+    for (img_idx, img) in enumerate(imgs):
+        print(f'--------------------INFO: This is img{img_idx}: {img.id} ---------------------')
+        upload_img_to_mcs(img)
+    print('------------all the imgs have been uploaded to mcs----------------')
+
+    print('-----------------start upload all the faces to mcs-----------------')
+    fcs = Face.objects.filter(mcs__isnull=True)
+    for (fc_idx, fc) in enumerate(fcs):
+        print(f'--------------------NFO: This is face{fc_idx}: {fc.name}---------------------')
+        upload_face_to_mcs(fc)
+    print('------------all the faces have been uploaded to mcs----------------')
+
+    print('----end----')

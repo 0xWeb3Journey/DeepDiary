@@ -39,6 +39,13 @@ def approve_usdc(wallet_info):
 
 def upload_file_pay(wallet_info, filepath):  # img is an object
 
+    if not os.path.exists(filepath):
+        print(f'INFO: the file path is not existed-——> {filepath}')
+        upload_rst = {
+            "status": "the file path is not existed",
+        }
+        return upload_rst
+
     wallet_address = wallet_info['wallet_address']
     private_key = wallet_info['private_key']
     web3_api = wallet_info['web3_api']
@@ -104,6 +111,9 @@ def upload_file_pay(wallet_info, filepath):  # img is an object
 
 
 def upload_file_pay_face(wallet_info, filepath):  # img is an object
+
+    if not os.path.exists(filepath):
+        print(f'INFO: the file path is not existed-——> {filepath}')
 
     wallet_address = wallet_info['wallet_address']
     private_key = wallet_info['private_key']

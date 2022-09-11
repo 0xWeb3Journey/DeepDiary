@@ -25,7 +25,7 @@ from deep_diary.settings import FACE_INFO_ROOT
 # django.setup()
 from face.models import Face, FaceAlbum
 from face.serializers import McsDetailSerializer
-from utils.mcs_storage import upload_file_pay_face
+from utils.mcs_storage import upload_file_pay_face, upload_file_pay
 
 
 class FaceInfo:
@@ -136,7 +136,8 @@ def face_zoom(area, ratio, width, height):  # area: 中心坐标，宽度，高�
     # return np.array(bbox).astype(int)
 
 
-def save_face_database(img, face, names, bboxs):  # save face to database
+def save_face_database(img, face, names,
+                       bboxs):  # save face to database, this face is the result of insightface, not the obj
 
     # 1. 获取人脸名字
     if len(names) == 0:  # 通过LM方式未检测到人脸
@@ -175,8 +176,6 @@ def save_face_database(img, face, names, bboxs):  # save face to database
 
     # 2. 判断人脸相册是否存在该人，不存在则创建,
     album = update_album_database(face_name, face_info, face_src)
-
-    'sys_img/logo_lg.png'
 
     # 3. 保存人脸信息到数据库
     fc = Face()
@@ -249,7 +248,6 @@ def compute_IOU(rec1, rec2):  # 这里的矩形，包括左上角坐标和右下
         return S_cross / (S1 + S2 - S_cross)
 
 
-
 def change_confirm_state(fc, serializer):  # fc 更新前的实例对象，serializer： 更新后并经过校验的序列化器
     data = serializer.validated_data
     # print(f'INFO serializer.validated_data{data}')
@@ -299,7 +297,7 @@ def move_face_file(old_path, old_name, new_name):
     print(f'移动文件并重命名，原文件 {old_path},目标目录{new_img_path}')
 
 
-def update_album_database(face_name, fc):
+def update_album_database(face_name, face_info='', face_src=''):
     """
     输入：
         更新后的名字
@@ -320,7 +318,8 @@ def update_album_database(face_name, fc):
         print(f"INFO the face album already exist, name is  {album.name}")
     else:
         # album = FaceAlbum.objects.create(name=face_name)
-        album = FaceAlbum.objects.create(name=face_name, face_feat=fc.face_info, avatar=fc.src, is_has_feat=True)
+        print(f'#######face_info: {face_info}, face_src: {face_src}')
+        album = FaceAlbum.objects.create(name=face_name, face_feat=face_info, avatar=face_src, is_has_feat=True)
         print(f"INFO the face album not exist, creating now, the new album id is {album.id}")
 
     return album
@@ -484,12 +483,17 @@ def get_face_name(ft, based='database'):
         name = 'unknown'
     return name, sim
 
+
 # @app.task
-@ shared_task
+@shared_task
 def upload_face_to_mcs(fc_obj):  # img = self.get_object()  # 获取详情的实例对象
     if not hasattr(fc_obj, 'mcs'):  # 判断是否又对应的mcs存储
 
-        data = upload_file_pay_face(wallet_info, fc_obj.src.path)
+        data = upload_file_pay(wallet_info, fc_obj.src.path)
+
+        if data["status"] != 'success':
+            return
+
         # 调用序列化器进行反序列化验证和转换
         data.update(id=fc_obj.id)
         serializer = McsDetailSerializer(data=data)
@@ -510,8 +514,9 @@ def upload_face_to_mcs(fc_obj):  # img = self.get_object()  # 获取详情的实
 
     print(msg)
 
+
 # @app.task
-@ shared_task
+@shared_task
 # 通过InsightFace 人脸识别的方式，保存相关人脸信息
 def save_insight_faces(img):
     print(f'INFO: insight face detecting the face now ... ')
@@ -530,7 +535,7 @@ def save_insight_faces(img):
         fc_obj = save_face_database(img, face, names, bboxs)  # 保存相关信息到数据库
         save_face_info(fc_obj.face_info.path, face, fc_obj.name)  # 保存人脸信息到磁盘
         save_src(fc_obj.src.path, image_path, face.bbox)  # 保存人脸图片到磁盘
-        upload_face_to_mcs(fc_obj)  # update the face to mcs
+        # upload_face_to_mcs(fc_obj)  # update the face to mcs
 
         # if fc_obj.is_confirmed == 1:  # 如果人脸通过LM识别进行了确认，也就是IOU大于一定的程度
         #     # 5. 更新并保存该人脸所有特征和中心特征到文件系统，并返回结果
@@ -542,8 +547,9 @@ def save_insight_faces(img):
         #     # 7. 根据计算好的中心向量，更新该人脸所有的相似度
         #     update_face_sim(fc_obj.name, cft)
 
-@ shared_task
-def change_album_name(album, serializer): # serializer
+
+@shared_task
+def change_album_name(album, serializer):  # serializer
     data = serializer.validated_data
 
     old_name = album.name
@@ -600,7 +606,7 @@ def change_album_name(album, serializer): # serializer
         return old_name, new_name
 
 
-@ shared_task
+@shared_task
 def change_face_name(fc, serializer):  # fc 更新前的实例对象，serializer： 更新后并经过校验的序列化器
     # data = self.request.data.copy()
     data = serializer.validated_data
@@ -610,13 +616,12 @@ def change_face_name(fc, serializer):  # fc 更新前的实例对象，serialize
     print(f'人脸更新：新的人脸是 {old_name} --> {new_name}')
     if old_name != new_name:
         # 3. 人脸相册数据库更新
-        album = update_album_database(new_name, fc)
+        album = update_album_database(new_name, fc.face_info, fc.src)
         # 4. 保存相关人脸信息到数据库
         face = serializer.save(face_album_id=album.id, is_confirmed=True)  # 序列化器貌似无法直接更新外键
 
         # check whether there are still some faces in the album after changed, if no faces left, then, delete this album
         queryset = FaceAlbum.objects.annotate(item_cnt=Count('faces')).filter(item_cnt=0).delete()
-
 
         #
         # # 1. 更新数据库路径信息
@@ -628,7 +633,7 @@ def change_face_name(fc, serializer):  # fc 更新前的实例对象，serialize
         # # print(f'INFO new_img_path = {new_img_path}，new_info_path = {new_info_path}')
         #
         # # 3. 人脸相册数据库更新
-        # album = update_album_database(new_name)
+        # album = update_album_database(new_name, fc.face_info, fc.src)
         #
         # # 4. 保存相关人脸信息到数据库
         # face = serializer.save(src=new_img_path, face_info=new_info_path,

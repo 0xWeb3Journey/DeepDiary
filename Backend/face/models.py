@@ -19,6 +19,8 @@ from library.models import Img
 from PIL import Image as Image_PIL
 from pyexiv2 import Image as Image_pyexiv2
 
+from user_info.models import Profile
+
 STATE_OPTION = (
     (0, "正常"),
     (1, "禁用"),
@@ -48,6 +50,14 @@ def face_info_directory_path(instance, filename):
 
 
 class FaceAlbum(MPTTModel):
+    pass
+    profile = models.OneToOneField(
+        Profile,
+        related_name='facealbum',
+        on_delete=models.CASCADE,
+        primary_key=False,
+        null=True
+    )
     # 新增，mptt树形结构
     parent = TreeForeignKey(
         'self',

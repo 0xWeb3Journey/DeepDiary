@@ -15,6 +15,8 @@
       @albumClick="onGetAlbumId"
     ></Album>
 
+    <Profile :id="checkedId" mcstype="img"></Profile>
+    <!-- :title="`Profile Info-${checkedId}`" -->
     <br />
     <!-- <span>下面是通过路由加载的内容</span>
     <router-view /> -->
@@ -24,6 +26,7 @@
 <script>
   import $ from 'jquery'
   import Album from './album.vue'
+  import Profile from './profile.vue'
   import {
     getGallery,
     getAlbum,
@@ -32,7 +35,7 @@
   } from '@/api/gallery'
   export default {
     name: 'PgFacePersonal',
-    components: { Album },
+    components: { Album, Profile },
     data: function () {
       return {
         faceAlbumQueryForm: {
@@ -79,7 +82,7 @@
         console.log('recieved the child component value %d,%d', index, id)
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
-        this.checkedId = id
+        this.checkedId = id || 0 // if return unexpected id, then set the id to default 1
       },
       async fetchFaceAlbum() {
         if (this.albumLoading) return //incase fetch more data during the fetching time

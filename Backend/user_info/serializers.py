@@ -2,13 +2,25 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
+from face.serializers import FaceAlbumSerializer, FaceAlbumDetailSerializer, FaceAlbumSimpleSerializer
 from project.serializers import ProjectSerializer
-from user_info.models import Profile, Company, POSITION_OPTION, ROLES_OPTION
+from tags.serializers import TagSerializerField
+from user_info.models import Profile, Company, POSITION_OPTION, ROLES_OPTION, SupplyDemand
 from utils.serializers import DisplayChoiceField
 
 
+class SupplyDemandSerializer(serializers.ModelSerializer):
+    tags = TagSerializerField(read_only=True)
+
+    class Meta:
+        model = SupplyDemand
+        # fields = '__all__'
+        exclude = ['created_at', 'updated_at', 'profile']
+
+
 class UserRegisterSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='profile-detail', lookup_field='username')
+    # url = serializers.HyperlinkedIdentityField(view_name='profile-detail', lookup_field='username')
+    url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
 
     class Meta:
         model = Profile
@@ -41,14 +53,21 @@ class UserSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     """于文章列表中引用的嵌套序列化器"""
     # 本级属性
-    profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail', lookup_field='username')
+    # profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail', lookup_field='username')
+    profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
     # position = DisplayChoiceField(choices=POSITION_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
     # read_only=True, 允许表单roles为空
     roles = DisplayChoiceField(choices=ROLES_OPTION, read_only=True)  # 获取choice 属性值方式一：指定复写后的choice类,
+    # supplydemand = SupplyDemandSerializer(many=True, read_only=True)
+    supplys = SupplyDemandSerializer(many=True, read_only=True)
+    demands = SupplyDemandSerializer(many=True, read_only=True)
+    facealbum = FaceAlbumSimpleSerializer(read_only=True)
+    relation = TagSerializerField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['username', 'password', 'avatar', 'introduction', 'roles', 'profile_url']
+        fields = ['username', 'password', 'relation', 'tel', 'avatar', 'introduction', 'roles', 'profile_url',
+                  'facealbum', 'supplys', 'demands']  # , 'supplydemand', 'facealbum'
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -69,6 +88,16 @@ class UserDetailSerializer(serializers.ModelSerializer):
             password = validated_data.pop('password')
             instance.set_password(password)
         return super().update(instance, validated_data)
+
+    def to_representation(self, value):
+        rst = {}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        # 对序列化数据做修改，添加新的数据
+        rst['data'] = data
+        rst['code'] = 200
+        rst['msg'] = 'user profile'
+        return rst
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -91,6 +120,8 @@ class ProfileDetailSerializer(ProfileSerializer):  # 直接继承ImgSerializer�
     # 子级属性：一对多
     project = ProjectSerializer(many=True, read_only=True)  # 这里的名字，必须和外键'related_name' 名字一样
 
+    supplydemand = SupplyDemandSerializer(many=True, read_only=True)
+
     class Meta:
         model = Profile
         fields = '__all__'
@@ -110,3 +141,5 @@ class CompanySerializer(serializers.ModelSerializer):
         # fields = ['name', 'addr', 'desc', 'company_url']
         # fields = '__all__'
         exclude = ['created_at', 'updated_at']
+
+

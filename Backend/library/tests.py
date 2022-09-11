@@ -5,10 +5,14 @@ from django.test import TestCase
 # Create your tests here.
 import os
 
-
 from django_redis import get_redis_connection
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
 django.setup()
+from library.models import Img
+from face.task import upload_face_to_mcs
+from library.task import upload_img_to_mcs
+
 from face.models import FaceAlbum, Face
 
 
@@ -20,5 +24,5 @@ from face.models import FaceAlbum, Face
 # # redis.set(key, value)
 
 
-fc=Face.objects.all().first()
-q = FaceAlbum.objects.filter(id=fc.face_album).annotate(Count('faces'))
+
+# upload_to_mcs()

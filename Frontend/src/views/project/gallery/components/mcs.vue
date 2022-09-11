@@ -47,7 +47,7 @@
             <i class="el-icon-office-building"></i>
             nft_url
           </template>
-          <el-link type="primary" :href="mcs.nft_url">
+          <el-link type="primary" :href="mcs.nft_url" target="_blank">
             {{ mcs.nft_url }}
           </el-link>
         </el-descriptions-item>

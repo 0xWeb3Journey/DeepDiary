@@ -28,6 +28,22 @@ export function getUserInfo(accessToken) {
   })
 }
 
+export function getFace(params) {
+  return request({
+    url: '/api/face/' + params.id + '/',
+    method: 'get',
+    // params,
+  })
+}
+
+export function getUserProfile(params, id) {
+  return request({
+    url: '/api/user/' + id + '/',
+    method: 'get',
+    // params,
+  })
+}
+
 export function logout() {
   return request({
     url: '/api/user/logout/',

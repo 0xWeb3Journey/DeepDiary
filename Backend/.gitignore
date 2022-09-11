@@ -6,4 +6,6 @@ deep_diary/config.py
 frontend
 env
 **/__pycache__/
+**/__pycache__
+*.pyc
 **/migrations/

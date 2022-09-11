@@ -77,6 +77,7 @@
 <script>
   import { baseURL, tokenName } from '@/config'
   import store from '@/store'
+  import { checkImgMcs } from '@/api/gallery'
 
   export default {
     name: 'Upload',
@@ -214,10 +215,19 @@
         } else {
           this.api = `${window.location.protocol}//${window.location.host}`;
         }
+        
 
         this.action = this.api + this.url; */
+        this.checkMcs()
         this.dialogFormVisible = false
-        // this.$emit('uploadClosed') //自定义事件  传递值“子向父组件传值”
+      },
+      async checkMcs() {
+        console.log('handleClose')
+        const { msg } = await checkImgMcs('')
+        this.$message({
+          message: msg,
+          type: 'success',
+        })
       },
     },
   }

@@ -75,7 +75,7 @@
                   v-model="album.name"
                   placeholder="Change the Name"
                   style="float: left; font-size: 8px"
-                  @blur="changeName(album.name, index)"
+                  @blur="changeName(album.name, album)"
                   @keyup.enter.native="enterBlur($event)"
                 ></el-input>
               </el-col>
@@ -172,7 +172,7 @@
         totalAlbumCnt: 0,
         curAlbumCnt: 0,
 
-        checkedIndex: 0,
+        checkedIndex: -1, //if set this default value to 0, then the album will auto checked once enter this page
         checkedId: 0,
         checkedName: '',
         jumpId: 0,
@@ -227,7 +227,7 @@
         }
         if (this.type === 'personal') {
           this.jumpId = item.id
-          this.checkedId = item.id
+          this.checkedId = item.profile
           this.routeName = 'FaceGallery'
           this.albumName = item.name
           this.albumCnt = item.item_cnt
@@ -245,11 +245,11 @@
         this.$emit('albumClick', index, this.checkedId) //自定义事件  传递值“子向父组件传值”
       },
 
-      async changeFaceAlbumName(value, index) {
+      async changeFaceAlbumName(value, album) {
         console.log(value, this.albumName)
         // this.items[index].name = value
         if (value !== this.albumName) {
-          this.postData.id = this.checkedId
+          this.postData.id = album.id //人脸相册id
           this.postData.name = value
           // this.$message({
           //   message: `Success changed ${this.albumName} to ${value}`,
@@ -267,7 +267,7 @@
         }
       },
 
-      async changeFaceName(value, index) {
+      async changeFaceName(value, album) {
         console.log(value, this.albumName)
         // this.items[index].name = value
         if (value !== this.albumName) {
@@ -288,12 +288,12 @@
         }
       },
 
-      changeName(value, index) {
+      changeName(value, album) {
         if (this.type === 'personal') {
-          this.changeFaceAlbumName(value, index)
+          this.changeFaceAlbumName(value, album)
         }
         if (this.type === 'img') {
-          this.changeFaceName(value, index)
+          this.changeFaceName(value, album)
         }
       },
 

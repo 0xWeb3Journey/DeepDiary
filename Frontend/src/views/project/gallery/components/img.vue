@@ -4,7 +4,10 @@
       <h4>this is img vue</h4>
       imgLoading: {{ imgLoading }}; route.query.id:{{ $route.query.id }}
     </el-alert> -->
-    <el-image :src="img.src" lazy></el-image>
+    <div class="img_wrap">
+      <el-image :src="img.src" lazy class="imgDetai"></el-image>
+    </div>
+
     <Album
       v-if="true"
       ref="album"
@@ -125,4 +128,13 @@
   }
 </script>
 
-<style lang="css" scoped></style>
+<style lang="css" scoped>
+  .img_wrap {
+    width: 100%;
+    height: 400px;
+    border: 1px dashed #ccc;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+  }
+</style>

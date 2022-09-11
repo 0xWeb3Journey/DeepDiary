@@ -82,6 +82,7 @@ class Company(models.Model):
 #                                 help_text="关联用户表")
 
 class Profile(AbstractUser):  # 直接继承django默认用户信息
+
     name = models.CharField(max_length=30, null=True, blank=True, verbose_name="真实姓名", help_text="真实姓名")
     tel = models.CharField(max_length=20, blank=True, verbose_name="电话号码", help_text="用户手机号码")
     position = models.SmallIntegerField(choices=POSITION_OPTION, null=True, blank=True, default=9, verbose_name="岗位",
@@ -93,13 +94,15 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
         on_delete=models.CASCADE,
         related_name='profile'
     )
+
     avatar = models.ImageField(upload_to=user_directory_path,
                                verbose_name="头像",
                                help_text='请上传头像',
                                null=True, blank=True,
                                default='sys_img/logo_lg.png',
                                )
-
+    relation = TaggableManager(blank=True, verbose_name="relationship",
+                               help_text="relationship to the user")
     introduction = models.TextField(max_length=500, blank=True, verbose_name="自我简介", help_text="个人魅力简述")
     # roles = models.SmallIntegerField(choices=ROLES_OPTION, blank=True, default=0, verbose_name="角色",
     #                                  help_text="用户角色/权限")
@@ -148,6 +151,64 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     class Meta:
         ordering = ('-created_at',)
         get_latest_by = 'id'
+
+
+class SupplyDemand(models.Model):
+    profile = models.ForeignKey(
+        Profile,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='supplydemand'
+    )
+    is_demand = models.BooleanField(default=False, blank=True, verbose_name="is_demand",
+                                    help_text='False means suppy, True mean demand')
+    desc = models.TextField(blank=True, verbose_name="Detail of SupplyDemand", help_text="Detail of SupplyDemand")
+    tags = TaggableManager(blank=True, verbose_name="Tags",
+                           help_text="keyword of Detail of SupplyDemand，seperated by ','")
+    # 数据库更新日期
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
+
+    def __str__(self):
+        return self.desc
+
+class Supply(models.Model):
+    profile = models.ForeignKey(
+        Profile,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='supplys'
+    )
+    desc = models.TextField(blank=True, verbose_name="Detail of SupplyDemand", help_text="Detail of SupplyDemand")
+    tags = TaggableManager(blank=True, verbose_name="Tags",
+                           help_text="keyword of Detail of SupplyDemand，seperated by ','")
+    # 数据库更新日期
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
+
+    def __str__(self):
+        return self.desc
+
+
+class Demand(models.Model):
+    profile = models.ForeignKey(
+        Profile,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='demands'
+    )
+    desc = models.TextField(blank=True, verbose_name="Detail of SupplyDemand", help_text="Detail of SupplyDemand")
+    tags = TaggableManager(blank=True, verbose_name="Tags",
+                           help_text="keyword of Detail of SupplyDemand，seperated by ','")
+    # 数据库更新日期
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
+
+    def __str__(self):
+        return self.desc
 
 # # 信号接收函数，每当新建 User 实例时自动调用
 # @receiver(post_save, sender=User)

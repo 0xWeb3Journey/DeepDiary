@@ -13,7 +13,7 @@ from face.task import get_all_fts
 from library.models import Img, ImgCategory, Mcs
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer
-from library.task import save_img_info, upload_img_to_mcs
+from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
@@ -60,10 +60,10 @@ class ImgViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         print(f"INFO:{self.request.user}")
         instance = serializer.save(user=self.request.user)
-        print(f'INFO: start perform_create........{instance.src}')
+        print(f'INFO: Img start perform_create........{instance.src}')
         save_img_info.delay(instance)
         # upload_img_to_mcs.delay(instance)
-        upload_img_to_mcs(instance)
+        # upload_img_to_mcs(instance)  # Cannot run in parallel
 
         # w3_api = approve_usdc(wallet_info)
 
@@ -141,11 +141,10 @@ class ImgViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset[0])
         return Response({"data":"demo"})
 
-    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def check_mcs(self, request, pk=None):
         print('---------------------------------------checking mcs')
-        names, all_fts = get_all_fts()
-        print(names)
+        upload_to_mcs.delay()
         # result = send_email.delay('blue')
         # # result = send_sms.delay('111111')
         # async_result = AsyncResult(id=result.id, app=app)
@@ -184,42 +183,14 @@ class ImgViewSet(viewsets.ModelViewSet):
         # else:
         #     msg = 'The file already synchronized to the MCS, the file_upload_id is %d' % mcs.file_upload_id
 
-
-        # print(img.src.path)
-        # if not hasattr(img, 'mcs'):  # 判断是否又对应的mcs存储
-        #
-        #     source_file_upload_id, nft_uri = upload_file_pay(wallet_info, img.src.path)
-        #     data = {
-        #         "img": img.id,
-        #         "file_upload_id": source_file_upload_id,
-        #         "nft_url": nft_uri,
-        #     }
-        #     # 调用序列化器进行反序列化验证和转换
-        #     serializer = McsSerializer(data=data)
-        #     # 当验证失败时,可以直接通过声明 raise_exception=True 让django直接跑出异常,那么验证出错之后，直接就再这里报错，程序中断了就
-        #
-        #     result = serializer.is_valid(raise_exception=True)
-        #     print("验证结果:%s" % result)
-        #
-        #     print(serializer.errors)  # 查看错误信息
-        #
-        #     # 获取通过验证后的数据
-        #     print(serializer.validated_data)  # form -- clean_data
-        #     # 保存数据
-        #     mcs_obj = serializer.save()
-        #     # mcs_obj = Mcs.objects.create(
-        #     #     img=serializer.validated_data.get("img"),
-        #     #     file_upload_id=serializer.validated_data.get("file_upload_id"),
-        #     #     nft_url=serializer.validated_data.get("nft_url")
-        #     # )
-        #     msg = 'success to make a copy into mac'
-        # else:
-        #     msg = 'there is already have mac info related to this img: file id is %d' % img.mcs.file_upload_id
-
-        # print(msg)
-
         # return Response({"data": msg, 'code': 200})
-        return Response({"data": 'msg', 'code': 200})
+
+        data = {
+            "data": '',
+            'code': 200,
+            'msg': 'All the images have been uploaded successfully, will start synchronize to MCS now'
+        }
+        return Response(data)
 
 
 class McsViewSet(viewsets.ModelViewSet):

@@ -31,7 +31,7 @@ export function getMcs(params) {
 }
 export function checkImgMcs(params) {
   return request({
-    url: '/api/img/' + params.id + '/check_mcs/',
+    url: '/api/img/check_mcs/',
     method: 'get',
   })
 }
