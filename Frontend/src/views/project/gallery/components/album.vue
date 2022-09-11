@@ -69,6 +69,26 @@
           />
           <!-- :title="album.name" -->
           <div class="jg-caption">
+            <el-badge
+              :value="album.item_cnt"
+              :max="99"
+              class="item"
+              type="primary"
+            >
+              <!-- <Tags items="'demo1','test'"></Tags> -->
+              <Tags v-if="dispTags" :items="album.tags"></Tags>
+              <el-input
+                v-else
+                v-model="album.name"
+                size="small"
+                placeholder="Change the Name"
+                style="float: left; font-size: 8px"
+                class="album-name"
+                @blur="changeName(album.name, album)"
+                @keyup.enter.native="enterBlur($event)"
+              ></el-input>
+            </el-badge>
+            <!--             
             <el-row>
               <el-col :span="20">
                 <el-input
@@ -87,7 +107,7 @@
                   {{ album.item_cnt }}
                 </label>
               </el-col>
-            </el-row>
+            </el-row> -->
           </div>
         </div>
       </div>
@@ -119,10 +139,11 @@
     changeFaceName,
     clear_face_album,
   } from '@/api/gallery'
+  import Tags from './tags.vue'
 
   export default {
     name: 'Album',
-    components: { VabUpload },
+    components: { VabUpload, Tags },
     props: {
       items: {
         type: Array,
@@ -176,6 +197,7 @@
         checkedId: 0,
         checkedName: '',
         jumpId: 0,
+        dispTags: false,
 
         albumName: '', //相册下面的具体名字
         albumCnt: 1, //某个相册下面的具体数量
@@ -214,6 +236,7 @@
 
       onAlbumChoose($event, index, item) {
         console.log('单击事件', this.type, this.total)
+        // if (~item) return //reture directly if there is no item in items
         this.checkedIndex = index
         this.drawer = true
         let jumpId
@@ -223,6 +246,7 @@
           this.checkedId = item.id // choose the face img
           this.routeName = 'FaceGallery'
           this.albumName = item.name
+          this.dispTags = false
           // this.albumCnt = item.item_cnt
         }
         if (this.type === 'personal') {
@@ -231,6 +255,7 @@
           this.routeName = 'FaceGallery'
           this.albumName = item.name
           this.albumCnt = item.item_cnt
+          this.dispTags = false
         }
         if (this.type === 'collection') {
           this.jumpId = item.id
@@ -239,6 +264,7 @@
           // this.albumName = item.names.join(',')
           this.albumName = item.filename
           // this.albumCnt = item.item_cnt
+          this.dispTags = false
         }
         console.log(this.type, this.checkedIndex, this.checkedId)
         // $('#album').justifiedGallery()
@@ -346,5 +372,12 @@
   /* .box-card {
     height: 500x;
     border: 1px solid rgb(8, 23, 231);
+  } */
+  .item {
+    margin-top: 1px;
+    margin-right: 15px;
+  }
+  /* .album-name {
+    
   } */
 </style>

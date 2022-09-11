@@ -29,6 +29,13 @@ export function getMcs(params) {
     // params,
   })
 }
+export function getTags(params) {
+  return request({
+    url: '/api/img/' + params.id + ' / ' + 'set_tags/',
+    method: 'get',
+  })
+}
+
 export function checkImgMcs(params) {
   return request({
     url: '/api/img/check_mcs/',

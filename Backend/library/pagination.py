@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 
 class GalleryPageNumberPagination(PageNumberPagination):
-    page_size = 20  # default page size
+    page_size = 15  # default page size
     # page_size_query_param = 'size'  # ?page=xx&size=??
     max_page_size = 20  # max page size
 

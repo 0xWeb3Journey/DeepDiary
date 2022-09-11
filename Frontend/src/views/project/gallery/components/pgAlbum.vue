@@ -14,7 +14,7 @@
       :total="totalCount"
       @albumClick="onGetAlbumId"
     ></Album>
-
+    <Tags :items="albums[checkedIndex].tags"></Tags>
     <Mcs :id="checkedId" mcstype="img" :title="`Mcs Info-${checkedId}`"></Mcs>
   </div>
 </template>
@@ -30,13 +30,14 @@
     getFaceAlbum,
     getFaceGallery,
   } from '@/api/gallery'
+  import Tags from './tags.vue'
   export default {
     name: 'PgAlbum',
-    components: { Album, Mcs },
+    components: { Album, Mcs, Tags },
     data: function () {
       return {
         checkedIndex: 0,
-        checkedId: 0,
+        checkedId: -1,
         albums: [],
         albumLoading: false,
         totalCount: 0,

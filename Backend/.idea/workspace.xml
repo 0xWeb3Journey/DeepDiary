@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/library/imagga.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deep_diary/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_train_list.txt" beforeDir="false" />
@@ -1479,22 +1479,15 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/task.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/pagination.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/mcs_storage.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/mcs_storage.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/VabUpload/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/VabUpload/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/album.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/album.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFacePersonal.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFacePersonal.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/img.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/img.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAlbum.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAlbum.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1750,6 +1743,11 @@
           <url>file://$PROJECT_DIR$/utils/tests.py</url>
           <line>25</line>
           <option name="timeStamp" value="25" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/library/tests.py</url>
+          <line>109</line>
+          <option name="timeStamp" value="33" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

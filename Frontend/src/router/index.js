@@ -60,7 +60,7 @@ export const asyncRoutes = [
     redirect: '/gallery',
     name: 'Gallery',
     alwaysShow: true,
-    meta: { title: '深记相册', icon: 'box-open' },
+    meta: { title: 'Deep Gallery', icon: 'box-open' },
     children: [
       // {
       //   path: 'index',
@@ -77,7 +77,7 @@ export const asyncRoutes = [
         name: 'pgGallery',
         component: () => import('@/views/project/gallery/components/pgGallery'),
         meta: {
-          title: '照片',
+          title: 'Gallery',
           icon: 'marker',
           permissions: ['admin'],
         },
@@ -88,7 +88,7 @@ export const asyncRoutes = [
         hidden: true,
         component: () => import('@/views/project/gallery/components/img'),
         meta: {
-          title: '详情',
+          title: 'Img Detail',
           icon: 'marker',
           permissions: ['admin'],
         },
@@ -98,7 +98,7 @@ export const asyncRoutes = [
         name: 'Album',
         component: () => import('@/views/project/gallery/components/pgAlbum'),
         meta: {
-          title: '相册',
+          title: 'Album',
           icon: 'marker',
           permissions: ['admin'],
         },
@@ -109,7 +109,7 @@ export const asyncRoutes = [
         // component: () => import('@/views/project/gallery/components/pgFace'),
         component: EmptyLayout,
         meta: {
-          title: '人物',
+          title: 'People',
           icon: 'marker',
           permissions: ['admin'],
         },
@@ -131,7 +131,7 @@ export const asyncRoutes = [
             component: () =>
               import('@/views/project/gallery/components/pgFacePersonal'),
             meta: {
-              title: '个人',
+              title: 'Personl',
               icon: 'marker',
               permissions: ['admin'],
             },
@@ -142,7 +142,7 @@ export const asyncRoutes = [
             component: () =>
               import('@/views/project/gallery/components/pgFaceGroup'),
             meta: {
-              title: '合影',
+              title: 'Group',
               icon: 'marker',
               permissions: ['admin'],
             },
@@ -154,7 +154,7 @@ export const asyncRoutes = [
             component: () =>
               import('@/views/project/gallery/components/pgFace'),
             meta: {
-              title: '人脸照片',
+              title: 'Face Gallery',
               icon: 'marker',
               permissions: ['admin'],
             },
@@ -166,7 +166,7 @@ export const asyncRoutes = [
         name: 'Address',
         component: () => import('@/views/project/gallery/components/pgAddress'),
         meta: {
-          title: '地点',
+          title: 'Address',
           icon: 'marker',
           permissions: ['admin'],
         },
@@ -176,7 +176,7 @@ export const asyncRoutes = [
         name: 'Object',
         component: () => import('@/views/project/gallery/components/pgObject'),
         meta: {
-          title: '事物',
+          title: 'Object',
           icon: 'marker',
           permissions: ['admin'],
         },

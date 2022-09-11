@@ -7,6 +7,7 @@ from deep_diary.config import wallet_info
 from face.models import Face
 from face.task import upload_face_to_mcs
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
+from library.imagga import tag_image, extract_colors, tag_image_post
 from library.models import Img
 from library.serializers import McsSerializer, McsDetailSerializer
 from mycelery.main import app
@@ -133,3 +134,34 @@ def upload_to_mcs():
     print('------------all the faces have been uploaded to mcs----------------')
 
     print('----end----')
+
+
+@ shared_task
+def set_img_tags(img_obj, threshold=25):
+
+    # this is through get method to get the tags. the input could be img url, not used for local img
+    # img_path = img_obj.mcs.nft_url
+    # tag_result = tag_image(img_path)
+
+    # this is through post method to get the tags. mainly is used for local img
+    img_path = img_obj.src.path
+    tag_result = tag_image_post(img_path)
+
+    # colors_result = extract_colors(img_path)
+    if 'result' in tag_result:
+        tags = tag_result['result']['tags']
+        tag_list = []
+
+        for tag in tags:
+            if tag['confidence'] > threshold:  # filter the confidence big then 30 items
+                tag_list.append(tag['tag']['en'])
+
+        img_obj.tags.set(tag_list)
+
+
+@ shared_task
+def set_all_img_tags():
+    imgs = Img.objects.all()
+    for img in imgs:
+        set_img_tags(img)
+

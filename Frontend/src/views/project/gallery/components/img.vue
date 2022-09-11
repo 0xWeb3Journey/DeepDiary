@@ -6,6 +6,8 @@
     </el-alert> -->
     <div class="img_wrap">
       <el-image :src="img.src" lazy class="imgDetai"></el-image>
+
+      <Tags :items="img.tags"></Tags>
     </div>
 
     <Album
@@ -36,9 +38,10 @@
 
   import Album from './album.vue'
   import Mcs from './mcs.vue'
+  import Tags from './tags.vue'
   export default {
     name: 'Img',
-    components: { Album, Mcs },
+    components: { Album, Mcs, Tags },
     //进入守卫：通过路由规则，进入该组件时被调用
     beforeRouteEnter(to, from, next) {
       console.log('beforeRouteEnter....')
@@ -66,6 +69,7 @@
         img: {
           src: '',
           faces: [], //faces info, include name and src
+          tags: "'test1', 'test2'",
         },
         checkedIndex: 0,
         checkedId: 0,
@@ -82,12 +86,12 @@
     //     return this.$route.query.id
     //   },
     // },
-    // watch: {
-    //   img_id(newVal, oldVal) {
-    //     console.log('img_id have bee changed: %d --> %d', oldVal, newVal)
-    //     this.fetchImg()
-    //   },
-    // },
+    watch: {
+      'img.tags'(newVal, oldVal) {
+        console.log('img.tags have bee changed: %s --> %s', oldVal, newVal)
+      },
+      deep: true, //为true，表示深度监听，这时候就能监测到a值变化
+    },
     created() {
       console.log('img vue created')
     },
@@ -120,6 +124,7 @@
         console.log(data)
         this.img.faces = data.faces
         this.img.src = data.src
+        this.img = data
         setTimeout(() => {
           this.imgLoading = false
         }, 300)

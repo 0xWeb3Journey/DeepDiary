@@ -1,14 +1,14 @@
 <template>
   <span v-if="themeBar">
     <vab-icon
-      title="主题配置"
+      title="Theme Config"
       :icon="['fas', 'palette']"
       @click="handleOpenThemeBar"
     />
     <div class="theme-bar-setting">
       <div @click="handleOpenThemeBar">
         <vab-icon :icon="['fas', 'palette']" />
-        <p>主题配置</p>
+        <p>Theme Config</p>
       </div>
       <!-- <div @click="handleGetCode">
         <vab-icon :icon="['fas', 'laptop-code']"></vab-icon>
@@ -17,7 +17,7 @@
     </div>
 
     <el-drawer
-      title="主题配置"
+      title="Theme Config"
       :visible.sync="drawerVisible"
       direction="rtl"
       append-to-body
@@ -93,6 +93,7 @@
       })
       const theme = localStorage.getItem('vue-admin-beautiful-theme')
       if (null !== theme) {
+        console.log('the theme is %o', theme)
         this.theme = JSON.parse(theme)
         this.handleSetTheme()
       } else {

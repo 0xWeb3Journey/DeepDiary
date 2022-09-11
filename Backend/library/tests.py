@@ -1,28 +1,113 @@
-import django
-from django.db.models import Count
-from django.test import TestCase
-
-# Create your tests here.
-import os
-
-from django_redis import get_redis_connection
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
-django.setup()
-from library.models import Img
-from face.task import upload_face_to_mcs
-from library.task import upload_img_to_mcs
-
-from face.models import FaceAlbum, Face
-
-
+# import django
+# from django.db.models import Count
+# from django.test import TestCase
 #
-# # 这里可以传使用哪个redis，不传默认是default
-# redis = get_redis_connection()
-# print(redis)
-# # redis.get(key)
-# # redis.set(key, value)
-
-
-
-# upload_to_mcs()
+# # Create your tests here.
+# import os
+#
+# from django_redis import get_redis_connection
+#
+# from deep_diary.config import api_key, api_secret
+#
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
+# django.setup()
+# from library.models import Img
+# from face.task import upload_face_to_mcs
+# from library.task import upload_img_to_mcs
+#
+# from face.models import FaceAlbum, Face
+#
+# #
+# # # 这里可以传使用哪个redis，不传默认是default
+# # redis = get_redis_connection()
+# # print(redis)
+# # # redis.get(key)
+# # # redis.set(key, value)
+#
+# import os
+# import requests
+# from requests.auth import HTTPBasicAuth
+#
+# ###
+# # API Credentials
+# API_KEY = api_key  # Set API key here
+# API_SECRET = api_secret  # Set API secret here
+# ###
+#
+# ENDPOINT = 'https://api.imagga.com/v2'
+#
+# FILE_TYPES = ['png', 'jpg', 'jpeg', 'gif']
+#
+#
+# class ArgumentException(Exception):
+#     pass
+#
+#
+# if API_KEY == 'YOUR_API_KEY' or \
+#         API_SECRET == 'YOUR_API_SECRET':
+#     raise ArgumentException('You haven\'t set your API credentials. '
+#                             'Edit the script and set them.')
+#
+# auth = HTTPBasicAuth(API_KEY, API_SECRET)
+#
+#
+# def tag_image(image, upload_id=False, verbose=False, language='en'):
+#     # Using the content id and the content parameter,
+#     # make a GET request to the /tagging endpoint to get
+#     # image tags
+#     tagging_query = {
+#         'image_upload_id' if upload_id else 'image_url': image,
+#         'verbose': verbose,
+#         'language': language
+#     }
+#     tagging_response = requests.get(
+#         '%s/tags' % ENDPOINT,
+#         auth=auth,
+#         params=tagging_query)
+#
+#     return tagging_response.json()
+#
+#
+# def extract_colors(image, upload_id=False):
+#     colors_query = {
+#         'image_upload_id' if upload_id else 'image_url': image,
+#     }
+#
+#     colors_response = requests.get(
+#         '%s/colors' % ENDPOINT,
+#         auth=auth,
+#         params=colors_query)
+#
+#     return colors_response.json()
+#
+#
+# image_url = 'https://docs.imagga.com/static/images/docs/sample/japan-605234_1280.jpg'
+# img_path = 'https://imagga.com/static/images/nsfw/girl-1211435_960_720.jpg'
+#
+#
+# def post_img_tags(img_obj, threshold=30):
+#
+#     img_path = img_obj.src.path
+#     tag_result = requests.post(
+#         '%s/colors' % ENDPOINT,
+#         auth=(api_key, api_secret),
+#         files={'image': open(img_path, 'rb')})
+#
+#     tag_result = tag_result.json()
+#
+#     if 'result' in tag_result:
+#         tags = tag_result['result']['tags']
+#         tag_list = []
+#
+#         for tag in tags:
+#             if tag['confidence'] > threshold:  # filter the confidence big then 30 items
+#                 tag_list.append(tag['tag']['en'])
+#
+#         img_obj.tags.set(tag_list)
+#
+#
+# # img_obj = Img.objects.all().first()
+# # img_obj = Img.objects.get(pk=414)
+# # set_img_tags(img_obj, threshold=30)
+#
+# print('--------------------end---------------------------')

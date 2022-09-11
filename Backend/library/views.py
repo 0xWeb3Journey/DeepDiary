@@ -13,7 +13,7 @@ from face.task import get_all_fts
 from library.models import Img, ImgCategory, Mcs
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer
-from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs
+from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
@@ -62,6 +62,8 @@ class ImgViewSet(viewsets.ModelViewSet):
         instance = serializer.save(user=self.request.user)
         print(f'INFO: Img start perform_create........{instance.src}')
         save_img_info.delay(instance)
+        set_img_tags.delay(instance)
+
         # upload_img_to_mcs.delay(instance)
         # upload_img_to_mcs(instance)  # Cannot run in parallel
 
@@ -70,7 +72,7 @@ class ImgViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):  # 应该在调用的模型中添加
         # print(f'图片更新：{self.request.data}')
         instance = serializer.save()  # ProcessedImageField, 也就是ImageField的实例对象
-        print(f'INFO: start perform_update........')
+        print(f'INFO: start perform_update........data is: {serializer.validated_data}')
 
         # print(f"INFO: instance.src: {instance.src}")
         # print(f"INFO: instance.src.name: {instance.src.name}")
@@ -145,6 +147,19 @@ class ImgViewSet(viewsets.ModelViewSet):
     def check_mcs(self, request, pk=None):
         print('---------------------------------------checking mcs')
         upload_to_mcs.delay()
+        data = {
+            "data": '',
+            'code': 200,
+            'msg': 'All the images have been uploaded successfully, will start synchronize to MCS now'
+        }
+        return Response(data)
+
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def set_tags(self, request, pk=None):
+        print('---------------------------------------setting tags')
+        # img_obj = self.get_object()  # 获取详情的实例对象
+        # set_img_tags(img_obj)
+        set_all_img_tags.delay()
         # result = send_email.delay('blue')
         # # result = send_sms.delay('111111')
         # async_result = AsyncResult(id=result.id, app=app)
@@ -188,7 +203,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         data = {
             "data": '',
             'code': 200,
-            'msg': 'All the images have been uploaded successfully, will start synchronize to MCS now'
+            'msg': 'success to get the tags'
         }
         return Response(data)
 
