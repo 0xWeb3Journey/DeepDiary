@@ -32,57 +32,98 @@ if API_KEY == 'YOUR_API_KEY' or \
 auth = HTTPBasicAuth(API_KEY, API_SECRET)
 
 
-def post_img_tags(img_obj, threshold=30):
-    img_path = img_obj.src.path
-    tag_result = requests.post(
-        '%s/colors' % ENDPOINT,
-        auth=(api_key, api_secret),
-        files={'image': open(img_path, 'rb')})
+# def tag_image_post(img_path, upload_id=False, verbose=False, language='en'):
+#     # Using the local img through post mathod to get the tags,
+#
+#     tagging_query = {
+#         'verbose': verbose,
+#         'language': language,
+#         'threshold': 25.0,
+#     }
+#     tagging_response = requests.post(
+#         '%s/tags' % ENDPOINT,
+#         auth=(api_key, api_secret),
+#         auth=(api_key, api_secret),
+#         files={'image': open(img_path, 'rb')},
+#         params=tagging_query)
+#
+#     return tagging_response.json()
 
-    tag_result = tag_result.json()
 
+def imagga_post(img_path, endpoint, query=None): # using the loca img
 
-def tag_image_post(img_path, upload_id=False, verbose=False, language='en'):
-    # Using the local img through post mathod to get the tags,
-
-    tagging_query = {
-        'verbose': verbose,
-        'language': language
-    }
-    tagging_response = requests.post(
-        '%s/tags' % ENDPOINT,
+    if query is None:
+        query = {}
+    query = query.update(query)
+    response = requests.post(
+        '%s/%s' % (ENDPOINT, endpoint),
         auth=(api_key, api_secret),
         files={'image': open(img_path, 'rb')},
-        params=tagging_query)
+        params=query)
 
-    return tagging_response.json()
+    return response.json()
 
 
-def tag_image(image, upload_id=False, verbose=False, language='en'):
-    # Using the content id and the content parameter,
-    # make a GET request to the /tagging endpoint to get
-    # image tags
+def imagga_get(image_url, endpoint, query_add=None, upload_id=False): # query must include the 'image_url'
+    if query_add is None:
+        query_add = {}
+    query = {
+        'image_upload_id' if upload_id else 'image_url': image_url,
+    }
+    query = query.update(query_add)
+
+    response = requests.get(
+        '%s/%s' % (ENDPOINT, endpoint),
+        auth=(api_key, api_secret),
+        files={'image': open(image_url, 'rb')},
+        params=query)
+
+    return response.json()
+
+
+
+def imagga_post_tags(img_path):
+    tag_list = []
+    endpoint = 'tags'
     tagging_query = {
-        'image_upload_id' if upload_id else 'image_url': image,
-        'verbose': verbose,
-        'language': language
+        'verbose': False,
+        'language': False,
+        'threshold': 25.0,
     }
-    tagging_response = requests.get(
-        '%s/tags' % ENDPOINT,
-        auth=auth,
-        params=tagging_query)
+    response = imagga_post(img_path, endpoint, tagging_query)
 
-    return tagging_response.json()
+    if response['status']['type'] != 'success':
+        return []
+
+    if 'result' in response:
+        tags = response['result'][endpoint]
+
+        for tag in tags:
+            tag_list.append(tag['tag']['en'])
+
+    return tag_list
 
 
-def extract_colors(image, upload_id=False):
-    colors_query = {
-        'image_upload_id' if upload_id else 'image_url': image,
-    }
+def imagga_post_colors(img_path):
+    colors_list = []
+    endpoint = 'colors'
+    # color_query = {
+    #     'verbose': False,
+    #     'language': False,
+    #     'threshold': 25.0,
+    # }
+    response = imagga_post(img_path, endpoint)
 
-    colors_response = requests.get(
-        '%s/colors' % ENDPOINT,
-        auth=auth,
-        params=colors_query)
+    if response['status']['type'] != 'success':
+        return []
 
-    return colors_response.json()
+    if 'result' in response:
+        colors = response['result'][endpoint]
+        background_colors = colors['background_colors']
+        foreground_colors = colors['foreground_colors']
+        image_colors = colors['image_colors']
+        colors_list = []
+
+        print(colors)
+
+    return colors_list

@@ -1,3 +1,4 @@
+import pickle
 import time
 
 from celery import shared_task
@@ -7,15 +8,16 @@ from deep_diary.config import wallet_info
 from face.models import Face
 from face.task import upload_face_to_mcs
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
-from library.imagga import tag_image, extract_colors, tag_image_post
-from library.models import Img
-from library.serializers import McsSerializer, McsDetailSerializer
+from library.imagga import imagga_post
+from library.models import Img, ColorBackground
+from library.serializers import McsSerializer, McsDetailSerializer, ColorSerializer, ColorBackgroundSerializer, \
+    ColorForegroundSerializer, ColorImgSerializer
 from mycelery.main import app
 from utils.mcs_storage import upload_file_pay
 
 
 # @app.task
-@ shared_task
+@shared_task
 def send_email(name):
     print("向%s发送邮件..." % name)
     time.sleep(5)
@@ -24,7 +26,7 @@ def send_email(name):
 
 
 # @app.task
-@ shared_task
+@shared_task
 def save_img_info(instance):
     print(f'INFO: **************img instance have been created, saving img info now...')
     lm_tags = []
@@ -90,7 +92,7 @@ def save_img_info(instance):
 
 
 # @app.task
-@ shared_task
+@shared_task
 def upload_img_to_mcs(img):  # img = self.get_object()  # 获取详情的实例对象
     if not hasattr(img, 'mcs'):  # 判断是否又对应的mcs存储
 
@@ -117,7 +119,7 @@ def upload_img_to_mcs(img):  # img = self.get_object()  # 获取详情的实例�
     print(msg)
 
 
-@ shared_task
+@shared_task
 def upload_to_mcs():
     print('-----------------start upload all the imgs to mcs-----------------')
     imgs = Img.objects.filter(mcs__isnull=True)
@@ -136,32 +138,129 @@ def upload_to_mcs():
     print('----end----')
 
 
-@ shared_task
-def set_img_tags(img_obj, threshold=25):
-
-    # this is through get method to get the tags. the input could be img url, not used for local img
-    # img_path = img_obj.mcs.nft_url
-    # tag_result = tag_image(img_path)
-
-    # this is through post method to get the tags. mainly is used for local img
+@shared_task
+def set_img_tags(img_obj):
     img_path = img_obj.src.path
-    tag_result = tag_image_post(img_path)
+    endpoint = 'tags'
+    tagging_query = {
+        'verbose': False,
+        'language': 'en',
+        'threshold': 25,
+    }
 
-    # colors_result = extract_colors(img_path)
-    if 'result' in tag_result:
-        tags = tag_result['result']['tags']
+    response = imagga_post(img_path, endpoint, tagging_query)
+    pickle.dump('tags.pkl', open('tags.pkl', 'wb'))
+    # response = pickle.load(open('tags.pkl', 'rb'))
+
+    if 'result' in response:
+        tags = response['result']['tags']
         tag_list = []
 
         for tag in tags:
-            if tag['confidence'] > threshold:  # filter the confidence big then 30 items
-                tag_list.append(tag['tag']['en'])
+            tag_list.append(tag['tag']['en'])
 
         img_obj.tags.set(tag_list)
+        print(f'--------------------{img_obj.id} :tags have been store to the database---------------------------')
 
 
-@ shared_task
+@shared_task
 def set_all_img_tags():
     imgs = Img.objects.all()
     for img in imgs:
         set_img_tags(img)
 
+
+# @ shared_task
+def set_img_colors(img_obj):
+    # this is through post method to get the tags. mainly is used for local img
+    img_path = img_obj.src.path
+    endpoint = 'colors'
+    # color_query = {
+    #     'verbose': False,
+    #     'language': False,
+    #     'threshold': 25.0,
+    # # }
+
+    response = imagga_post(img_path, endpoint)
+    # print(response)
+    # with open("colors.txt", 'wb') as f:  # 打开文件
+    #     pickle.dump(response, f)
+
+    # with open("colors.txt", 'rb') as f:  # 打开文件
+    #     response = pickle.load(f)
+
+    # print(response)
+
+    if response['status']['type'] != 'success':
+        return []
+
+    if 'result' in response:
+        colors = response['result'][endpoint]
+        background_colors = colors['background_colors']
+        foreground_colors = colors['foreground_colors']
+        image_colors = colors['image_colors']
+
+        # print(colors)
+
+        # 调用序列化器进行反序列化验证和转换
+        colors.update(img=img_obj.id)
+
+        if not hasattr(img_obj, 'colors'):
+            print('no colors object existed')
+            serializer = ColorSerializer(data=colors)
+        else:
+            print('colors object already existed')
+            serializer = ColorSerializer(img_obj.colors, data=colors)
+        result = serializer.is_valid(raise_exception=True)
+        color_obj = serializer.save()
+
+        # print(type(color_obj))
+        # print(color_obj.background.all().exists())
+        # print(color_obj.foreground.all().exists())
+        # print(color_obj.image.all().exists())
+
+        if not color_obj.background.all().exists():
+            for bk in background_colors:
+                bk.update(color=color_obj.pk)
+                serializer = ColorBackgroundSerializer(data=bk)
+                result = serializer.is_valid(raise_exception=True)
+                back_color_obj = serializer.save()
+        # else:
+            # for bk in background_colors:
+            #     bk.update(color=color_obj.pk)
+            #     serializer = ColorBackgroundSerializer(color_obj.background, data=bk)
+            #     result = serializer.is_valid(raise_exception=True)
+            #     back_color_obj = serializer.save()
+
+        if not color_obj.foreground.all().exists():
+            for fore in foreground_colors:
+                fore.update(color=color_obj.pk)
+                serializer = ColorForegroundSerializer(data=fore)
+                result = serializer.is_valid(raise_exception=True)
+                fore_color_obj = serializer.save()
+        # else:
+        #     for fore in foreground_colors:
+        #         fore.update(color=color_obj.pk)
+        #         serializer = ColorForegroundSerializer(color_obj.foreground, data=fore)
+        #         result = serializer.is_valid(raise_exception=True)
+        #         fore_color_obj = serializer.save()
+
+        if not color_obj.image.all().exists():
+            for img in image_colors:
+                img.update(color=color_obj.pk)
+                serializer = ColorImgSerializer(data=img)
+                result = serializer.is_valid(raise_exception=True)
+                img_color_obj = serializer.save()
+        # else:
+        #     for img in image_colors:
+        #         img.update(color=color_obj.pk)
+        #         serializer = ColorImgSerializer(color_obj.image, data=img)
+        #         result = serializer.is_valid(raise_exception=True)
+        #         img_color_obj = serializer.save()
+
+
+@shared_task
+def set_all_img_colors():
+    imgs = Img.objects.all()
+    for img in imgs:
+        set_img_colors(img)

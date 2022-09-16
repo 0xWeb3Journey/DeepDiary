@@ -1,9 +1,9 @@
 from django.contrib import admin
 
 # Register your models here.
-from library.models import Img, Mcs
+from library.models import Img, Mcs, Color, ColorBackground, ColorForeground, ColorImg, ColorItem
 
-admin.site.register([Mcs, Img])  # 把这个图像表注册到管理后台中
+admin.site.register([Mcs, Img, Color, ColorBackground, ColorForeground, ColorImg, ColorItem])  # 把这个图像表注册到管理后台中
 
 # @admin.register(Img)
 # class ImgAdmin(admin.ModelAdmin):

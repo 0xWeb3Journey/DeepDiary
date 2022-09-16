@@ -7,9 +7,47 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from face.serializers import FaceSerializer, facesField, FaceSimpleSerializer
-from library.models import Img, ImgCategory, Mcs
+from library.models import Img, ImgCategory, Mcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
 from tags.serializers import TagSerializerField
+
+
+class ColorItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ColorItem
+        fields = '__all__'
+
+
+class ColorBackgroundSerializer(ColorItemSerializer):
+
+    class Meta:
+        model = ColorBackground
+        fields = '__all__'
+
+
+class ColorForegroundSerializer(ColorItemSerializer):
+
+    class Meta:
+        model = ColorForeground
+        fields = '__all__'
+
+
+class ColorImgSerializer(ColorItemSerializer):
+
+    class Meta:
+        model = ColorImg
+        fields = '__all__'
+
+
+class ColorSerializer(serializers.ModelSerializer):
+    background = ColorBackgroundSerializer(many=True, read_only=True)
+    foreground = ColorForegroundSerializer(many=True, read_only=True)
+    image = ColorImgSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Color
+        fields = '__all__'
 
 
 class McsSerializer(serializers.ModelSerializer):
@@ -82,7 +120,7 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
 
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
     mcs = McsDetailSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
-
+    colors = ColorSerializer(read_only=True)
 
 
     def get_names(self, obj):

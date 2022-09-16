@@ -140,7 +140,8 @@ class Img(models.Model):
     type = models.CharField(max_length=10, null=True, blank=True, verbose_name="图片格式", help_text='图片格式')
     wid = models.IntegerField(default=0, blank=True, verbose_name="图片宽度", help_text='图片宽度')
     height = models.IntegerField(default=0, blank=True, verbose_name="图片高度", help_text='图片高度')
-    aspect_ratio = models.DecimalField(default=0.0, max_digits=3, decimal_places=2, null=True, blank=True, verbose_name="长宽比")
+    aspect_ratio = models.DecimalField(default=0.0, max_digits=3, decimal_places=2, null=True, blank=True,
+                                       verbose_name="长宽比")
     is_exist = models.BooleanField(default=True, null=True, blank=True,
                                    verbose_name="路径是否存在", help_text='路径是否存在')
 
@@ -152,11 +153,14 @@ class Img(models.Model):
 
     ## 地点属性:location
     is_located = models.BooleanField(default=False, blank=True, verbose_name="是否有GPS 信息", help_text='是否有GPS 信息')
-    longitude_ref = models.CharField(default='E', max_length=5, null=True, blank=True, verbose_name="东西经", help_text='东西经')
+    longitude_ref = models.CharField(default='E', max_length=5, null=True, blank=True, verbose_name="东西经",
+                                     help_text='东西经')
     longitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="经度", help_text='经度')
-    latitude_ref = models.CharField(default='N', max_length=5, null=True, blank=True, verbose_name="南北纬", help_text='南北纬')
+    latitude_ref = models.CharField(default='N', max_length=5, null=True, blank=True, verbose_name="南北纬",
+                                    help_text='南北纬')
     latitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="纬度", help_text='纬度')
-    altitude_ref = models.FloatField(default=0.0, max_length=5, null=True, blank=True, verbose_name="参考高度", help_text='参考高度')
+    altitude_ref = models.FloatField(default=0.0, max_length=5, null=True, blank=True, verbose_name="参考高度",
+                                     help_text='参考高度')
     altitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="高度", help_text='高度')
     location = models.CharField(max_length=50, null=True, blank=True, verbose_name="拍摄地", help_text='拍摄地')
     district = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄区县", help_text='拍摄区县')
@@ -168,7 +172,7 @@ class Img(models.Model):
     flag = models.SmallIntegerField(default=0, choices=FLAG_OPTION, null=True, blank=True, verbose_name="旗标",
                                     help_text="0：无旗标，1：选中旗标，2，排除旗标")
     rating = models.IntegerField(default=0, null=True, blank=True, verbose_name="星标等级", help_text='星标等级')
-    color = models.IntegerField(default=0, null=True, blank=True, verbose_name="主体颜色", help_text='主体颜色')
+    # color = models.IntegerField(default=0, null=True, blank=True, verbose_name="主体颜色", help_text='主体颜色')
 
     ## 拍摄属性: capture
     capture_date = models.DateField(null=True, blank=True, verbose_name="拍摄日期", help_text='拍摄日期')
@@ -232,20 +236,92 @@ class Mcs(models.Model):
     file_size = models.IntegerField(default=0, null=True, blank=True, verbose_name="file_size", help_text='file_size')
     updated_at = models.DateTimeField(default=timezone.now, verbose_name="updated_at", help_text='updated_at')
 
-    nft_url = models.URLField(default='https://calibration-ipfs.filswan.com/ipfs/QmQzPDUheTnFYA7HanxwCLw3QrR7choBvh8pswF4LgxguV', null=True, blank=True, verbose_name="NFT 站点", help_text='相当于一个图片源，可以展示图片')
-    pin_status = models.CharField(max_length=8, null=True, blank=True, verbose_name="pin_status", help_text='pin_status')
-    payload_cid = models.CharField(max_length=80, null=True, blank=True, verbose_name="payload_cid", help_text='payload_cid')
+    nft_url = models.URLField(
+        default='https://calibration-ipfs.filswan.com/ipfs/QmQzPDUheTnFYA7HanxwCLw3QrR7choBvh8pswF4LgxguV', null=True,
+        blank=True, verbose_name="NFT 站点", help_text='相当于一个图片源，可以展示图片')
+    pin_status = models.CharField(max_length=8, null=True, blank=True, verbose_name="pin_status",
+                                  help_text='pin_status')
+    payload_cid = models.CharField(max_length=80, null=True, blank=True, verbose_name="payload_cid",
+                                   help_text='payload_cid')
     w_cid = models.CharField(max_length=100, null=True, blank=True, verbose_name="w_cid", help_text='w_cid')
     status = models.CharField(max_length=8, null=True, blank=True, verbose_name="status", help_text='status')
 
     deal_success = models.BooleanField(default=False, blank=True, verbose_name="deal_success", help_text='deal_success')
     is_minted = models.BooleanField(default=False, blank=True, verbose_name="is_minted", help_text='is_minted')
     token_id = models.CharField(max_length=8, null=True, blank=True, verbose_name="token_id", help_text='token_id')
-    mint_address = models.CharField(max_length=80, null=True, blank=True, verbose_name="mint_address", help_text='mint_address')
-    nft_tx_hash = models.CharField(max_length=80, null=True, blank=True, verbose_name="nft_tx_hash", help_text='nft_tx_hash')
+    mint_address = models.CharField(max_length=80, null=True, blank=True, verbose_name="mint_address",
+                                    help_text='mint_address')
+    nft_tx_hash = models.CharField(max_length=80, null=True, blank=True, verbose_name="nft_tx_hash",
+                                   help_text='nft_tx_hash')
 
     def __str__(self):
         return self.id.filename
+
+
+class Color(models.Model):
+    img = models.OneToOneField(
+        Img,
+        related_name='colors',
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    color_variance = models.IntegerField(default=0, null=True, blank=True, verbose_name="color_variance",
+                                         help_text='a number that shows how varied the colors in the image are')
+    object_percentage = models.FloatField(default=0, null=True, blank=True, verbose_name="object_percentage",
+                                          help_text='a floating point number that shows what part of the image '
+                                                    'is taken by the main object (as a percent from 0 to 100)')
+    color_percent_threshold = models.FloatField(default=0, null=True, blank=True, verbose_name="object_percentage",
+                                          help_text='colors with `percentage` value lower than this number won’t be included in the response')
+
+    def __str__(self):
+        return self.img.filename
+
+
+class ColorItem(models.Model):
+    r = models.IntegerField(default=0, null=True, blank=True, verbose_name="red color",
+                            help_text='numbers between 0 and 255 that represent the red, components of the color')
+    g = models.IntegerField(default=0, null=True, blank=True, verbose_name="green color",
+                            help_text='numbers between 0 and 255 that represent the green components of the color')
+    b = models.IntegerField(default=0, null=True, blank=True, verbose_name="blue color",
+                            help_text='numbers between 0 and 255 that represent the  blue components of the color')
+
+    closest_palette_color_html_code = models.CharField(max_length=8, null=True, blank=True,
+                                               verbose_name="palette_color_html_code",
+                                               help_text='palette_color_html_code')
+
+    closest_palette_color = models.CharField(max_length=30, null=True, blank=True, verbose_name="palette_color",
+                                     help_text='palette_color')
+
+    closest_palette_color_parent = models.CharField(max_length=30, null=True, blank=True, verbose_name="palette_color_parent",
+                                            help_text='palette_color_parent')
+
+    closest_palette_distance = models.FloatField(default=0, null=True, blank=True, verbose_name='closest_palette_color_parent',
+                                         help_text='how close this color is to the one under the `closest_palette_color` key')
+
+    percent = models.FloatField(default=0, null=True, blank=True, verbose_name="object_percentage",
+                                   help_text='a floating point number that shows what part of the image '
+                                             'is taken by the main object (as a percent from 0 to 100)')
+
+    html_code = models.CharField(max_length=8, null=True, blank=True, verbose_name="palette_color_html_code",
+                                 help_text='palette_color_html_code')
+
+    def __str__(self):
+        return self.closest_palette_color_parent
+
+
+class ColorBackground(ColorItem):
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='background',
+                              verbose_name="BackgroundColor")
+
+
+class ColorForeground(ColorItem):
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='foreground',
+                              verbose_name="ColorForeground")
+
+
+class ColorImg(ColorItem):
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='image',
+                              verbose_name="ColorImg")
 
 
 def get_date_info(date_str):  # '%Y:%m:%d %H:%M:%S'

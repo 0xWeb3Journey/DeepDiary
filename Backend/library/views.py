@@ -13,7 +13,7 @@ from face.task import get_all_fts
 from library.models import Img, ImgCategory, Mcs
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer
-from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags
+from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, set_img_colors
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
@@ -114,26 +114,17 @@ class ImgViewSet(viewsets.ModelViewSet):
             return ImgDetailSerializer
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def info(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+    def set_colors(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
         img = self.get_object()  # 获取详情的实例对象
         print(f'INFO pk: {pk}')
         print(f'INFO img: {type(img)}')
         print(f'INFO img: {img.id}')
         # print(f'INFO request: {dir(request)}')
+        set_img_colors(img)
 
-        # 上传图片后，直接通过信号机制，进行人脸识别保存
-        # app = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
-        # app.prepare(ctx_id=0, det_size=(640, 640))
-        # # img = ins_get_image('t1',to_rgb=True)   # 官方提供的路径
-        #
-        # image_path = img.image.path
-        # req_img = cv.imread(image_path)  # 自己用openCV进行读取
-        # faces = app.get(req_img)
-        # save_faces(img.id, image_path, faces)
-
-        # serializer = ImgSerializer(img, many=False, context={'request': request})  # 不报错
+        serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
         # serializer = ImgSerializer(img, many=False)  # 报错
-        serializer = self.get_serializer(img)
+        # serializer = self.get_serializer(img)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
@@ -206,6 +197,8 @@ class ImgViewSet(viewsets.ModelViewSet):
             'msg': 'success to get the tags'
         }
         return Response(data)
+
+
 
 
 class McsViewSet(viewsets.ModelViewSet):

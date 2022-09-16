@@ -82,12 +82,6 @@
       })
     },
     methods: {
-      async checkMcs(id) {
-        this.ImgQueryForm.id = id
-        const { data } = await checkImgMcs(this.ImgQueryForm)
-        this.msg = data
-        console.log(data)
-      },
       async fetchGalleryWithoutMcs() {
         this.ImgQueryForm.mcs__file_upload_id = 0
         const { data, totalCount } = await getGallery(this.ImgQueryForm)
