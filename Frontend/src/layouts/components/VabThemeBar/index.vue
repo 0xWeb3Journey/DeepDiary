@@ -1,14 +1,14 @@
 <template>
   <span v-if="themeBar">
     <vab-icon
-      title="Theme Config"
+      title="Theme"
       :icon="['fas', 'palette']"
       @click="handleOpenThemeBar"
     />
     <div class="theme-bar-setting">
       <div @click="handleOpenThemeBar">
         <vab-icon :icon="['fas', 'palette']" />
-        <p>Theme Config</p>
+        <p>Theme</p>
       </div>
       <!-- <div @click="handleGetCode">
         <vab-icon :icon="['fas', 'laptop-code']"></vab-icon>
@@ -17,7 +17,7 @@
     </div>
 
     <el-drawer
-      title="Theme Config"
+      title="Theme"
       :visible.sync="drawerVisible"
       direction="rtl"
       append-to-body

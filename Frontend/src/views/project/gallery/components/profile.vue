@@ -220,7 +220,7 @@
         profileQueryForm: {
           id: 0,
         },
-        title: 'MCS Info',
+        title: 'Sources and Demands',
       }
     },
     computed: {},
@@ -243,10 +243,10 @@
         this.profileQueryForm.id = this.id
         if (this.id === 0) {
           this.setProfileDefault()
-          this.title = 'MCS INFO: the proofile not exist yet'
+          this.title = 'Sources and Demands: the proofile not exist yet'
           return
         }
-        this.title = 'MCS INFO: ' + this.id
+        this.title = 'Sources and Demands: ' + this.id
         const { data } = await getUserProfile(this.profileQueryForm, this.id)
         this.profile = data
         //   if (data.supplydemand === null) {

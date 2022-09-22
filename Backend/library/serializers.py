@@ -7,34 +7,48 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from face.serializers import FaceSerializer, facesField, FaceSimpleSerializer
-from library.models import Img, ImgCategory, Mcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg
+from library.models import Img, Category, Mcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg, ImgCategory
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
 from tags.serializers import TagSerializerField
 
 
-class ColorItemSerializer(serializers.ModelSerializer):
+class ImgCategorySerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="category.name", read_only=True)
 
+    class Meta:
+        model = ImgCategory
+        # fields = '__all__'
+        exclude = ['created_at']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='category-detail')
+    imgs = ImgCategorySerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
+
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+class ColorItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ColorItem
         fields = '__all__'
 
 
 class ColorBackgroundSerializer(ColorItemSerializer):
-
     class Meta:
         model = ColorBackground
         fields = '__all__'
 
 
 class ColorForegroundSerializer(ColorItemSerializer):
-
     class Meta:
         model = ColorForeground
         fields = '__all__'
 
 
 class ColorImgSerializer(ColorItemSerializer):
-
     class Meta:
         model = ColorImg
         fields = '__all__'
@@ -51,7 +65,6 @@ class ColorSerializer(serializers.ModelSerializer):
 
 
 class McsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Mcs
         fields = ['nft_url']
@@ -68,17 +81,8 @@ class McsSerializer(serializers.ModelSerializer):
 
 
 class McsDetailSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Mcs
-        fields = '__all__'
-
-
-class ImgCategorySerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='imgcategory-detail')
-
-    class Meta:
-        model = ImgCategory
         fields = '__all__'
 
 
@@ -92,10 +96,10 @@ class ImgSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Img
-        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'filename', 'mcs'] # 'faces', 'names',
+        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'filename', 'mcs']  # 'faces', 'names',
 
     def to_representation(self, value):
-        rst={}
+        rst = {}
         # 调用父类获取当前序列化数据，value代表每个对象实例ob
         data = super().to_representation(value)
         # 对序列化数据做修改，添加新的数据
@@ -117,11 +121,10 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     # face = FaceSerializer(many=True, read_only=True)  # 这里的名字，必须是Face 定义Img 外键时候的'related_name'
     # names = facesField(many=True, read_only=True)  # 获取子集模型字段的方法一，指定序列化器
     faces = FaceSimpleSerializer(many=True, read_only=True)
-
+    categories = ImgCategorySerializer(many=True, read_only=True)
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
     mcs = McsDetailSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
-    colors = ColorSerializer(read_only=True)
-
+    colors = ColorSerializer(read_only=True)  # this name should be the same as model related name
 
     def get_names(self, obj):
         query_set = obj.faces.all()
@@ -133,7 +136,7 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
         fields = '__all__'
 
     def to_representation(self, value):
-        rst={}
+        rst = {}
         # 调用父类获取当前序列化数据，value代表每个对象实例ob
         data = super().to_representation(value)
         # 对序列化数据做修改，添加新的数据
@@ -141,9 +144,3 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
         rst['code'] = 200
         rst['msg'] = 'img detail info'
         return rst
-
-
-
-
-
-

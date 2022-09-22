@@ -80,50 +80,25 @@ def imagga_get(image_url, endpoint, query_add=None, upload_id=False): # query mu
 
     return response.json()
 
-
-
-def imagga_post_tags(img_path):
-    tag_list = []
-    endpoint = 'tags'
-    tagging_query = {
-        'verbose': False,
-        'language': False,
-        'threshold': 25.0,
-    }
-    response = imagga_post(img_path, endpoint, tagging_query)
-
-    if response['status']['type'] != 'success':
-        return []
-
-    if 'result' in response:
-        tags = response['result'][endpoint]
-
-        for tag in tags:
-            tag_list.append(tag['tag']['en'])
-
-    return tag_list
-
-
-def imagga_post_colors(img_path):
-    colors_list = []
-    endpoint = 'colors'
-    # color_query = {
-    #     'verbose': False,
-    #     'language': False,
-    #     'threshold': 25.0,
-    # }
-    response = imagga_post(img_path, endpoint)
-
-    if response['status']['type'] != 'success':
-        return []
-
-    if 'result' in response:
-        colors = response['result'][endpoint]
-        background_colors = colors['background_colors']
-        foreground_colors = colors['foreground_colors']
-        image_colors = colors['image_colors']
-        colors_list = []
-
-        print(colors)
-
-    return colors_list
+#
+#
+# def imagga_post_tags(img_path):
+#     tag_list = []
+#     endpoint = 'tags'
+#     tagging_query = {
+#         'verbose': False,
+#         'language': False,
+#         'threshold': 25.0,
+#     }
+#     response = imagga_post(img_path, endpoint, tagging_query)
+#
+#     if response['status']['type'] != 'success':
+#         return []
+#
+#     if 'result' in response:
+#         tags = response['result'][endpoint]
+#
+#         for tag in tags:
+#             tag_list.append(tag['tag']['en'])
+#
+#     return tag_list

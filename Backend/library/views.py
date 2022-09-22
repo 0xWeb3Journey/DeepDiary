@@ -10,10 +10,12 @@ from rest_framework.response import Response
 
 from deep_diary.config import wallet_info
 from face.task import get_all_fts
-from library.models import Img, ImgCategory, Mcs
+from library.models import Img, Category, Mcs
 from library.pagination import GalleryPageNumberPagination
-from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer
-from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, set_img_colors
+from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
+    CategorySerializer
+from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, \
+    set_img_colors, set_img_categories, set_all_img_categories
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
@@ -22,7 +24,7 @@ from utils.mcs_storage import upload_file_pay, approve_usdc
 
 
 class ImgCategoryViewSet(viewsets.ModelViewSet):
-    queryset = ImgCategory.objects.all()
+    queryset = Category.objects.all()
     serializer_class = ImgCategorySerializer
 
 
@@ -61,8 +63,10 @@ class ImgViewSet(viewsets.ModelViewSet):
         print(f"INFO:{self.request.user}")
         instance = serializer.save(user=self.request.user)
         print(f'INFO: Img start perform_create........{instance.src}')
-        save_img_info.delay(instance)
-        set_img_tags.delay(instance)
+        save_img_info.delay(instance)  # if this add the delay function, this function will be processed by celery
+        set_img_tags.delay(instance)  # if this add the delay function, this function will be processed by celery
+        set_img_colors(instance)  # if this add the delay function, this function will be processed by celery
+        set_img_categories(instance)  # if this add the delay function, this function will be processed by celery
 
         # upload_img_to_mcs.delay(instance)
         # upload_img_to_mcs(instance)  # Cannot run in parallel
@@ -120,6 +124,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         print(f'INFO img: {type(img)}')
         print(f'INFO img: {img.id}')
         # print(f'INFO request: {dir(request)}')
+
         set_img_colors(img)
 
         serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
@@ -127,12 +132,22 @@ class ImgViewSet(viewsets.ModelViewSet):
         # serializer = self.get_serializer(img)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def info(self, request, pk=None):
-        queryset = Img.objects.annotate(Count('faces'))
-        serializer_class = ImgSerializer
-        serializer = self.get_serializer(queryset[0])
-        return Response({"data":"demo"})
+    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def test(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        img = self.get_object()  # 获取详情的实例对象
+        print(f'INFO pk: {pk}')
+        print(f'INFO img: {type(img)}')
+        print(f'INFO img: {img.id}')
+        # print(f'INFO request: {dir(request)}')
+
+        # set_img_colors(img)
+        # set_img_categories(img)
+        # set_all_img_categories()
+
+        serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
+        # serializer = ImgSerializer(img, many=False)  # 报错
+        # serializer = self.get_serializer(img)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def check_mcs(self, request, pk=None):
@@ -199,10 +214,15 @@ class ImgViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 
-
-
 class McsViewSet(viewsets.ModelViewSet):
     queryset = Mcs.objects.all().order_by('-id')
     serializer_class = McsSerializer
+    # permission_classes = (AllowAny,)
+    pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
     # permission_classes = (AllowAny,)
     pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web

@@ -42,20 +42,6 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
     return user_img_path
 
 
-class ImgCategory(models.Model):
-    """文章分类"""
-    title = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片类别", help_text='图片按应用进行划分')
-    # 数据库更新日期
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间")
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return self.title
-
-
 class Img(models.Model):
     ## 图片基本属性：basic
     FLAG_OPTION = (
@@ -115,14 +101,6 @@ class Img(models.Model):
                            format='JPEG',
                            options={'quality': 80},
                            )
-    category = models.ForeignKey(
-        ImgCategory,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='img',
-        help_text='对图片按应用进行分类'
-    )
     issue = models.ForeignKey(
         Issue,
         null=True,
@@ -223,6 +201,31 @@ class Img(models.Model):
         get_latest_by = 'id'
 
 
+class Category(models.Model):
+    """图片分类"""
+    img_category = models.ManyToManyField(to=Img,
+                                          through='ImgCategory',
+                                          through_fields=('category', 'img'),  # category need comes first
+                                          blank=True,
+                                          help_text='对图片按应用进行分类',
+                                          default=None)
+    name = models.CharField(max_length=30, null=True, blank=True, verbose_name="图片类别", help_text='图片按应用进行划分')
+
+    class Meta:
+        ordering = ['-name']
+
+    def __str__(self):
+        return self.name
+
+
+class ImgCategory(models.Model):
+    img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='categories')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='imgs')
+    confidence = models.FloatField(default=0, null=True, blank=True, verbose_name="categories_percentage",
+                                   help_text='categories_percentage')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
+
+
 class Mcs(models.Model):
     id = models.OneToOneField(
         Img,
@@ -271,7 +274,7 @@ class Color(models.Model):
                                           help_text='a floating point number that shows what part of the image '
                                                     'is taken by the main object (as a percent from 0 to 100)')
     color_percent_threshold = models.FloatField(default=0, null=True, blank=True, verbose_name="object_percentage",
-                                          help_text='colors with `percentage` value lower than this number won’t be included in the response')
+                                                help_text='colors with `percentage` value lower than this number won’t be included in the response')
 
     def __str__(self):
         return self.img.filename
@@ -286,21 +289,23 @@ class ColorItem(models.Model):
                             help_text='numbers between 0 and 255 that represent the  blue components of the color')
 
     closest_palette_color_html_code = models.CharField(max_length=8, null=True, blank=True,
-                                               verbose_name="palette_color_html_code",
-                                               help_text='palette_color_html_code')
+                                                       verbose_name="palette_color_html_code",
+                                                       help_text='palette_color_html_code')
 
     closest_palette_color = models.CharField(max_length=30, null=True, blank=True, verbose_name="palette_color",
-                                     help_text='palette_color')
+                                             help_text='palette_color')
 
-    closest_palette_color_parent = models.CharField(max_length=30, null=True, blank=True, verbose_name="palette_color_parent",
-                                            help_text='palette_color_parent')
+    closest_palette_color_parent = models.CharField(max_length=30, null=True, blank=True,
+                                                    verbose_name="palette_color_parent",
+                                                    help_text='palette_color_parent')
 
-    closest_palette_distance = models.FloatField(default=0, null=True, blank=True, verbose_name='closest_palette_color_parent',
-                                         help_text='how close this color is to the one under the `closest_palette_color` key')
+    closest_palette_distance = models.FloatField(default=0, null=True, blank=True,
+                                                 verbose_name='closest_palette_color_parent',
+                                                 help_text='how close this color is to the one under the `closest_palette_color` key')
 
     percent = models.FloatField(default=0, null=True, blank=True, verbose_name="object_percentage",
-                                   help_text='a floating point number that shows what part of the image '
-                                             'is taken by the main object (as a percent from 0 to 100)')
+                                help_text='a floating point number that shows what part of the image '
+                                          'is taken by the main object (as a percent from 0 to 100)')
 
     html_code = models.CharField(max_length=8, null=True, blank=True, verbose_name="palette_color_html_code",
                                  help_text='palette_color_html_code')

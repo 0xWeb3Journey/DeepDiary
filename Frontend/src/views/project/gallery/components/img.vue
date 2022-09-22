@@ -20,7 +20,7 @@
       @albumClick="onGetAlbumId"
     ></Album>
 
-    <Mcs :id="checkedId" mcstype="face" :title="`Mcs Info-${checkedId}`"></Mcs>
+    <!-- <Mcs :id="checkedId" mcstype="face" :title="`Mcs Info-${checkedId}`"></Mcs> -->
   </div>
 </template>
 

@@ -84,6 +84,7 @@
         this.checkedIndex = index
         this.checkedId = id || 0 // if return unexpected id, then set the id to default 1
       },
+
       async fetchFaceAlbum() {
         if (this.albumLoading) return //incase fetch more data during the fetching time
 

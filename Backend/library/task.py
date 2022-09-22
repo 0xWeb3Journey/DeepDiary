@@ -9,7 +9,7 @@ from face.models import Face
 from face.task import upload_face_to_mcs
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
 from library.imagga import imagga_post
-from library.models import Img, ColorBackground
+from library.models import Img, ColorBackground, Category, ImgCategory
 from library.serializers import McsSerializer, McsDetailSerializer, ColorSerializer, ColorBackgroundSerializer, \
     ColorForegroundSerializer, ColorImgSerializer
 from mycelery.main import app
@@ -149,8 +149,11 @@ def set_img_tags(img_obj):
     }
 
     response = imagga_post(img_path, endpoint, tagging_query)
-    pickle.dump('tags.pkl', open('tags.pkl', 'wb'))
-    # response = pickle.load(open('tags.pkl', 'rb'))
+    # with open("tags.txt", 'wb') as f:  # store the result object, which will helpful for debugging
+    #     pickle.dump(response, f)
+    #
+    # with open("tags.txt", 'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
+    #     response = pickle.load(f)
 
     if 'result' in response:
         tags = response['result']['tags']
@@ -170,12 +173,12 @@ def set_all_img_tags():
         set_img_tags(img)
 
 
-# @ shared_task
+@shared_task
 def set_img_colors(img_obj):
     # this is through post method to get the tags. mainly is used for local img
     img_path = img_obj.src.path
     endpoint = 'colors'
-    # color_query = {
+    # color_query = {                 #  if it is necessary, we could add the query info here
     #     'verbose': False,
     #     'language': False,
     #     'threshold': 25.0,
@@ -183,10 +186,10 @@ def set_img_colors(img_obj):
 
     response = imagga_post(img_path, endpoint)
     # print(response)
-    # with open("colors.txt", 'wb') as f:  # 打开文件
+    # with open("colors.txt", 'wb') as f:  # store the result object, which will helpful for debugging
     #     pickle.dump(response, f)
 
-    # with open("colors.txt", 'rb') as f:  # 打开文件
+    # with open("colors.txt", 'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
     #     response = pickle.load(f)
 
     # print(response)
@@ -203,12 +206,11 @@ def set_img_colors(img_obj):
         # print(colors)
 
         # 调用序列化器进行反序列化验证和转换
-        colors.update(img=img_obj.id)
-
-        if not hasattr(img_obj, 'colors'):
+        colors.update(img=img_obj.id)  # bind the one to one field image info
+        if not hasattr(img_obj, 'colors'):  # if img_obj have no attribute of colors, then create it
             print('no colors object existed')
             serializer = ColorSerializer(data=colors)
-        else:
+        else:  # if img_obj already have attribute of colors, then updated it
             print('colors object already existed')
             serializer = ColorSerializer(img_obj.colors, data=colors)
         result = serializer.is_valid(raise_exception=True)
@@ -226,11 +228,11 @@ def set_img_colors(img_obj):
                 result = serializer.is_valid(raise_exception=True)
                 back_color_obj = serializer.save()
         # else:
-            # for bk in background_colors:
-            #     bk.update(color=color_obj.pk)
-            #     serializer = ColorBackgroundSerializer(color_obj.background, data=bk)
-            #     result = serializer.is_valid(raise_exception=True)
-            #     back_color_obj = serializer.save()
+        # for bk in background_colors:
+        #     bk.update(color=color_obj.pk)
+        #     serializer = ColorBackgroundSerializer(color_obj.background, data=bk)
+        #     result = serializer.is_valid(raise_exception=True)
+        #     back_color_obj = serializer.save()
 
         if not color_obj.foreground.all().exists():
             for fore in foreground_colors:
@@ -264,3 +266,55 @@ def set_all_img_colors():
     imgs = Img.objects.all()
     for img in imgs:
         set_img_colors(img)
+
+
+@shared_task
+def set_img_categories(img_obj):
+    img_path = img_obj.src.path
+    endpoint = 'categories/personal_photos'
+
+    response = imagga_post(img_path, endpoint)
+    # with open("categories.txt", 'wb') as f:  # store the result object, which will helpful for debugging
+    #     pickle.dump(response, f)
+
+    # with open("categories.txt",
+    #           'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
+    #     response = pickle.load(f)
+
+    if 'result' in response:
+        categories = response['result']['categories']
+        categories_list = []
+        img_cate_list = []
+        data = {}
+
+        for item in categories:
+            # obj = Category(name=item['name']['en'], confidence=item['confidence'])
+            checkd_obj = Category.objects.filter(name=item['name']['en'])
+            if checkd_obj.exists():
+                # print(f'--------------------categories have already existed---------------------------')
+                # return
+                obj = checkd_obj.first()
+            else:
+                obj = Category.objects.create(name=item['name']['en'])
+
+            if ImgCategory.objects.filter(img=img_obj, category=obj).exists():
+                print(f'--------------------ImgCategory have already existed---------------------------')
+                continue
+            item = ImgCategory(img=img_obj, category=obj, confidence=item['confidence'])
+            img_cate_list.append(item)
+            categories_list.append(obj)
+
+        print(img_cate_list)
+        ImgCategory.objects.bulk_create(img_cate_list)
+
+        # img_obj.categories.add(*categories_list, through_defaults=confidence_list)
+
+        print(
+            f'--------------------{img_obj.id} :categories have been store to the database---------------------------')
+
+
+@shared_task
+def set_all_img_categories():
+    imgs = Img.objects.all()
+    for img in imgs:
+        set_img_categories(img)

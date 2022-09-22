@@ -23,10 +23,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from article.views import CategoryViewSet, ArticleViewSet
+from article.views import ArticleViewSet
 from comment.views import CommentViewSet
 from face.views import FaceViewSet, FaceAlbumViewSet
-from library.views import ImgViewSet, ImgCategoryViewSet, McsViewSet
+from library.views import ImgViewSet, ImgCategoryViewSet, McsViewSet, CategoryViewSet
 from project.views import ProjectViewSet, ProductViewSet, ToolingViewSet, OutsourcingViewSet, PurchaseViewSet, \
     DeliveryViewSet, ResumeViewSet, IssueViewSet
 from tags.views import TagViewSet
@@ -38,7 +38,7 @@ router = DefaultRouter()
 router.register(r'imgcategory', ImgCategoryViewSet)
 router.register(r'img', ImgViewSet)
 router.register(r'article', ArticleViewSet)
-router.register(r'category', CategoryViewSet)
+# router.register(r'category', CategoryViewSet)
 router.register(r'tag', TagViewSet)
 router.register(r'comment', CommentViewSet)
 router.register(r'user', UserViewSet)
@@ -57,6 +57,7 @@ router.register(r'issue', IssueViewSet)  # 新增
 router.register(r'mcs', McsViewSet)  # 新增
 router.register(r'ad', AdViewSet)  # 新增
 router.register(r'supplydemand', SupplyDemandSet)  # 新增
+router.register(r'category', CategoryViewSet)  # 新增
 
 urlpatterns = [
     path('admin/', admin.site.urls),

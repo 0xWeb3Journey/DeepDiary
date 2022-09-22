@@ -8,11 +8,12 @@
 # from django_redis import get_redis_connection
 #
 # from deep_diary.config import api_key, api_secret
+# from library.imagga import imagga_post
 # from library.serializers import ColorSerializer, ColorBackgroundSerializer, ColorForegroundSerializer, ColorImgSerializer
 #
 # os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
 # django.setup()
-# from library.models import Img, ColorBackground, ColorForeground, ColorImg, Color
+# from library.models import Img, ColorBackground, ColorForeground, ColorImg, Color, Category, ImgCategory
 # from face.task import upload_face_to_mcs
 # from library.task import upload_img_to_mcs, set_img_tags, set_img_colors
 #
@@ -55,66 +56,51 @@
 # image_url = 'https://docs.imagga.com/static/images/docs/sample/japan-605234_1280.jpg'
 # img_path = 'https://imagga.com/static/images/nsfw/girl-1211435_960_720.jpg'
 #
-#
-#
-# def set_img_colors(img_obj):
-#     # this is through post method to get the tags. mainly is used for local img
+# def set_img_categories(img_obj):
 #     img_path = img_obj.src.path
-#     endpoint = 'colors'
-#     # color_query = {
-#     #     'verbose': False,
-#     #     'language': False,
-#     #     'threshold': 25.0,
-#     # }
-#     # response = imagga_post(img_path, endpoint)
-#     response = pickle.load(open('response.pkl', 'rb'))
+#     endpoint = 'categories/personal_photos'
 #
-#     if response['status']['type'] != 'success':
-#         return []
+#     response = imagga_post(img_path, endpoint)
+#     # with open("categories.txt", 'wb') as f:  # store the result object, which will helpful for debugging
+#     #     pickle.dump(response, f)
+#
+#     # with open("categories.txt",
+#     #           'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
+#     #     response = pickle.load(f)
 #
 #     if 'result' in response:
-#         colors = response['result'][endpoint]
-#         background_colors = colors['background_colors']
-#         foreground_colors = colors['foreground_colors']
-#         image_colors = colors['image_colors']
+#         categories = response['result']['categories']
+#         categories_list = []
+#         img_cate_list = []
+#         data = {}
+# 
+#         for item in categories:
+#             # obj = Category(name=item['name']['en'], confidence=item['confidence'])
+#             checkd_obj = Category.objects.filter(name=item['name']['en'])
+#             if checkd_obj.exists():
+#                 # print(f'--------------------categories have already existed---------------------------')
+#                 # return
+#                 obj = checkd_obj.first()
+#             else:
+#                 obj = Category.objects.create(name=item['name']['en'])
 #
-#         print(colors)
+#             if ImgCategory.objects.filter(img=img_obj, category=obj).exists():
+#                 print(f'--------------------ImgCategory have already existed---------------------------')
+#                 continue
+#             item = ImgCategory(img=img_obj, category=obj, confidence=item['confidence'])
+#             img_cate_list.append(item)
+#             categories_list.append(obj)
 #
-#         # 调用序列化器进行反序列化验证和转换
-#         colors.update(img=img_obj.id)
-#         serializer = ColorSerializer(data=colors)
-#         result = serializer.is_valid(raise_exception=True)
-#         color_obj = serializer.save()
+#         print(img_cate_list)
+#         ImgCategory.objects.bulk_create(img_cate_list)
 #
-#         for bk in background_colors:
-#             bk.update(color=color_obj.pk)
-#             serializer = ColorBackgroundSerializer(data=bk)
-#             result = serializer.is_valid(raise_exception=True)
-#             back_color_obj = serializer.save()
+#         # img_obj.categories.add(*categories_list, through_defaults=confidence_list)
 #
-#         for fore in foreground_colors:
-#             fore.update(color=color_obj.pk)
-#             serializer = ColorForegroundSerializer(data=fore)
-#             result = serializer.is_valid(raise_exception=True)
-#             fore_color_obj = serializer.save()
+#         print(
+#             f'--------------------{img_obj.id} :categories have been store to the database---------------------------')
 #
-#         for img in image_colors:
-#             img.update(color=color_obj.pk)
-#             serializer = ColorImgSerializer(data=img)
-#             result = serializer.is_valid(raise_exception=True)
-#             img_color_obj = serializer.save()
+# img_obj = Img.objects.get(pk=426)
+# set_img_categories(img_obj)
 #
-#         print('--------------------all the colors have been store to the database---------------------------')
-#
-#     #     ColorBackground.objects.bulkcreat()
-#     # # back_color_list = [ColorBackground(title=line.split('****')[0], content=line.split('****')[1]) for line in f]
-#     #
-#     # Blog.objects.bulk_create(BlogList)
-#
-#
-# # img_obj = Img.objects.all().first()
-# img_obj = Img.objects.get(pk=432)
-# # post_img_tags(img_obj, threshold=30)
-# set_img_colors(img_obj)
 #
 # print('--------------------end---------------------------')

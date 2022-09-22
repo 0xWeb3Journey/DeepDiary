@@ -45,6 +45,7 @@
     watch: {
       items(newVal, oldVal) {
         console.log('items have bee changed: %s --> %s', oldVal, newVal)
+        // if the tags string changed, the update the dynamicTags, else set it to null
         if (newVal) this.dynamicTags = newVal.split(',')
         else this.dynamicTags = []
       },
@@ -52,6 +53,7 @@
     },
     mounted() {
       console.log('INFO: get the tags source for parent component:', this.items)
+      // if the tags string changed, the update the dynamicTags, else set it to null
       if (this.items) this.dynamicTags = this.items.split(',')
       else this.dynamicTags = []
     },

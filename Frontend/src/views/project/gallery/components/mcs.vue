@@ -1,9 +1,8 @@
 <template>
   <div class="mcs-container">
-    <!-- <el-alert title="mcs组件消息提示的文案" type="info"></el-alert> -->
-
     <div id="mcs" ref="mcs">
       <el-descriptions
+        v-if="mcs !== null"
         class="margin-top"
         :title="title"
         extra="Extra"
@@ -115,6 +114,11 @@
           {{ mcs.nft_tx_hash }}
         </el-descriptions-item>
       </el-descriptions>
+      <el-alert
+        v-else
+        title=" this image haven't been synchronized to mcs yet"
+        type="warning"
+      ></el-alert>
     </div>
   </div>
 </template>
@@ -134,6 +138,32 @@
     name: 'Mcs',
     components: {},
     props: {
+      mcs: {
+        type: Object,
+        // 对象或数组默认值必须从一个工厂函数获取
+        default: function () {
+          return {
+            id: 426,
+            file_upload_id: 478656,
+            file_name: 'e8e4be52ba59a1a124665c82bb3f5ae2.jpeg',
+            file_size: 259215,
+            updated_at: '2022-09-11T06:26:51.749616+08:00',
+            nft_url:
+              'https://calibration-ipfs.filswan.com/ipfs/QmPJUCw8W8VRiVcJjVdnYcfrfo5SsjWSbU7FJnfFSSHSdt',
+            pin_status: 'Pinned',
+            payload_cid: 'QmPJUCw8W8VRiVcJjVdnYcfrfo5SsjWSbU7FJnfFSSHSdt',
+            w_cid:
+              '3dae0417-77b0-4a3b-9dee-84bff63628acQmPJUCw8W8VRiVcJjVdnYcfrfo5SsjWSbU7FJnfFSSHSdt',
+            status: 'success',
+            deal_success: true,
+            is_minted: true,
+            token_id: '106144',
+            mint_address: '0x8B6Ad2eD1151ae4cA664D0d44CE4d42307c91708',
+            nft_tx_hash:
+              '0x8e6b8eb6d0f408c6adac1c0d6d6a9d0b870ed514b1f7b78e7c6877ebd6751ad1',
+          }
+        },
+      },
       mcstype: {
         type: String,
         default: 'img', // model field name
@@ -144,45 +174,23 @@
         default: '', // model field name
         required: false,
       },
-      id: {
-        type: Number,
-        default: 269,
-        required: true,
-      },
     },
     data() {
       return {
-        mcs: {
-          id: -1,
-          file_upload_id: 0,
-          file_name: '',
-          file_size: 0,
-          // "updated_at": updated_at,
-          nft_url: '',
-          pin_status: 'Pinned',
-          payload_cid: '',
-          w_cid: '',
-          status: '',
-          deal_success: false,
-          is_minted: false,
-          token_id: 0,
-          mint_address: '',
-          nft_tx_hash: '',
-        },
-        mcsQueryForm: {
-          id: 0,
-        },
+        // mcsQueryForm: {
+        //   id: 0,
+        // },
       }
     },
     computed: {},
     watch: {
-      id(newVal, oldVal) {
-        this.$nextTick(() => {
-          console.log('gallery have been changed')
-          if (this.mcstype === 'img') this.fetchImgMcs()
-          if (this.mcstype === 'face') this.fetchFaceMcs()
-        })
-      },
+      // id(newVal, oldVal) {
+      //   this.$nextTick(() => {
+      //     console.log('gallery have been changed')
+      //     if (this.mcstype === 'img') this.fetchImgMcs()
+      //     if (this.mcstype === 'face') this.fetchFaceMcs()
+      //   })
+      // },
     },
     created() {
       // this.fetchAlbum()
@@ -190,46 +198,46 @@
     },
     mounted() {},
     methods: {
-      async fetchFaceMcs() {
-        console.log('start to get the face mcs...')
-        this.mcsQueryForm.id = this.id
-        const { data } = await getFace(this.mcsQueryForm)
-        if (data.mcs === null) {
-          this.setMcsDefault()
-        } else {
-          // console.log(data)
-          this.mcs = data.mcs
-        }
-      },
-      async fetchImgMcs() {
-        console.log('start to get the img mcs...')
-        this.mcsQueryForm.id = this.id
-        const { data } = await getImg(this.mcsQueryForm)
-        if (data.mcs === null) {
-          this.setMcsDefault()
-        } else {
-          // console.log(data)
-          this.mcs = data.mcs
-        }
-      },
-      setMcsDefault() {
-        // console.log('null++++-----------')
-        this.mcs.id = 0
-        this.mcs.file_upload_id = 0
-        this.mcs.file_name = ''
-        this.mcs.file_size = 0
-        // "updated_at": updated_at
-        this.mcs.nft_url = ''
-        this.mcs.pin_status = ''
-        this.mcs.payload_cid = ''
-        this.mcs.w_cid = ''
-        this.mcs.status = ''
-        this.mcs.deal_success = false
-        this.mcs.is_minted = false
-        this.mcs.token_id = 0
-        this.mcs.mint_address = ''
-        this.mcs.nft_tx_hash = ''
-      },
+      // async fetchFaceMcs() {
+      //   console.log('start to get the face mcs...')
+      //   this.mcsQueryForm.id = this.id
+      //   const { data } = await getFace(this.mcsQueryForm)
+      //   if (data.mcs === null) {
+      //     this.setMcsDefault()
+      //   } else {
+      //     // console.log(data)
+      //     this.mcs = data.mcs
+      //   }
+      // },
+      // async fetchImgMcs() {
+      //   console.log('start to get the img mcs...')
+      //   this.mcsQueryForm.id = this.id
+      //   const { data } = await getImg(this.mcsQueryForm)
+      //   if (data.mcs === null) {
+      //     this.setMcsDefault()
+      //   } else {
+      //     // console.log(data)
+      //     this.mcs = data.mcs
+      //   }
+      // },
+      // setMcsDefault() {
+      //   // console.log('null++++-----------')
+      //   this.mcs.id = 0
+      //   this.mcs.file_upload_id = 0
+      //   this.mcs.file_name = ''
+      //   this.mcs.file_size = 0
+      //   // "updated_at": updated_at
+      //   this.mcs.nft_url = ''
+      //   this.mcs.pin_status = ''
+      //   this.mcs.payload_cid = ''
+      //   this.mcs.w_cid = ''
+      //   this.mcs.status = ''
+      //   this.mcs.deal_success = false
+      //   this.mcs.is_minted = false
+      //   this.mcs.token_id = 0
+      //   this.mcs.mint_address = ''
+      //   this.mcs.nft_tx_hash = ''
+      // },
     },
   }
 </script>
