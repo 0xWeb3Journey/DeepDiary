@@ -15,7 +15,7 @@ from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer
 from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, \
-    set_img_colors, set_img_categories, set_all_img_categories
+    set_img_colors, set_img_categories, set_all_img_categories, save_all_img_info
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
@@ -50,23 +50,23 @@ class ImgViewSet(viewsets.ModelViewSet):
         'mcs__file_upload_id': ['gt', 'lt', 'exact'],  # 是否存在这个字段
         'faces__name': ['icontains'],  # 大于等于，小于等于，包含, 对于外键,可以需要使用双下划线指定具体字段
         'faces__id': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含, 对于外键,可以需要使用双下划线指定具体字段
-        'year': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
-        'month': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
-        'day': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
+        'dates__year': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
+        'dates__month': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
+        'dates__day': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
         'filename': ['icontains'],  # 模糊搜索
         'tags__name': ['icontains'],  # 模糊搜索
     }
-    search_fields = ['user__username', 'tags__name', 'year', 'month', 'day']
+    search_fields = ['user__username', 'tags__name', 'dates__year', 'dates__month', 'dates__day']
     ordering_fields = ['tags__name']  # 这里的字段，需要总上面定义字段中选择
 
     def perform_create(self, serializer):
         print(f"INFO:{self.request.user}")
         instance = serializer.save(user=self.request.user)
         print(f'INFO: Img start perform_create........{instance.src}')
-        save_img_info.delay(instance)  # if this add the delay function, this function will be processed by celery
-        set_img_tags.delay(instance)  # if this add the delay function, this function will be processed by celery
-        set_img_colors(instance)  # if this add the delay function, this function will be processed by celery
-        set_img_categories(instance)  # if this add the delay function, this function will be processed by celery
+        # save_img_info.delay(instance)  # if this add the delay function, this function will be processed by celery
+        # set_img_tags.delay(instance)  # if this add the delay function, this function will be processed by celery
+        # set_img_colors(instance)  # if this add the delay function, this function will be processed by celery
+        # set_img_categories(instance)  # if this add the delay function, this function will be processed by celery
 
         # upload_img_to_mcs.delay(instance)
         # upload_img_to_mcs(instance)  # Cannot run in parallel
@@ -140,9 +140,11 @@ class ImgViewSet(viewsets.ModelViewSet):
         print(f'INFO img: {img.id}')
         # print(f'INFO request: {dir(request)}')
 
+        # save_img_info(img)
         # set_img_colors(img)
         # set_img_categories(img)
         # set_all_img_categories()
+        save_all_img_info()
 
         serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
         # serializer = ImgSerializer(img, many=False)  # 报错

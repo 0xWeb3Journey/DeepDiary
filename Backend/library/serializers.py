@@ -7,9 +7,31 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from face.serializers import FaceSerializer, facesField, FaceSimpleSerializer
-from library.models import Img, Category, Mcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg, ImgCategory
+from library.models import Img, Category, Mcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg, \
+    ImgCategory, Address, Evaluate, Date
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
 from tags.serializers import TagSerializerField
+
+
+class AddressSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Address
+        fields = '__all__'
+
+
+class EvaluateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Evaluate
+        fields = '__all__'
+
+
+class DateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Date
+        fields = '__all__'
 
 
 class ImgCategorySerializer(serializers.ModelSerializer):
@@ -125,6 +147,9 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
     mcs = McsDetailSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     colors = ColorSerializer(read_only=True)  # this name should be the same as model related name
+    dates = DateSerializer(read_only=True)  # this name should be the same as model related name
+    evaluates = EvaluateSerializer(read_only=True)  # this name should be the same as model related name
+    address = AddressSerializer(read_only=True)  # this name should be the same as model related name
 
     def get_names(self, obj):
         query_set = obj.faces.all()

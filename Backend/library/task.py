@@ -1,5 +1,6 @@
 import pickle
 import time
+from datetime import datetime
 
 from celery import shared_task
 from pyexiv2 import Image as exivImg
@@ -9,7 +10,7 @@ from face.models import Face
 from face.task import upload_face_to_mcs
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
 from library.imagga import imagga_post
-from library.models import Img, ColorBackground, Category, ImgCategory
+from library.models import Img, ColorBackground, Category, ImgCategory, Address, Date, Evaluate
 from library.serializers import McsSerializer, McsDetailSerializer, ColorSerializer, ColorBackgroundSerializer, \
     ColorForegroundSerializer, ColorImgSerializer
 from mycelery.main import app
@@ -26,70 +27,69 @@ def send_email(name):
 
 
 # @app.task
-@shared_task
-def save_img_info(instance):
-    print(f'INFO: **************img instance have been created, saving img info now...')
-    lm_tags = []
-    img_read = exivImg(instance.src.path)  # 登记图片路径
-    exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
-    iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
-    xmp = img_read.read_xmp()  # 读取元数据，这会返回一个字典
-    if exif:
-        print(f'INFO: exif is true ')
-        instance.longitude_ref = exif.get('Exif.GPSInfo.GPSLongitudeRef')
-        if instance.longitude_ref:  # if have GPS data
-            instance.longitude = GPS_format(
-                exif.get('Exif.GPSInfo.GPSLongitude'))  # exif.get('Exif.GPSInfo.GPSLongitude')
-            instance.latitude_ref = exif.get('Exif.GPSInfo.GPSLatitudeRef')
-            instance.latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
-
-        instance.altitude_ref = exif.get('Exif.GPSInfo.GPSAltitudeRef')  # 有些照片无高度信息
-        if instance.altitude_ref:  # if have the altitude info
-            instance.altitude_ref = float(instance.altitude_ref)
-            instance.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
-            alt = instance.altitude.split('/')
-            instance.altitude = float(alt[0]) / float(alt[1])
-        print(f'instance.longitude {instance.longitude},instance.latitude {instance.latitude}')
-        is_located = False
-        if instance.longitude and instance.latitude:
-            # 是否包含经纬度数据
-            instance.is_located = True
-            long_lati = GPS_to_coordinate(instance.longitude, instance.latitude)
-            instance.location, instance.district, instance.city, instance.province, instance.country = GPS_get_address(
-                long_lati)
-
-        instance.camera_brand = exif.get('Exif.Image.Make')
-        instance.camera_model = exif.get('Exif.Image.Model')
-
-    if iptc:
-        print(f'INFO: iptc is true ')
-        instance.title = iptc.get('iptc.Application2.ObjectName')
-        instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
-        lm_tags = iptc.get('Iptc.Application2.Keywords')
-
-    if xmp:
-        print(f'INFO: xmp is true ')
-        instance.label = xmp.get('Xmp.xmp.Label')  # color mark
-        instance.rating = xmp.get('Xmp.xmp.Rating')
-        if instance.rating:
-            instance.rating = int(xmp.get('Xmp.xmp.Rating'))
-
-    # print(f"INFO: instance.src.width: {instance.src.width}")
-    # print(f"INFO: instance.src.height: {instance.src.height}")
-    instance.wid = instance.src.width
-    instance.height = instance.src.height
-    instance.aspect_ratio = instance.height / instance.wid
-    instance.is_exist = True
-    instance.save()
-
-    if lm_tags:
-        print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
-        print(f'INFO: the instance id is {instance.id}')
-        # time.sleep(5)  # Delays for 5 seconds. You can also use a float value.
-        instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
-        # obj = Img.objects.get(id=instance.id)
-        # obj.tags.set(lm_tags)
-
+# @shared_task
+# def save_img_info(instance):
+#     print(f'INFO: **************img instance have been created, saving img info now...')
+#     lm_tags = []
+#     img_read = exivImg(instance.src.path)  # 登记图片路径
+#     exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
+#     iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
+#     xmp = img_read.read_xmp()  # 读取元数据，这会返回一个字典
+#     if exif:
+#         print(f'INFO: exif is true ')
+#         instance.longitude_ref = exif.get('Exif.GPSInfo.GPSLongitudeRef')
+#         if instance.longitude_ref:  # if have longitude info
+#             instance.longitude = GPS_format(
+#                 exif.get('Exif.GPSInfo.GPSLongitude'))  # exif.get('Exif.GPSInfo.GPSLongitude')
+#             instance.latitude_ref = exif.get('Exif.GPSInfo.GPSLatitudeRef')
+#             instance.latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
+#
+#         instance.altitude_ref = exif.get('Exif.GPSInfo.GPSAltitudeRef')  # 有些照片无高度信息
+#         if instance.altitude_ref:  # if have the altitude info
+#             instance.altitude_ref = float(instance.altitude_ref)
+#             instance.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
+#             alt = instance.altitude.split('/')
+#             instance.altitude = float(alt[0]) / float(alt[1])
+#         print(f'instance.longitude {instance.longitude},instance.latitude {instance.latitude}')
+#         is_located = False
+#         if instance.longitude and instance.latitude:
+#             # 是否包含经纬度数据
+#             instance.is_located = True
+#             long_lati = GPS_to_coordinate(instance.longitude, instance.latitude)
+#             instance.location, instance.district, instance.city, instance.province, instance.country = GPS_get_address(
+#                 long_lati)
+#
+#         instance.camera_brand = exif.get('Exif.Image.Make')
+#         instance.camera_model = exif.get('Exif.Image.Model')
+#
+#     if iptc:
+#         print(f'INFO: iptc is true ')
+#         instance.title = iptc.get('iptc.Application2.ObjectName')
+#         instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
+#         lm_tags = iptc.get('Iptc.Application2.Keywords')
+#
+#     if xmp:
+#         print(f'INFO: xmp is true ')
+#         instance.label = xmp.get('Xmp.xmp.Label')  # color mark
+#         instance.rating = xmp.get('Xmp.xmp.Rating')
+#         if instance.rating:
+#             instance.rating = int(xmp.get('Xmp.xmp.Rating'))
+#
+#     # print(f"INFO: instance.src.width: {instance.src.width}")
+#     # print(f"INFO: instance.src.height: {instance.src.height}")
+#     instance.wid = instance.src.width
+#     instance.height = instance.src.height
+#     instance.aspect_ratio = instance.height / instance.wid
+#     instance.is_exist = True
+#     instance.save()
+#
+#     if lm_tags:
+#         print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
+#         print(f'INFO: the instance id is {instance.id}')
+#         # time.sleep(5)  # Delays for 5 seconds. You can also use a float value.
+#         instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+#         # obj = Img.objects.get(id=instance.id)
+#         # obj.tags.set(lm_tags)
 
 # @app.task
 @shared_task
@@ -162,7 +162,8 @@ def set_img_tags(img_obj):
         for tag in tags:
             tag_list.append(tag['tag']['en'])
 
-        img_obj.tags.set(tag_list)
+        # img_obj.tags.set(tag_list)
+        img_obj.tags.add(*tag_list)
         print(f'--------------------{img_obj.id} :tags have been store to the database---------------------------')
 
 
@@ -318,3 +319,118 @@ def set_all_img_categories():
     imgs = Img.objects.all()
     for img in imgs:
         set_img_categories(img)
+
+
+def set_img_date(date_str):  # '%Y:%m:%d %H:%M:%S'
+    date = Date()
+    if not date_str:
+        date_str = '1970:01:01 00:00:00'
+
+    tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
+
+    date.capture_date = tt.strftime("%Y-%m-%d")
+    date.capture_time = tt.strftime("%H:%M:%S")
+    date.year = str(tt.year).rjust(2, '0')
+    date.month = str(tt.month).rjust(2, '0')
+    date.day = str(tt.day).rjust(2, '0')
+
+    if tt.weekday() < 5:
+        date.is_weekend = False
+    else:
+        date.is_weekend = True
+    if 0 < tt.hour < 5:
+        date.earthly_branches = 0  # 这个判断需要后续完善，可以直接把字符串格式化后，再判读时间是否属于朝九晚五
+    elif 5 < tt.hour < 8:
+        date.earthly_branches = 1
+    elif 8 < tt.hour < 17:
+        date.earthly_branches = 2
+    elif 17 < tt.hour < 21:
+        date.earthly_branches = 3
+    else:
+        date.earthly_branches = 4
+
+    return date
+
+@shared_task
+def save_img_info(instance):
+    print(f'INFO: **************img instance have been created, saving img info now...')
+    addr = Address()
+    eval = Evaluate()
+    date = Date()
+    lm_tags = []
+    img_read = exivImg(instance.src.path)  # 登记图片路径
+    exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
+    iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
+    xmp = img_read.read_xmp()  # 读取元数据，这会返回一个字典
+    if exif:
+        print(f'INFO: exif is true ')
+        # deal with timing
+        date_str = exif['Exif.Photo.DateTimeOriginal']
+        date = set_img_date(date_str)  # return the date instance
+
+        # deal with address
+        addr.longitude_ref = exif.get('Exif.GPSInfo.GPSLongitudeRef')
+        if addr.longitude_ref:  # if have longitude info
+            addr.longitude = GPS_format(
+                exif.get('Exif.GPSInfo.GPSLongitude'))  # exif.get('Exif.GPSInfo.GPSLongitude')
+            addr.latitude_ref = exif.get('Exif.GPSInfo.GPSLatitudeRef')
+            addr.latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
+
+        addr.altitude_ref = exif.get('Exif.GPSInfo.GPSAltitudeRef')  # 有些照片无高度信息
+        if addr.altitude_ref:  # if have the altitude info
+            addr.altitude_ref = float(addr.altitude_ref)
+            addr.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
+            alt = addr.altitude.split('/')
+            addr.altitude = float(alt[0]) / float(alt[1])
+        print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
+        addr.is_located = False
+        if addr.longitude and addr.latitude:
+            # 是否包含经纬度数据
+            addr.is_located = True
+            long_lati = GPS_to_coordinate(addr.longitude, addr.latitude)
+            addr.location, addr.district, addr.city, addr.province, addr.country = GPS_get_address(
+                long_lati)
+
+        instance.camera_brand = exif.get('Exif.Image.Make')
+        instance.camera_model = exif.get('Exif.Image.Model')
+
+    if iptc:
+        print(f'INFO: iptc is true ')
+        instance.title = iptc.get('iptc.Application2.ObjectName')
+        instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
+        lm_tags = iptc.get('Iptc.Application2.Keywords')
+
+    if xmp:
+        print(f'INFO: xmp is true ')
+        instance.label = xmp.get('Xmp.xmp.Label')  # color mark
+        eval.rating = int(xmp.get('Xmp.xmp.Rating', 0))
+        # if eval.rating:
+        #     eval.rating = int(xmp.get('Xmp.xmp.Rating'))
+
+    instance.wid = instance.src.width
+    instance.height = instance.src.height
+    instance.aspect_ratio = instance.height / instance.wid
+    instance.is_exist = True
+    # instance.save()   # save the image instance, already saved during save the author
+
+    if lm_tags:
+        print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
+        print(f'INFO: the instance id is {instance.id}')
+        # instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+        instance.tags.add(*lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+
+    addr.img = instance
+    eval.img = instance
+    date.img = instance
+    addr.save()
+    eval.save()
+    date.save()
+    print(
+        f'--------------------{instance.id} :img infos have been store to the database---------------------------')
+
+
+@shared_task
+def save_all_img_info():
+    imgs = Img.objects.all()
+    for img in imgs:
+        save_img_info(img)
