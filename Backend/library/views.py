@@ -10,12 +10,14 @@ from rest_framework.response import Response
 
 from deep_diary.config import wallet_info
 from face.task import get_all_fts
+from library.filters import ImgFilter, ImgSearchFilter
 from library.models import Img, Category, Mcs
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer
 from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, \
-    set_img_colors, set_img_categories, set_all_img_categories, save_all_img_info
+    set_img_colors, set_img_categories, set_all_img_categories, save_all_img_info, set_all_img_group, \
+    add_all_img_colors_to_category
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
@@ -29,35 +31,59 @@ class ImgCategoryViewSet(viewsets.ModelViewSet):
 
 
 class ImgViewSet(viewsets.ModelViewSet):
-    # queryset = Img.objects.all().distinct()
-    queryset = Img.objects.annotate(Count('faces')).order_by('-id')
-    # print(queryset)
-    # queryset = Img.objects.filter(faces__id=44)
+    queryset = Img.objects.all().order_by('-id')
+
     serializer_class = ImgSerializer
     # permission_classes = (AllowAny,)
-    pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
+    # pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
     # 第一种方法
-    # filter_class = ImgFilter  # 过滤类
-
+    filter_class = ImgFilter  # 过滤类
+    # search_class = ImgSearchFilter
     # 第二种方法
     # DjangoFilterBackend  # 精准过滤，字段用filterset_fields定义
     # filters.SearchFilter  # 模糊搜索，字段用search_fields
     # filters.OrderingFilter  # 排序规则字段定义
     filter_backends = [DjangoFilterBackend, filters.SearchFilter,
                        filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
-    # filterset_fields = ['user__username', 'tags__name', 'year', 'month', 'day']
-    filterset_fields = {
-        'mcs__file_upload_id': ['gt', 'lt', 'exact'],  # 是否存在这个字段
-        'faces__name': ['icontains'],  # 大于等于，小于等于，包含, 对于外键,可以需要使用双下划线指定具体字段
-        'faces__id': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含, 对于外键,可以需要使用双下划线指定具体字段
-        'dates__year': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
-        'dates__month': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
-        'dates__day': ['gte', 'lte', 'contains'],  # 大于等于，小于等于，包含
-        'filename': ['icontains'],  # 模糊搜索
-        'tags__name': ['icontains'],  # 模糊搜索
+
+    # The SearchFilter class will only be applied if the view has a search_fields attribute set.
+    # The search_fields attribute should be a list of names of text type fields on the model,
+    # such as CharField or TextField.
+    # The search parameter may contain multiple search terms, which should be whitespace and/or comma separated
+    # search_fields = ['user__username', 'address__location', 'tags__name', 'dates__year', 'dates__month', 'dates__day']
+    # search_fields = ['$tags__name']  # 如何使用正则进行匹配
+
+    search_fields = {
+        # color
+        'colors__image__closest_palette_color_parent': ['exact'],
+
+        # category
+        'categories__name': ['exact'],  #
+        'categories__type': ['exact'],  #
+        'categories__value': ['exact'],  #
+        # address
+        'address__country': ['exact', 'contains'],
+        'address__province': ['exact', 'contains'],
+        'address__city': ['exact', 'contains'],
+        'address__district': ['exact', 'contains'],
+        'address__location': ['icontains'],
+        # face
+        'faces__name': ['exact', 'icontains'],  #
+        # date
+        'dates__year': ['exact', 'contains'],  #
+        'dates__month': ['exact', 'contains'],  #
+        'dates__day': ['exact', 'contains'],  #
+        'dates__capture_date': ['exact', 'contains'],  #
+
+        '$tags__name': ['exact', 'icontains'],  #
+        # img
+        'filename': ['exact', 'icontains'],  #
+        'title': ['exact', 'icontains'],  #
+        'caption': ['exact', 'icontains'],  #
+        "type": ['exact'],
     }
-    search_fields = ['user__username', 'tags__name', 'dates__year', 'dates__month', 'dates__day']
-    ordering_fields = ['tags__name']  # 这里的字段，需要总上面定义字段中选择
+
+    ordering_fields = ['id']  # 这里的字段，需要总上面定义字段中选择
 
     def perform_create(self, serializer):
         print(f"INFO:{self.request.user}")
@@ -117,6 +143,15 @@ class ImgViewSet(viewsets.ModelViewSet):
         else:
             return ImgDetailSerializer
 
+    # def get_queryset(self):
+    #     # faces_num couldn't filter in the django-filter since this is based on the annotate
+    #     faces_num = self.request.query_params.get('faces_num')
+    #     if faces_num:
+    #         return self.queryset \
+    #             .annotate(faces_num=Count('faces')).filter(faces_num=faces_num)  # annotate the faces_num here
+    #
+    #     return self.queryset
+
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
     def set_colors(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
         img = self.get_object()  # 获取详情的实例对象
@@ -144,7 +179,9 @@ class ImgViewSet(viewsets.ModelViewSet):
         # set_img_colors(img)
         # set_img_categories(img)
         # set_all_img_categories()
-        save_all_img_info()
+        # save_all_img_info()
+        # set_all_img_group()
+        add_all_img_colors_to_category()
 
         serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
         # serializer = ImgSerializer(img, many=False)  # 报错

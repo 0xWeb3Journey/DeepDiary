@@ -30,7 +30,7 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
         print('跳过：未找到时间信息！')
 
     tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
-    date_path = os.path.join(tt.year,tt.month,tt.day)
+    date_path = os.path.join(tt.year, tt.month, tt.day)
 
     # instance.capture_date, instance.capture_time, instance.year, instance.month, instance.day, \
     # instance.is_weekend, instance.earthly_branches, date_path = get_date_info(date_str)  # 通过时间戳，计算出时间相关的属性，并赋值给数据库字段
@@ -116,7 +116,7 @@ class Img(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     def __str__(self):
-        return self.src.name
+        return self.id.__str__()
 
     def to_dict(self):
         return {'id': self.id,
@@ -138,24 +138,27 @@ class Img(models.Model):
 
 class Category(models.Model):
     """图片分类"""
-    img_category = models.ManyToManyField(to=Img,
-                                          through='ImgCategory',
-                                          through_fields=('category', 'img'),  # category need comes first
-                                          blank=True,
-                                          help_text='对图片按应用进行分类',
-                                          default=None)
-    name = models.CharField(max_length=30, null=True, blank=True, verbose_name="图片类别", help_text='图片按应用进行划分')
+    img = models.ManyToManyField(to=Img,
+                                 through='ImgCategory',
+                                 through_fields=('category', 'img'),  # category need comes first
+                                 blank=True,
+                                 help_text='对图片按应用进行分类',
+                                 default=None,
+                                 related_name='categories')
+    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="图片类别", help_text='图片按应用进行划分')
+    type = models.CharField(max_length=20, default='category', blank=True, verbose_name="分类类型", help_text='分类类型')
+    value = models.CharField(max_length=50, null=True, blank=True, verbose_name="类型值", help_text='类型值')
 
     class Meta:
-        ordering = ['-name']
+        ordering = ['-id']
 
     def __str__(self):
         return self.name
 
 
 class ImgCategory(models.Model):
-    img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='categories')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='imgs')
+    img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='imgcategories')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='imgcategories')
     confidence = models.FloatField(default=0, null=True, blank=True, verbose_name="categories_percentage",
                                    help_text='categories_percentage')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
@@ -363,7 +366,6 @@ class ColorForeground(ColorItem):
 class ColorImg(ColorItem):
     color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='image',
                               verbose_name="ColorImg")
-
 
 # def get_date_info(date_str):  # '%Y:%m:%d %H:%M:%S'
 #

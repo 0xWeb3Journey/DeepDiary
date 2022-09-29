@@ -35,7 +35,7 @@ class DateSerializer(serializers.ModelSerializer):
 
 
 class ImgCategorySerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source="category.name", read_only=True)
+    name = serializers.CharField(source="category", read_only=True)
 
     class Meta:
         model = ImgCategory
@@ -143,7 +143,7 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     # face = FaceSerializer(many=True, read_only=True)  # 这里的名字，必须是Face 定义Img 外键时候的'related_name'
     # names = facesField(many=True, read_only=True)  # 获取子集模型字段的方法一，指定序列化器
     faces = FaceSimpleSerializer(many=True, read_only=True)
-    categories = ImgCategorySerializer(many=True, read_only=True)
+    imgcategories = ImgCategorySerializer(many=True, read_only=True)
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
     mcs = McsDetailSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     colors = ColorSerializer(read_only=True)  # this name should be the same as model related name

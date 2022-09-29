@@ -50,7 +50,13 @@ def face_info_directory_path(instance, filename):
 
 
 class FaceAlbum(MPTTModel):
-    pass
+    img = models.ManyToManyField(to=Img,
+                                 through='Face',
+                                 through_fields=('face_album', 'img'),  # facealbum need comes first
+                                 blank=True,
+                                 help_text='对图片按人脸进行分类',
+                                 default=None,
+                                 related_name='facealbums')
     profile = models.OneToOneField(
         Profile,
         related_name='facealbum',

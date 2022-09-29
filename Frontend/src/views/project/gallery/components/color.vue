@@ -6,7 +6,7 @@
     <h4>background-color</h4>
     <el-button-group v-if="colors !== null">
       <el-button
-        v-for="(item, index) in colors.background"
+        v-for="item in colors.background"
         :key="item.id"
         :style="`background-color: ${
           item.closest_palette_color_html_code
@@ -18,7 +18,7 @@
     <h4>foreground-color</h4>
     <el-button-group v-if="colors !== null">
       <el-button
-        v-for="(item, index) in colors.foreground"
+        v-for="item in colors.foreground"
         :key="item.id"
         :style="`background-color: ${
           item.closest_palette_color_html_code
@@ -30,7 +30,7 @@
     <h4>image-color</h4>
     <el-button-group v-if="colors !== null">
       <el-button
-        v-for="(item, index) in colors.image"
+        v-for="item in colors.image"
         :key="item.id"
         :style="`background-color: ${
           item.closest_palette_color_html_code

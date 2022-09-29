@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 
 from celery import shared_task
+from django.db.models import Count
 from pyexiv2 import Image as exivImg
 
 from deep_diary.config import wallet_info
@@ -15,6 +16,41 @@ from library.serializers import McsSerializer, McsDetailSerializer, ColorSeriali
     ColorForegroundSerializer, ColorImgSerializer
 from mycelery.main import app
 from utils.mcs_storage import upload_file_pay
+
+color_palette = {
+    "beige": '#e0c4b2',
+    "hot pink": '#c73d77',
+    "magenta": '#a7346e',
+    "red": '#ae2935',
+    "black": '#39373b',
+    "teal": '#426972',
+    "lavender": '#6a6378',
+    "maroon": '#6c2135',
+    "blue": '#2f5e97',
+    "light blue": '#99b1cb',
+    "mauve": '#ac6075',
+    "turquoise": '#38afcd',
+    "brown": '#574039',
+    "navy blue": '#2b2e43',
+    "violet": '#473854',
+    "dark green": '#176352',
+    "light brown": '#ac8a64',
+    "orange": '#e2855e',
+    "white": '#f4f5f0',
+    "gold": '#dcba60',
+    "light green": '#aec98e',
+    "pink": '#e3768c',
+    "yellow": '#ebd07f',
+    "green": '#359369',
+    "olive green": '#7f8765',
+    "plum": '#58304e',
+    "skin": '#bd9769',
+    "greige": '#a4b39f',
+    "light grey": '#bcb8b8',
+    "purple": '#875287',
+    "grey": '#8c8c8c',
+    "light pink": '#e6c1be',
+}
 
 
 # @app.task
@@ -351,6 +387,7 @@ def set_img_date(date_str):  # '%Y:%m:%d %H:%M:%S'
 
     return date
 
+
 @shared_task
 def save_img_info(instance):
     print(f'INFO: **************img instance have been created, saving img info now...')
@@ -434,3 +471,96 @@ def save_all_img_info():
     imgs = Img.objects.all()
     for img in imgs:
         save_img_info(img)
+
+
+@shared_task
+def set_img_group(img_obj):
+    names = img_obj.faces.values_list('name', flat=True)
+    name_cnt = names.count()
+    if name_cnt < 2:  # if faces biger then 5, then break
+        print(
+            f'--------------------{img_obj.id} :too less faces in the img, skip for this---------------------------')
+        return
+    if name_cnt > 5:  # if faces biger then 5, then break
+        print(
+            f'--------------------{img_obj.id} :too many faces in the img, skip for this---------------------------')
+        return
+    name_str = ','.join(names)
+    name_str = name_str[0:29]  # the name couldn't be too long
+    img_set = Img.objects.annotate(faces_num=Count('faces')).filter(faces_num=name_cnt)
+    for name in names:
+        if not img_set.exists():
+            print(f'--------------------{img_obj.id} :the filter result is none--------------------')
+            break
+        img_set = img_set.filter(faces__name=name)
+    print(f'img_set number is: {img_set.count()}')
+
+    rst = Category.objects.filter(type='group').filter(img__in=img_set)
+    # rst = Category.objects.filter(type = 'group').filter(img = img_set)
+    if rst.exists():
+        rst = rst.first()
+        # rst.img.add(*img_set)
+        rst.img.add(img_obj)
+    else:
+        cate_obj = Category.objects.create(name=name_str, type='group', value=name_str)
+        cate_obj.img.set(img_set)
+    print(
+        f'--------------------{img_obj.id} :img group have been store to the database---------------------------')
+
+
+@shared_task
+def set_all_img_group():
+    imgs = Img.objects.all()
+    for img in imgs:
+        set_img_group(img)
+
+
+@shared_task
+def add_img_colors_to_category(img_obj):
+    if not hasattr(img_obj, 'colors'):
+        print(f'----------{img_obj.id} INFO: there is no color info in this img-------------')
+        # Color fetch here later
+        set_img_colors(img_obj)
+        img_obj.refresh_from_db()  # refresh the result from the database since the color is checked
+
+    img_colors = img_obj.colors.image.all()
+    fore_colors = img_obj.colors.foreground.all()
+    back_colors = img_obj.colors.background.all()
+    for color in img_colors:
+        print(color)
+        cate_obj = Category.objects.filter(name=color.closest_palette_color_parent, type='img_color')  # checking whether exist this palette
+        if cate_obj.exists():
+            cate_obj = cate_obj.first()
+        else:
+            cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='img_color',
+                                               value=color_palette[color.closest_palette_color_parent])
+        cate_obj.img.add(img_obj)
+
+    for color in fore_colors:
+        print(color)
+        cate_obj = Category.objects.filter(name=color.closest_palette_color_parent, type='fore_color')  # checking whether exist this palette
+        if cate_obj.exists():
+            cate_obj = cate_obj.first()
+        else:
+            cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='fore_color',
+                                               value=color_palette[color.closest_palette_color_parent])
+        cate_obj.img.add(img_obj)
+
+    for color in back_colors:
+        print(color)
+        cate_obj = Category.objects.filter(name=color.closest_palette_color_parent, type='back_color')  # checking whether exist this palette
+        if cate_obj.exists():
+            cate_obj = cate_obj.first()
+        else:
+            cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='back_color',
+                                               value=color_palette[color.closest_palette_color_parent])
+        cate_obj.img.add(img_obj)
+    print(
+        f'-------------------{img_obj.id} :img colors have been added to the category database------------------------')
+
+
+@shared_task
+def add_all_img_colors_to_category():
+    imgs = Img.objects.filter(id__lt=425)
+    for img in imgs:
+        add_img_colors_to_category(img)
