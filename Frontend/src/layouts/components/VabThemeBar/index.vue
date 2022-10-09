@@ -93,7 +93,7 @@
       })
       const theme = localStorage.getItem('vue-admin-beautiful-theme')
       if (null !== theme) {
-        console.log('the theme is %o', theme)
+        // console.log('the theme is %o', theme)
         this.theme = JSON.parse(theme)
         this.handleSetTheme()
       } else {

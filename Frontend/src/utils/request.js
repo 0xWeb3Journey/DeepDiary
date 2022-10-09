@@ -63,7 +63,7 @@ instance.interceptors.request.use(
     // console.log('here is interceptors.request %o', config)
     //这里会过滤所有为空、0、false的key，如果不需要请自行注释
     if (config.data) {
-      console.log('config data is null %o', config)
+      // console.log('config data is null %o', config)
       config.data = Vue.prototype.$baseLodash.pickBy(
         config.data,
         Vue.prototype.$baseLodash.identity
@@ -75,13 +75,13 @@ instance.interceptors.request.use(
       config.headers['Content-Type'] ===
         'application/x-www-form-urlencoded;charset=UTF-8'
     ) {
-      console.log('this is the second condition %o', config)
+      // console.log('this is the second condition %o', config)
       config.data = qs.stringify(config.data)
-      console.log('this is the second condition after stringify %o', config)
+      // console.log(' after stringify %o', config)
     }
 
     if (debounce.some((item) => config.url.includes(item))) {
-      console.log('this is the third condition %o', config)
+      // console.log('this is the third condition %o', config)
       loadingInstance = Vue.prototype.$baseLoading()
     }
 

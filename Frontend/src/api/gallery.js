@@ -130,3 +130,21 @@ export function upload(data) {
     data,
   })
 }
+
+export function getCategory(params) {
+  console.log(params)
+  return request({
+    url: '/api/category/',
+    method: 'get',
+    params,
+  })
+}
+
+export function getFilterList(params) {
+  console.log(params)
+  return request({
+    url: '/api/category/get_filter_list/',
+    method: 'get',
+    params,
+  })
+}

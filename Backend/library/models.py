@@ -101,7 +101,7 @@ class Img(models.Model):
     title = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片标题", help_text='图片标题')
     caption = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片描述", help_text='图片描述')
     label = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片说明", help_text='图片说明')
-    tags = TaggableManager(blank=True, verbose_name="照片标签", help_text='照片标签')
+    tags = TaggableManager(blank=True, verbose_name="照片标签", help_text='照片标签', related_name='imgs')
 
     camera_brand = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机品牌", help_text='相机品牌')
     camera_model = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机型号", help_text='相机型号')
@@ -148,6 +148,7 @@ class Category(models.Model):
     name = models.CharField(max_length=50, null=True, blank=True, verbose_name="图片类别", help_text='图片按应用进行划分')
     type = models.CharField(max_length=20, default='category', blank=True, verbose_name="分类类型", help_text='分类类型')
     value = models.CharField(max_length=50, null=True, blank=True, verbose_name="类型值", help_text='类型值')
+    numeric_value = models.IntegerField(null=True, blank=True, verbose_name="数值类型值", help_text='数值类型值')
 
     class Meta:
         ordering = ['-id']
@@ -217,11 +218,11 @@ class Address(models.Model):
     altitude_ref = models.FloatField(default=0.0, max_length=5, null=True, blank=True, verbose_name="参考高度",
                                      help_text='参考高度')
     altitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="高度", help_text='高度')
-    location = models.CharField(max_length=50, null=True, blank=True, verbose_name="拍摄地", help_text='拍摄地')
-    district = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄区县", help_text='拍摄区县')
-    city = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄城市", help_text='拍摄城市')
-    province = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄省份", help_text='拍摄省份')
-    country = models.CharField(max_length=20, null=True, blank=True, verbose_name="拍摄国家", help_text='拍摄国家')
+    location = models.CharField(default='No GPS', max_length=50, null=True, blank=True, verbose_name="拍摄地", help_text='拍摄地')
+    district = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄区县", help_text='拍摄区县')
+    city = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄城市", help_text='拍摄城市')
+    province = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄省份", help_text='拍摄省份')
+    country = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄国家", help_text='拍摄国家')
 
     def __str__(self):
         return self.img.filename

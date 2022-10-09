@@ -103,7 +103,7 @@ class FaceAlbumDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'album_url', 'name', 'face_feat', 'avatar', 'level', 'children', 'faces', 'parent', 'profile']
         # fields = '__all__'
         extra_kwargs = {
-            'face_feat': {'read_only': True},  # 这个属性是后台计算生成，对前台输入失效
+            'profile': {'read_only': True},  # 这个属性是后台计算生成，对前台输入失效
         }
 
     def to_representation(self, value):
@@ -117,29 +117,19 @@ class FaceAlbumDetailSerializer(serializers.ModelSerializer):
         return rst
 
 
-class FaceAlbumSimpleSerializer(serializers.ModelSerializer):
-    album_url = serializers.HyperlinkedIdentityField(view_name='facealbum-detail')  # 人脸详情
-    src = serializers.ImageField(source="avatar", read_only=True)  # 本级节点中的照片缩略图
-
-    class Meta:
-        model = FaceAlbum
-        fields = ['id', 'album_url', 'name', 'src'] # 'faces' 人脸id 暂时用不到
-        # fields = '__all__'
-
-
 class FaceAlbumSerializer(serializers.ModelSerializer):
     album_url = serializers.HyperlinkedIdentityField(view_name='facealbum-detail')  # 人脸详情
-    children = FaceAlbumChildrenSerializer(many=True, read_only=True)  # 正常
+    # children = FaceAlbumChildrenSerializer(many=True, read_only=True)  # 正常
     # faces = FaceSerializer(many=True, read_only=True)
     src = serializers.ImageField(source="avatar", read_only=True)  # 本级节点中的照片缩略图
-    item_cnt = serializers.IntegerField()
+    item_cnt = serializers.IntegerField()  # calculate this based on the annotate in the viewset
 
     class Meta:
         model = FaceAlbum
-        fields = ['id', 'album_url', 'name', 'src', 'level', 'children', 'parent', 'item_cnt', 'profile'] # 'faces' 人脸id 暂时用不到
+        fields = ['id', 'album_url', 'name', 'src', 'item_cnt'] # 'faces' 人脸id 暂时用不到
         # fields = '__all__'
-        extra_kwargs = {
-            'face_feat': {'read_only': True},  # 这个属性是后台计算生成，对前台输入失效
-        }
+        # extra_kwargs = {
+        #     'face_feat': {'read_only': True},  # 这个属性是后台计算生成，对前台输入失效
+        # }
 
 

@@ -1,13 +1,5 @@
 <template>
   <div class="gallery-container">
-    <!-- <el-alert title="子组件消息提示的文案" type="info">
-      <br />
-      albumInfo:
-      <span v-for="album in items" :key="album.id">{{ album.id }},</span>
-      <br />
-      checkedIndex: {{ checkedIndex }};checkedId: {{ checkedId }}
-    </el-alert> -->
-
     <vab-upload
       ref="vabUpload"
       url="/api/img/"
@@ -53,11 +45,19 @@
         </el-button-group>
       </div>
 
-      <div id="album" ref="album">
+      <div
+        id="album"
+        ref="album"
+        v-infinite-scroll="load"
+        class="infinite-list"
+        style="overflow: auto"
+        infinite-scroll-distance="50"
+      >
         <div
           v-for="(album, index) in items"
           :key="album.id"
           class-name="album-item"
+          class="infinite-list-item"
           @click="onAlbumChoose($event, index, album)"
           @dblclick="onDoubleClick($event, index, album)"
         >
@@ -112,14 +112,6 @@
         </div>
       </div>
     </el-card>
-    <!-- <el-drawer
-      title="我是标题"
-      :visible.sync="drawer"
-      :direction="direction"
-      :modal-append-to-body="true"
-    >
-      <span>我来啦!</span>
-    </el-drawer> -->
   </div>
 </template>
 
@@ -158,7 +150,7 @@
 
       title: {
         type: String,
-        default: '88888888888888', // model field name
+        default: 'Album', // model field name
         required: true,
       },
       type: {
@@ -179,11 +171,6 @@
         plugin: null,
         elementLoadingText: '正在加载...',
         msg: '',
-        queryForm: {
-          page: 1,
-          pageSize: 10,
-          search: '',
-        },
         postData: {
           id: 0,
           name: '',
@@ -206,7 +193,7 @@
     watch: {
       items(newVal, oldVal) {
         this.$nextTick(() => {
-          console.log('onAlbumChoose have been changed', newVal)
+          console.log('Album numbers have been changed', newVal.length)
           // window.album.refresh()
           $('#album').justifiedGallery()
           // $('#album').justifiedGallery('norewind')
@@ -230,7 +217,7 @@
             margins: 5,
           })
           .on('jg.complete', function () {
-            console.log('jg.complete event was trigged')
+            // console.log('jg.complete event was trigged')
           })
       },
 
@@ -277,10 +264,6 @@
         if (value !== this.albumName) {
           this.postData.id = album.id //人脸相册id
           this.postData.name = value
-          // this.$message({
-          //   message: `Success changed ${this.albumName} to ${value}`,
-          //   type: 'success',
-          // })
 
           const { data, msg } = await changeFaceAlbumName(this.postData)
           console.log(data, msg)
@@ -299,10 +282,7 @@
         if (value !== this.albumName) {
           this.postData.id = this.checkedId
           this.postData.name = value
-          // this.$message({
-          //   message: `Success changed ${this.albumName} to ${value}`,
-          //   type: 'success',
-          // })
+
           const { data, msg } = await changeFaceName(this.postData)
           console.log(data, msg)
           this.$message({
@@ -352,6 +332,9 @@
           },
         })
       },
+      load() {
+        this.$emit('load') //自定义事件  传递值“子向父组件传值”
+      },
     },
   }
 </script>
@@ -377,7 +360,10 @@
     margin-top: 1px;
     margin-right: 15px;
   }
-  /* .album-name {
-    
+  /* .infinite-list {
+    height: 550px;
+    width: 100%;
+    margin: 0 auto;
+    overflow: auto;
   } */
 </style>

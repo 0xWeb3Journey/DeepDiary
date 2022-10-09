@@ -45,11 +45,12 @@ class ImgCategorySerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='category-detail')
-    imgs = ImgCategorySerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
+    # imgs = ImgCategorySerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
 
     class Meta:
         model = Category
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['img']
 
 
 class ColorItemSerializer(serializers.ModelSerializer):
@@ -115,10 +116,11 @@ class ImgSerializer(serializers.ModelSerializer):
     thumb = serializers.ImageField(read_only=True)
     img_url = serializers.HyperlinkedIdentityField(view_name='img-detail')
     mcs = McsSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
+    # categories = CategorySerializer(read_only=True, many=True)
 
     class Meta:
         model = Img
-        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'filename', 'mcs']  # 'faces', 'names',
+        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'filename', 'mcs', 'categories']  # 'faces', 'names',
 
     def to_representation(self, value):
         rst = {}
@@ -129,6 +131,7 @@ class ImgSerializer(serializers.ModelSerializer):
         # rst['code'] = 200
         # rst['msg'] = 'list info'
         # return rst
+        # print(data['categories'])
 
         data['size'] = '{:d}-{:d}'.format(value.wid, value.height)
         return data
@@ -143,7 +146,8 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     # face = FaceSerializer(many=True, read_only=True)  # 这里的名字，必须是Face 定义Img 外键时候的'related_name'
     # names = facesField(many=True, read_only=True)  # 获取子集模型字段的方法一，指定序列化器
     faces = FaceSimpleSerializer(many=True, read_only=True)
-    imgcategories = ImgCategorySerializer(many=True, read_only=True)
+    # imgcategories = ImgCategorySerializer(many=True, read_only=True)
+    # categories = CategorySerializer(read_only=True, many=True)
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
     mcs = McsDetailSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     colors = ColorSerializer(read_only=True)  # this name should be the same as model related name

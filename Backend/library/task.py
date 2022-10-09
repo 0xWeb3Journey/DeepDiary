@@ -475,35 +475,47 @@ def save_all_img_info():
 
 @shared_task
 def set_img_group(img_obj):
-    names = img_obj.faces.values_list('name', flat=True)
+    # check whether has the unknown face
+    fc_unknown_obj = img_obj.faces.filter(name__startswith='unknown')
+    if fc_unknown_obj.exists():
+        print(f'--------------------{img_obj.id} :return-->exist the unknown face in this img-------------------------')
+        return
+    names = img_obj.faces.order_by('name').values_list('name', flat=True)
     name_cnt = names.count()
-    if name_cnt < 2:  # if faces biger then 5, then break
+    name_str = 'no face'  # default
+    if name_cnt == 1:
+        name_str = 'single face'
         print(
-            f'--------------------{img_obj.id} :too less faces in the img, skip for this---------------------------')
-        return
-    if name_cnt > 5:  # if faces biger then 5, then break
+            f'--------------------{img_obj.id} :this is the single face---------------------------')
+    elif 1 < name_cnt <= 6:  # if faces biger then 1, small then 6
         print(
-            f'--------------------{img_obj.id} :too many faces in the img, skip for this---------------------------')
-        return
-    name_str = ','.join(names)
-    name_str = name_str[0:29]  # the name couldn't be too long
-    img_set = Img.objects.annotate(faces_num=Count('faces')).filter(faces_num=name_cnt)
-    for name in names:
-        if not img_set.exists():
-            print(f'--------------------{img_obj.id} :the filter result is none--------------------')
-            break
-        img_set = img_set.filter(faces__name=name)
-    print(f'img_set number is: {img_set.count()}')
+            f'--------------------{img_obj.id} :found the face group---------------------------')
+        name_str = ','.join(names)
+    elif name_cnt > 6:  # if faces biger then 5, then break
+        print(
+            f'--------------------{img_obj.id} :too many faces in the img---------------------------')
+        name_str = 'group face'
 
-    rst = Category.objects.filter(type='group').filter(img__in=img_set)
-    # rst = Category.objects.filter(type = 'group').filter(img = img_set)
+    # name_str = name_str[0:29]  # the name couldn't be too long
+    # check whether have a result ing the Group database
+    # img_set = Img.objects.annotate(faces_num=Count('faces')).filter(faces_num=name_cnt)
+    # for name in names:
+    #     if not img_set.exists():
+    #         print(f'--------------------{img_obj.id} :the filter result is none--------------------')
+    #         break
+    #     img_set = img_set.filter(faces__name=name)
+    # print(f'img_set number is: {img_set.count()}')
+    # rst = Category.objects.filter(type='group').filter(img__in=img_set)
+
+    rst = Category.objects.filter(type='group', name=name_str)
+
     if rst.exists():
         rst = rst.first()
         # rst.img.add(*img_set)
-        rst.img.add(img_obj)
     else:
-        cate_obj = Category.objects.create(name=name_str, type='group', value=name_str)
-        cate_obj.img.set(img_set)
+        rst = Category.objects.create(name=name_str, type='group', numeric_value=name_cnt)
+        # rst.img.set(img_set)
+    rst.img.add(img_obj)
     print(
         f'--------------------{img_obj.id} :img group have been store to the database---------------------------')
 
@@ -513,6 +525,28 @@ def set_all_img_group():
     imgs = Img.objects.all()
     for img in imgs:
         set_img_group(img)
+
+
+@shared_task
+def set_img_address(img_obj):
+
+    city = img_obj.address.city
+    if city is None:
+        print(f'--------------------{img_obj.id} :there is no address info in this img-------------------------')
+        city = 'No GPS'
+
+    rst, created = Category.objects.get_or_create(name=city, type='address')
+
+    rst.img.add(img_obj)
+    print(
+        f'--------------------{img_obj.id} :img address have been store to the database---------------------------')
+
+
+@shared_task
+def set_all_img_address():
+    imgs = Img.objects.all()
+    for img in imgs:
+        set_img_address(img)
 
 
 @shared_task

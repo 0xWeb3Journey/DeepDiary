@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from face.serializers import FaceAlbumSerializer, FaceAlbumDetailSerializer, FaceAlbumSimpleSerializer
+from face.serializers import FaceAlbumSerializer, FaceAlbumDetailSerializer
 from project.serializers import ProjectSerializer
 from tags.serializers import TagSerializerField
 from user_info.models import Profile, Company, POSITION_OPTION, ROLES_OPTION, SupplyDemand
@@ -61,7 +61,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
     # supplydemand = SupplyDemandSerializer(many=True, read_only=True)
     supplys = SupplyDemandSerializer(many=True, read_only=True)
     demands = SupplyDemandSerializer(many=True, read_only=True)
-    facealbum = FaceAlbumSimpleSerializer(read_only=True)
+    # facealbum = FaceAlbumSerializer(read_only=True)
     relation = TagSerializerField(read_only=True)
 
     class Meta:

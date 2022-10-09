@@ -7,22 +7,35 @@ from rest_framework import viewsets, filters
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from taggit.models import Tag
 
 from deep_diary.config import wallet_info
+from face.models import FaceAlbum
 from face.task import get_all_fts
-from library.filters import ImgFilter, ImgSearchFilter
-from library.models import Img, Category, Mcs
+from library.filters import ImgFilter, ImgSearchFilter, CategoryFilter
+from library.models import Img, Category, Mcs, Address
 from library.pagination import GalleryPageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer
 from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, \
     set_img_colors, set_img_categories, set_all_img_categories, save_all_img_info, set_all_img_group, \
-    add_all_img_colors_to_category
+    add_all_img_colors_to_category, set_all_img_address
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
 from mycelery.main import app
 from utils.mcs_storage import upload_file_pay, approve_usdc
+
+#
+# class CategoryViewSet(viewsets.ModelViewSet):
+#     queryset = Category.objects.all()
+#     serializer_class = CategorySerializer
+#     pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
+#     # 第一种方法
+#     filter_class = CategoryFilter  # 过滤类
+#     filter_backends = [DjangoFilterBackend, filters.SearchFilter,
+#                        filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+from utils.pagination import GeneralPageNumberPagination
 
 
 class ImgCategoryViewSet(viewsets.ModelViewSet):
@@ -35,9 +48,10 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     serializer_class = ImgSerializer
     # permission_classes = (AllowAny,)
-    # pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
+    pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
     # 第一种方法
     filter_class = ImgFilter  # 过滤类
+
     # search_class = ImgSearchFilter
     # 第二种方法
     # DjangoFilterBackend  # 精准过滤，字段用filterset_fields定义
@@ -83,7 +97,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         "type": ['exact'],
     }
 
-    ordering_fields = ['id']  # 这里的字段，需要总上面定义字段中选择
+    ordering_fields = ['id', 'dates__capture_date']  # 这里的字段，需要总上面定义字段中选择
 
     def perform_create(self, serializer):
         print(f"INFO:{self.request.user}")
@@ -167,12 +181,12 @@ class ImgViewSet(viewsets.ModelViewSet):
         # serializer = self.get_serializer(img)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def test(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
-        img = self.get_object()  # 获取详情的实例对象
-        print(f'INFO pk: {pk}')
-        print(f'INFO img: {type(img)}')
-        print(f'INFO img: {img.id}')
+        # img = self.get_object()  # 获取详情的实例对象
+        # print(f'INFO pk: {pk}')
+        # print(f'INFO img: {type(img)}')
+        # print(f'INFO img: {img.id}')
         # print(f'INFO request: {dir(request)}')
 
         # save_img_info(img)
@@ -180,13 +194,17 @@ class ImgViewSet(viewsets.ModelViewSet):
         # set_img_categories(img)
         # set_all_img_categories()
         # save_all_img_info()
-        # set_all_img_group()
-        add_all_img_colors_to_category()
+        set_all_img_address()
+        # add_all_img_colors_to_category()
 
-        serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
+        # serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
         # serializer = ImgSerializer(img, many=False)  # 报错
         # serializer = self.get_serializer(img)
-        return Response(serializer.data)
+        # return Response(serializer.data)
+
+        filter_class = self.filter_class
+        print(filter_class)
+        return Response({"msg": "success"})
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def check_mcs(self, request, pk=None):
@@ -264,4 +282,40 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
     # permission_classes = (AllowAny,)
-    pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
+    pagination_class = GeneralPageNumberPagination  # could disp the filter button in the web
+    # 第一种方法
+    filter_class = CategoryFilter  # 过滤类
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter,
+                       filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def get_filter_list(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        data = {
+            'fc_nums': Img.objects.annotate(fc_nums=Count('faces')).values_list('fc_nums', flat=True).distinct().order_by('fc_nums'),
+            'fc_name': FaceAlbum.objects.annotate(value=Count('img')).filter(value__gte=1).values('name', 'value').distinct().order_by('-value'),
+
+            # 'tags': Img.objects.values_list('tags__name', flat=True).distinct().order_by('tags__name'),
+            'tags': Tag.objects.annotate(value=Count('imgs')).filter(value__gt=0).order_by('-value').values('name','value'),
+
+            # 'c_img': Img.objects.filter(categories__type='img_color').values('categories__name', 'categories__value').distinct().order_by('categories__name'),
+            'c_img': Category.objects.filter(type='img_color').values('name', 'value').distinct().order_by('name'),
+            'c_back': Category.objects.filter(type='back_color').values('name', 'value').distinct().order_by('name'),
+            'c_fore': Category.objects.filter(type='fore_color').values('name', 'value').distinct().order_by('name'),
+            'category': Category.objects.filter(type='category').annotate(img_nums=Count('img')).values('name', 'img_nums').distinct().order_by('-img_nums'),
+            'group': Category.objects.filter(type='group').annotate(img_nums=Count('img')).values('name', 'img_nums').distinct().order_by('-img_nums'),
+            'city': Category.objects.filter(type='address').annotate(img_nums=Count('img')).values('name', 'img_nums').distinct().order_by('-img_nums'),
+
+            'layout': ['Square', 'Wide', 'Tall'],
+            'size': ['Small', 'Medium', 'Large', 'Extra large', 'At least'],
+            'license': ['Public domain', 'Free to share and use', 'Free to share and use commercially'],
+            'ordering': ['id', '-id', 'dates__capture_date', '-dates__capture_date']
+
+        }
+        # data['tags'] = list(data['tags'])
+        # data['tags'].insert(0, 'All')
+        # # 循环判断是否有all字段，如果没有，则转换成列表并插入
+        return Response({
+            'msg': 'success',
+            'code': 200,
+            'data': data,
+        })

@@ -4,16 +4,32 @@
       <span v-for="album in albums" :key="album.id">{{ album.id }},</span>
     </el-alert>
     <el-button type="primary" @click="fetchAlbum()">get albums</el-button> -->
-    <Album
-      v-if="true"
-      ref="album"
-      title="Album"
-      type="collection"
-      route="Face_detail"
-      :items="albums"
-      :total="totalCount"
-      @albumClick="onGetAlbumId"
-    ></Album>
+
+    <ImgSearch
+      :filtered-list="filteredList"
+      @handleImgSearch="onImgSearch"
+    ></ImgSearch>
+
+    <div
+      v-infinite-scroll="loadMore"
+      infinite-scroll-disabled="busy"
+      infinite-scroll-distance="50"
+      infinite-scroll-immediate-check="true"
+      class="content"
+    >
+      <Album
+        v-if="true"
+        ref="album"
+        title="Album"
+        type="collection"
+        route="Face_detail"
+        :items="albums"
+        :total="totalCount"
+        @albumClick="onGetAlbumId"
+      ></Album>
+    </div>
+    <div v-show="busy" class="loading">{{ msg }}</div>
+
     <!-- <Tags v-if="checkedIndex >= 0" :items="albums[checkedIndex].tags"></Tags> -->
     <Tags v-if="checkedIndex >= 0" :items="img.tags"></Tags>
     <Color v-if="checkedIndex >= 0" :colors="img.colors"></Color>
@@ -40,20 +56,32 @@
   } from '@/api/gallery'
   import Tags from './tags.vue'
   import Color from './color.vue'
+  import ImgSearch from './search.vue'
+  import infiniteScroll from 'vue-infinite-scroll'
   export default {
     name: 'PgAlbum',
-    components: { Album, Mcs, Tags, Color },
+    components: { Album, Mcs, Tags, Color, ImgSearch },
+    directives: { infiniteScroll },
     data: function () {
       return {
         checkedIndex: -1,
         checkedId: -1,
         albums: [],
+        filteredAlbumsId: [],
         albumLoading: false,
+        curAlbumCnt: 0,
         totalCount: 0,
+        totalPage: 0,
         queryForm: {
           page: 1,
           search: '',
           id: '',
+          fc_nums: -1, //-1 ,means all, 6 means the fc_nums > 6
+          fc_name: '',
+          c_img: '',
+          c_fore: '',
+          c_back: '',
+          address__city: '',
         },
         img: {
           id: 424,
@@ -318,26 +346,34 @@
           updated_at: '2022-09-11T06:22:33.460152+08:00',
           size: '4160-1936',
         },
+        filteredList: {},
+        data: [],
+        busy: false,
+        msg: 'Loading.....',
       }
     },
     created() {
       this.fetchAlbum()
     },
-    mounted() {
-      const $window = $(window)
-      $window.fetchAlbum = this.fetchAlbum // 把这个函数赋值给window，便于全局调用
-      // 未铺满整个页面加载
-      $window.scroll(function () {
-        if (
-          $window.scrollTop() >=
-          $(document).height() - $window.height() - 10
-        ) {
-          // console.log('infinite-scroll-gallery: start reload the data')
-          $window.fetchAlbum()
-        }
-      })
-    },
+    mounted() {},
     methods: {
+      loadMore: function () {
+        console.log('infinite loading... ', this.busy)
+        this.busy = true
+        setTimeout(() => {
+          console.log('timing is out... ')
+          // // 当前页数如果小于总页数，则继续请求数据，如果大于总页数，则滚动加载停止
+          // if (this.curAlbumCnt < this.totalCount || this.totalCount === 0) {
+          //   //  这里是列表请求数据的接口,在这个接口中更新总页数
+          //   this.msg = 'Loading.....'
+          this.fetchAlbum()
+          // } else {
+          //   this.msg = 'there is no more img any more'
+          // }
+          this.busy = false
+        }, 1000)
+      },
+
       onGetAlbumId(index, id) {
         console.log('recieved the child component value %d,%d', index, id)
         // 声明这个函数，便于子组件调用
@@ -345,29 +381,38 @@
         this.checkedId = id
         this.fetchImg()
       },
-      async fetchAlbum() {
-        console.log('start to get the album...')
-        if (this.albumLoading) return //incase fetch more data during the fetching time
 
-        this.albumLoading = true
+      async fetchAlbum() {
+        console.log('albums loading... ')
+
+        // 当前页数如果小于总页数，则继续请求数据，如果大于总页数，则滚动加载停止
         if (this.curAlbumCnt < this.totalCount || this.totalCount === 0) {
-          const { data, totalCount } = await getAlbum(this.queryForm)
-          if (totalCount === 0) return //could fetch any data
-          this.queryForm.page += 1
-          console.log(
-            'get img api result, data is %o, total is %d',
-            data,
-            totalCount
-          )
-          this.albums = [...this.albums, ...data]
-          this.curAlbumCnt = this.albums.length
-          this.totalCount = totalCount
-          setTimeout(() => {
-            this.albumLoading = false
-          }, 300)
+          //  这里是列表请求数据的接口,在这个接口中更新总页数
+          this.msg = 'Loading.....'
+          const { data, totalCount, totalPage, filteredList, code } =
+            await getAlbum(this.queryForm)
+          if (code === 200) {
+            this.albums = [...this.albums, ...data]
+            this.curAlbumCnt = this.albums.length
+            this.totalCount = totalCount
+            this.totalPage = totalPage
+            this.category = filteredList
+            this.queryForm.page += 1
+            this.busy = false
+          }
         } else {
           this.msg = 'there is no more img any more'
         }
+
+        // let i = 0
+        // this.filteredAlbumsId = [] //must clear first
+        // for (i = 0; i < this.curAlbumCnt; i++) {
+        //   this.filteredAlbumsId[i] = this.albums[i].id
+        // }
+
+        // setTimeout(() => {
+
+        // }, 300)
       },
       async fetchImg() {
         console.log('start to get the img ...')
@@ -378,10 +423,33 @@
         //   this.mcs = data.mcs
         // }
         this.img = data
-        console.log(this.img)
+        console.log('recieved the category is : ' + this.category)
+      },
+
+      onImgSearch(queryForm) {
+        console.log('recieve the queryForm info from the search component')
+        console.log(queryForm)
+        this.queryForm = queryForm
+        this.totalCount = 0
+        this.albums = []
+        this.fetchAlbum()
+        // this.loadMore()
       },
     },
   }
 </script>
 
-<style></style>
+<style>
+  .content {
+    height: 550px;
+    width: 100%;
+    margin: 0 auto;
+    overflow: auto;
+  }
+  .loading {
+    font-weight: bold;
+    font-size: 20px;
+    color: grey;
+    text-align: center;
+  }
+</style>

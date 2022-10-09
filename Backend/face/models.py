@@ -62,7 +62,8 @@ class FaceAlbum(MPTTModel):
         related_name='facealbum',
         on_delete=models.CASCADE,
         primary_key=False,
-        null=True
+        null=True,
+        blank=True,
     )
     # 新增，mptt树形结构
     parent = TreeForeignKey(

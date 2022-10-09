@@ -63,6 +63,7 @@
     "vab-icon": "^0.0.1",
     "vue": "^2.6.14",
     "vue-echarts": "5.0.0-beta.0",
+    "vue-infinite-scroll": "^2.0.2",
     "vue-router": "^3.5.3",
     "vuex": "^3.6.2",
     "zx-count": "^0.3.7",
