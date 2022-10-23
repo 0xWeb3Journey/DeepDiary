@@ -14,7 +14,7 @@ class FacePageNumberPagination(PageNumberPagination):
                 'next': self.get_next_link(),
                 'previous': self.get_previous_link()
             },
-            'totalCount': self.page.paginator.count,
+            'totalCnt': self.page.paginator.count,
             'msg': 'success',
             'code': 200,
             'data': data

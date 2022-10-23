@@ -90,14 +90,15 @@ class UserViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
 
-# class ProfileViewSet(viewsets.ModelViewSet):
-#     queryset = Profile.objects.all()
-#
-#     def get_serializer_class(self):
-#         if self.action == 'list':
-#             return ProfileSerializer
-#         else:
-#             return ProfileDetailSerializer
+
+class ProfileViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProfileSerializer
+        else:
+            return ProfileDetailSerializer
 
 
 class CompanyViewSet(viewsets.ModelViewSet):

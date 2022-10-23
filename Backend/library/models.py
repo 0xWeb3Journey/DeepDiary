@@ -87,8 +87,8 @@ class Img(models.Model):
         help_text='这张照片隶属于哪个问题清单'
     )
 
-    filename = models.CharField(default='unnamed', max_length=40, null=True, blank=True, unique=False,
-                                verbose_name="图片名", help_text='')  # unique=False, 方便调试
+    name = models.CharField(default='unnamed', max_length=40, null=True, blank=True, unique=False,
+                            verbose_name="图片名", help_text='')  # unique=False, 方便调试
     type = models.CharField(max_length=10, null=True, blank=True, verbose_name="图片格式", help_text='图片格式')
     wid = models.IntegerField(default=0, blank=True, verbose_name="图片宽度", help_text='图片宽度')
     height = models.IntegerField(default=0, blank=True, verbose_name="图片高度", help_text='图片高度')
@@ -218,11 +218,16 @@ class Address(models.Model):
     altitude_ref = models.FloatField(default=0.0, max_length=5, null=True, blank=True, verbose_name="参考高度",
                                      help_text='参考高度')
     altitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="高度", help_text='高度')
-    location = models.CharField(default='No GPS', max_length=50, null=True, blank=True, verbose_name="拍摄地", help_text='拍摄地')
-    district = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄区县", help_text='拍摄区县')
-    city = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄城市", help_text='拍摄城市')
-    province = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄省份", help_text='拍摄省份')
-    country = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄国家", help_text='拍摄国家')
+    location = models.CharField(default='No GPS', max_length=50, null=True, blank=True, verbose_name="拍摄地",
+                                help_text='拍摄地')
+    district = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄区县",
+                                help_text='拍摄区县')
+    city = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄城市",
+                            help_text='拍摄城市')
+    province = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄省份",
+                                help_text='拍摄省份')
+    country = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄国家",
+                               help_text='拍摄国家')
 
     def __str__(self):
         return self.img.filename

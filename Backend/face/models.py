@@ -92,6 +92,9 @@ class FaceAlbum(MPTTModel):
                                   format='JPEG',
                                   options={'quality': 80},
                                   )
+    relationship = models.CharField(max_length=20, null=True, blank=True, default='unknown',
+                                    verbose_name="relation to me",
+                                    help_text='relation to me')
     created = models.DateTimeField(auto_now_add=True)
 
     class MPTTMeta:  # 替换 Meta 为 MPTTMeta

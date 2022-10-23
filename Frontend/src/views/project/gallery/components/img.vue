@@ -20,7 +20,13 @@
       @albumClick="onGetAlbumId"
     ></Album>
 
-    <Mcs :id="checkedId" mcstype="face" :title="`Mcs Info-${checkedId}`"></Mcs>
+    <Mcs
+      v-if="checkedIndex >= 0"
+      :id="checkedId"
+      :mcs="img.mcs"
+      mcstype="face"
+      :title="`Mcs Info-${checkedId}`"
+    ></Mcs>
   </div>
 </template>
 
@@ -88,7 +94,7 @@
     // },
     watch: {
       'img.tags'(newVal, oldVal) {
-        console.log('img.tags have bee changed: %s --> %s', oldVal, newVal)
+        // console.log('img.tags have bee changed: %s --> %s', oldVal, newVal)
       },
       deep: true, //为true，表示深度监听，这时候就能监测到a值变化
     },
@@ -120,11 +126,9 @@
         this.imgLoading = true
         this.ImgQueryForm.id = this.$route.query.id
         const { data } = await getImg(this.ImgQueryForm)
-
         console.log(data)
-        this.img.faces = data.faces
-        this.img.src = data.src
         this.img = data
+
         setTimeout(() => {
           this.imgLoading = false
         }, 300)

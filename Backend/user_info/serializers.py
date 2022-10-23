@@ -106,21 +106,23 @@ class ProfileSerializer(serializers.ModelSerializer):
     profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
     # position = DisplayChoiceField(choices=POSITION_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
     roles = DisplayChoiceField(choices=ROLES_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
+    facealbum = FaceAlbumSerializer(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['name', 'avatar', 'introduction', 'roles', 'profile_url']
+        fields = ['username', 'avatar', 'introduction', 'roles', 'profile_url', 'facealbum']
+        # fields = '__all__'
 
 
 class ProfileDetailSerializer(ProfileSerializer):  # 直接继承ImgSerializer也是可以的
 
     # 父级属性
     # company_url = serializers.HyperlinkedIdentityField(view_name='company-detail')  # 详情链接不用用于父级，因为这里的序号还是本级的序号
-    company = serializers.CharField(source="company.name", read_only=True)
+    # company = serializers.CharField(source="company.name", read_only=True)
     # 子级属性：一对多
-    project = ProjectSerializer(many=True, read_only=True)  # 这里的名字，必须和外键'related_name' 名字一样
-
+    # project = ProjectSerializer(many=True, read_only=True)  # 这里的名字，必须和外键'related_name' 名字一样
     supplydemand = SupplyDemandSerializer(many=True, read_only=True)
+
 
     class Meta:
         model = Profile

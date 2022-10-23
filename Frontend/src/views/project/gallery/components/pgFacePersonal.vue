@@ -13,9 +13,10 @@
       :items="albums"
       :total="totalCount"
       @albumClick="onGetAlbumId"
+      @doubleClick="onRouteJump"
     ></Album>
 
-    <Profile :id="checkedId" mcstype="img"></Profile>
+    <Profile v-if="checkedProfile" :id="checkedProfile" mcstype="img"></Profile>
     <!-- :title="`Profile Info-${checkedId}`" -->
     <br />
     <!-- <span>下面是通过路由加载的内容</span>
@@ -52,37 +53,32 @@
         curAlbumCnt: 0,
         checkedIndex: -1,
         checkedId: -1,
+        checkedProfile: 0,
       }
     },
     created() {
       this.fetchFaceAlbum()
     },
-    mounted() {
-      // const $window = $(window)
-      // $window.fetchFaceAlbum = this.fetchFaceAlbum // 把这个函数赋值给window，便于全局调用
-      // // 未铺满整个页面加载
-      // $window.scroll(function () {
-      //   // console.log(
-      //   //   'scrollTop is %d,document height is %d,window height is %d',
-      //   //   $window.scrollTop(),
-      //   //   $(document).height(),
-      //   //   $window.height()
-      //   // )
-      //   if (
-      //     $window.scrollTop() >=
-      //     $(document).height() - $window.height() - 10
-      //   ) {
-      //     // console.log('infinite-scroll-gallery: start reload the data')
-      //     $window.fetchFaceAlbum()
-      //   }
-      // })
-    },
+    mounted() {},
     methods: {
       onGetAlbumId(index, id) {
         console.log('recieved the child component value %d,%d', index, id)
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
         this.checkedId = id || 0 // if return unexpected id, then set the id to default 1
+        if (this.albums[index].profile !== null)
+          this.checkedProfile = this.albums[index].profile
+        else this.checkedProfile = 0
+      },
+      onRouteJump(index, item) {
+        console.log('album double click event item is  %d,%o', index, item)
+        this.$router.push({
+          name: 'FaceGallery',
+          query: {
+            id: item.id,
+            title: item.name,
+          },
+        })
       },
 
       async fetchFaceAlbum() {

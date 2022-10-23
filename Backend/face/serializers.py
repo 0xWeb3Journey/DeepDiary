@@ -92,6 +92,39 @@ class FaceAlbumChildrenSerializer(serializers.ModelSerializer):
         fields = ['album_url', 'name', 'children']
 
 
+class FaceAlbumSerializer(serializers.ModelSerializer):
+    album_url = serializers.HyperlinkedIdentityField(view_name='facealbum-detail')  # 人脸详情
+    src = serializers.ImageField(source="avatar", read_only=True)  # 本级节点中的照片缩略图
+    desc = serializers.CharField(source="profile.introduction", read_only=True)
+
+    # value = serializers.IntegerField()  # method 1: annotate in the viewset
+    value = serializers.SerializerMethodField()  # method 2: through method
+
+    def get_value(self, ins):
+        return ins.faces.count()  # some thing you do
+
+    class Meta:
+        model = FaceAlbum
+        fields = ['id', 'album_url', 'name', 'src', 'relationship', 'desc', 'value', 'profile']  # 'faces' 人脸id 暂时用不到
+
+    def to_representation(self, instance):
+        # rst = {}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(instance)
+        # data['value1'] = instance.faces.count()  # method 3: through to presentation
+        # if hasattr(instance, 'faces'):
+        #     print(instance.faces.count())
+        #     data['value'] = instance.faces.count()
+        # else:
+        #     print('there is no face in the face album')
+        #     data['value'] = 0
+        # 对序列化数据做修改，添加新的数据
+        # rst['data'] = data
+        # rst['code'] = 200
+        # rst['msg'] = 'face gallery'
+        return data
+
+
 class FaceAlbumDetailSerializer(serializers.ModelSerializer):
     album_url = serializers.HyperlinkedIdentityField(view_name='facealbum-detail')  # 人脸详情
     children = FaceAlbumChildrenSerializer(many=True, read_only=True)  # 正常
@@ -108,6 +141,7 @@ class FaceAlbumDetailSerializer(serializers.ModelSerializer):
 
     def to_representation(self, value):
         rst = {}
+
         # 调用父类获取当前序列化数据，value代表每个对象实例ob
         data = super().to_representation(value)
         # 对序列化数据做修改，添加新的数据
@@ -117,19 +151,29 @@ class FaceAlbumDetailSerializer(serializers.ModelSerializer):
         return rst
 
 
-class FaceAlbumSerializer(serializers.ModelSerializer):
+class FaceAlbumGraphSerializer(serializers.ModelSerializer):
     album_url = serializers.HyperlinkedIdentityField(view_name='facealbum-detail')  # 人脸详情
-    # children = FaceAlbumChildrenSerializer(many=True, read_only=True)  # 正常
-    # faces = FaceSerializer(many=True, read_only=True)
-    src = serializers.ImageField(source="avatar", read_only=True)  # 本级节点中的照片缩略图
-    item_cnt = serializers.IntegerField()  # calculate this based on the annotate in the viewset
+    image = serializers.ImageField(source="avatar", read_only=True)  # 本级节点中的照片缩略图
+    value = serializers.IntegerField()  # calculate this based on the annotate in the viewset
+    desc = serializers.CharField(source="profile.introduction", read_only=True)
+    label = serializers.CharField(source="name", read_only=True)
 
     class Meta:
         model = FaceAlbum
-        fields = ['id', 'album_url', 'name', 'src', 'item_cnt'] # 'faces' 人脸id 暂时用不到
-        # fields = '__all__'
-        # extra_kwargs = {
-        #     'face_feat': {'read_only': True},  # 这个属性是后台计算生成，对前台输入失效
-        # }
+        fields = ['id', 'album_url', 'label', 'image', 'value', 'relationship', 'desc']  # 'faces' 人脸id 暂时用不到
+
+    def to_representation(self, value):
+        rst = {}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        # 对序列化数据做修改，添加新的数据
+        # rst['data'] = data
+        # rst['code'] = 200
+        # rst['msg'] = 'list info'
+        # return rst
+        # print(data['categories'])
+
+        data['categories'] = ['person']
+        return data
 
 

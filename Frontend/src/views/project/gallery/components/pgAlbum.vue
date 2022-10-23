@@ -3,7 +3,7 @@
     <!-- <el-alert title="消息提示的文案" type="info">
       <span v-for="album in albums" :key="album.id">{{ album.id }},</span>
     </el-alert>
-    <el-button type="primary" @click="fetchAlbum()">get albums</el-button> -->
+    <el-button type="primary" @click="fetchImg()">get albums</el-button> -->
 
     <ImgSearch
       :filtered-list="filteredList"
@@ -24,13 +24,13 @@
         type="collection"
         route="Face_detail"
         :items="albums"
-        :total="totalCount"
+        :total="totalCnt"
         @albumClick="onGetAlbumId"
+        @doubleClick="onRouteJump"
       ></Album>
     </div>
     <div v-show="busy" class="loading">{{ msg }}</div>
 
-    <!-- <Tags v-if="checkedIndex >= 0" :items="albums[checkedIndex].tags"></Tags> -->
     <Tags v-if="checkedIndex >= 0" :items="img.tags"></Tags>
     <Color v-if="checkedIndex >= 0" :colors="img.colors"></Color>
     <Mcs
@@ -49,10 +49,10 @@
 
   import {
     getGallery,
-    getAlbum,
+    getImg,
     getFaceAlbum,
     getFaceGallery,
-    getImg,
+    getImgDetail,
   } from '@/api/gallery'
   import Tags from './tags.vue'
   import Color from './color.vue'
@@ -69,8 +69,8 @@
         albums: [],
         filteredAlbumsId: [],
         albumLoading: false,
-        curAlbumCnt: 0,
-        totalCount: 0,
+        currentCnt: 0,
+        totalCnt: 0,
         totalPage: 0,
         queryForm: {
           page: 1,
@@ -353,9 +353,12 @@
       }
     },
     created() {
-      this.fetchAlbum()
+      // this.fetchImg()
+      // this.loadMore()
     },
-    mounted() {},
+    mounted() {
+      this.loadMore()
+    },
     methods: {
       loadMore: function () {
         console.log('infinite loading... ', this.busy)
@@ -363,10 +366,10 @@
         setTimeout(() => {
           console.log('timing is out... ')
           // // 当前页数如果小于总页数，则继续请求数据，如果大于总页数，则滚动加载停止
-          // if (this.curAlbumCnt < this.totalCount || this.totalCount === 0) {
+          // if (this.currentCnt < this.totalCnt || this.totalCnt === 0) {
           //   //  这里是列表请求数据的接口,在这个接口中更新总页数
           //   this.msg = 'Loading.....'
-          this.fetchAlbum()
+          this.fetchImg()
           // } else {
           //   this.msg = 'there is no more img any more'
           // }
@@ -374,31 +377,42 @@
         }, 1000)
       },
 
-      onGetAlbumId(index, id) {
-        console.log('recieved the child component value %d,%d', index, id)
+      onGetAlbumId(index, item) {
+        console.log('recieved the child component value %d,%o', index, item)
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
-        this.checkedId = id
-        this.fetchImg()
+        this.checkedId = item.id
+        this.fetchImgDetail()
+      },
+      onRouteJump(index, item) {
+        console.log('album double click event item is  %d,%o', index, item)
+        this.$router.push({
+          name: 'Img',
+          query: {
+            id: item.id,
+            title: item.name,
+          },
+        })
       },
 
-      async fetchAlbum() {
+      async fetchImg() {
         console.log('albums loading... ')
 
         // 当前页数如果小于总页数，则继续请求数据，如果大于总页数，则滚动加载停止
-        if (this.curAlbumCnt < this.totalCount || this.totalCount === 0) {
+        if (this.currentCnt < this.totalCnt || this.totalCnt === 0) {
           //  这里是列表请求数据的接口,在这个接口中更新总页数
           this.msg = 'Loading.....'
-          const { data, totalCount, totalPage, filteredList, code } =
-            await getAlbum(this.queryForm)
+          const { data, totalCnt, totalPage, filteredList, code } =
+            await getImg(this.queryForm)
           if (code === 200) {
             this.albums = [...this.albums, ...data]
-            this.curAlbumCnt = this.albums.length
-            this.totalCount = totalCount
+            this.currentCnt = this.albums.length
+            this.totalCnt = totalCnt
             this.totalPage = totalPage
             this.category = filteredList
             this.queryForm.page += 1
             this.busy = false
+            console.log('totalCnt is: %d', this.totalCnt)
           }
         } else {
           this.msg = 'there is no more img any more'
@@ -406,7 +420,7 @@
 
         // let i = 0
         // this.filteredAlbumsId = [] //must clear first
-        // for (i = 0; i < this.curAlbumCnt; i++) {
+        // for (i = 0; i < this.currentCnt; i++) {
         //   this.filteredAlbumsId[i] = this.albums[i].id
         // }
 
@@ -414,25 +428,20 @@
 
         // }, 300)
       },
-      async fetchImg() {
+      async fetchImgDetail() {
         console.log('start to get the img ...')
         this.queryForm.id = this.checkedId
-        const { data } = await getImg(this.queryForm)
-        // if (data.mcs !== null) {
-
-        //   this.mcs = data.mcs
-        // }
+        const { data } = await getImgDetail(this.queryForm)
         this.img = data
-        console.log('recieved the category is : ' + this.category)
       },
 
       onImgSearch(queryForm) {
         console.log('recieve the queryForm info from the search component')
         console.log(queryForm)
         this.queryForm = queryForm
-        this.totalCount = 0
+        this.totalCnt = 0
         this.albums = []
-        this.fetchAlbum()
+        this.fetchImg()
         // this.loadMore()
       },
     },
@@ -441,7 +450,7 @@
 
 <style>
   .content {
-    height: 550px;
+    height: 700px;
     width: 100%;
     margin: 0 auto;
     overflow: auto;

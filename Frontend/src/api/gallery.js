@@ -1,27 +1,21 @@
 import request from '@/utils/request'
 
-export function getAlbum(params) {
-  return request({
-    url: '/api/img/',
-    method: 'get',
-    params,
-  })
-}
-
-export function getGallery(params) {
-  return request({
-    url: '/api/img/',
-    method: 'get',
-    params,
-  })
-}
-
+// img api
 export function getImg(params) {
+  return request({
+    url: '/api/img/',
+    method: 'get',
+    params,
+  })
+}
+
+export function getImgDetail(params) {
   return request({
     url: '/api/img/' + params.id + '/',
     method: 'get',
   })
 }
+
 export function getMcs(params) {
   return request({
     url: '/api/mcs/' + params.id + '/',

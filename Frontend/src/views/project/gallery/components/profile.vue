@@ -236,7 +236,9 @@
       // this.fetchAlbum()
       // this.srcList = []
     },
-    mounted() {},
+    mounted() {
+      this.fetchProfile()
+    },
     methods: {
       async fetchProfile() {
         console.log('start to get the profile..., the profile id is ', this.id)

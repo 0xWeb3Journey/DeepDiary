@@ -9,12 +9,7 @@
 
   import Gallery from './gallery.vue'
   import Img from './img.vue'
-  import {
-    getGallery,
-    getAlbum,
-    getFaceAlbum,
-    getFaceGallery,
-  } from '@/api/gallery'
+  import { getImg, getFaceAlbum, getFaceGallery } from '@/api/gallery'
   export default {
     name: 'PgFaceGroup',
     components: {},
@@ -51,7 +46,7 @@
           this.curGalleryCnt < this.totalGalleryCnt ||
           this.totalGalleryCnt === 0
         ) {
-          const { data, totalCount } = await getGallery(this.ImgQueryForm)
+          const { data, totalCount } = await getImg(this.ImgQueryForm)
           if (totalCount === 0) return //could fetch any data
           this.ImgQueryForm.page += 1
           console.log(

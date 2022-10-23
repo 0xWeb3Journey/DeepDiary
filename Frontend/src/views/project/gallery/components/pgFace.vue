@@ -5,6 +5,7 @@
       ref="face"
       :name="$route.query.title"
       :items="faces"
+      :total="faces.length"
       disp-type="face"
     ></Gallery>
   </div>

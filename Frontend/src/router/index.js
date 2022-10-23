@@ -101,6 +101,7 @@ export const asyncRoutes = [
           title: 'Album',
           icon: 'marker',
           permissions: ['admin'],
+          noKeepAlive: false,
         },
       },
       {
@@ -177,6 +178,17 @@ export const asyncRoutes = [
         component: () => import('@/views/project/gallery/components/pgObject'),
         meta: {
           title: 'Object',
+          icon: 'marker',
+          permissions: ['admin'],
+        },
+      },
+      {
+        path: 'graph',
+        name: 'Graph',
+        component: () =>
+          import('@/views/project/interactiveGraph/interactiveGraph'),
+        meta: {
+          title: 'Graph',
           icon: 'marker',
           permissions: ['admin'],
         },

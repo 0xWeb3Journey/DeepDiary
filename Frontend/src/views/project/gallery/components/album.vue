@@ -34,8 +34,8 @@
 
           <el-button
             type="primary"
-            icon="el-icon-picture"
-            @click="onChangeDetailType('face-img')"
+            icon="el-icon-remove"
+            @click="onAlbumChoose($event, -1, null)"
           ></el-button>
           <el-button
             type="primary"
@@ -70,7 +70,7 @@
           <!-- :title="album.name" -->
           <div class="jg-caption">
             <el-badge
-              :value="album.item_cnt"
+              :value="album.value"
               :max="99"
               class="item"
               type="primary"
@@ -88,26 +88,6 @@
                 @keyup.enter.native="enterBlur($event)"
               ></el-input>
             </el-badge>
-            <!--             
-            <el-row>
-              <el-col :span="20">
-                <el-input
-                  v-model="album.name"
-                  placeholder="Change the Name"
-                  style="float: left; font-size: 8px"
-                  @blur="changeName(album.name, album)"
-                  @keyup.enter.native="enterBlur($event)"
-                ></el-input>
-              </el-col>
-              <el-col :span="4">
-                <label
-                  for="name"
-                  style="float: right; display: inline-block; font-size: 15px"
-                >
-                  {{ album.item_cnt }}
-                </label>
-              </el-col>
-            </el-row> -->
           </div>
         </div>
       </div>
@@ -222,40 +202,47 @@
       },
 
       onAlbumChoose($event, index, item) {
-        console.log('单击事件', this.type, this.total)
-        // if (~item) return //reture directly if there is no item in items
-        this.checkedIndex = index
-        this.drawer = true
-        let jumpId
+        console.log('单击事件')
 
-        if (this.type === 'img') {
-          this.jumpId = item.face_album //choose the face album
-          this.checkedId = item.id // choose the face img
-          this.routeName = 'FaceGallery'
-          this.albumName = item.name
-          this.dispTags = false
-          // this.albumCnt = item.item_cnt
-        }
-        if (this.type === 'personal') {
-          this.jumpId = item.id
-          this.checkedId = item.profile
-          this.routeName = 'FaceGallery'
-          this.albumName = item.name
-          this.albumCnt = item.item_cnt
-          this.dispTags = false
-        }
-        if (this.type === 'collection') {
-          this.jumpId = item.id
-          this.checkedId = item.id
-          this.routeName = 'Img'
-          // this.albumName = item.names.join(',')
-          this.albumName = item.filename
-          // this.albumCnt = item.item_cnt
-          this.dispTags = false
-        }
-        console.log(this.type, this.checkedIndex, this.checkedId)
-        // $('#album').justifiedGallery()
-        this.$emit('albumClick', index, this.checkedId) //自定义事件  传递值“子向父组件传值”
+        this.checkedIndex = index
+        if (index < 0) return //reture directly if there is no item in items
+        // this.drawer = true
+        // let jumpId
+
+        // if (this.type === 'img') {
+        //   this.jumpId = item.face_album //choose the face album
+        //   this.checkedId = item.id // choose the face img
+        //   this.routeName = 'FaceGallery'
+        //   this.albumName = item.name
+        //   this.dispTags = false
+        //   // this.albumCnt = item.item_cnt
+        // }
+        // if (this.type === 'personal') {
+        //   this.jumpId = item.id
+        //   this.checkedId = item.id
+        //   this.routeName = 'FaceGallery'
+        //   this.albumName = item.name
+        //   this.albumCnt = item.item_cnt
+        //   this.dispTags = false
+        // }
+        // if (this.type === 'collection') {
+        //   this.jumpId = item.id
+        //   this.checkedId = item.id
+        //   this.routeName = 'Img'
+        //   // this.albumName = item.names.join(',')
+        //   this.albumName = item.filename
+        //   // this.albumCnt = item.item_cnt
+        //   this.dispTags = false
+        // }
+        // console.log(this.type, this.checkedIndex, this.checkedId)
+        // // $('#album').justifiedGallery()
+        this.$emit('albumClick', index, item) //自定义事件  传递值“子向父组件传值”
+      },
+
+      //双击事件
+      onDoubleClick(event, index, item) {
+        console.log('双击事件')
+        this.$emit('doubleClick', index, item) //自定义事件  传递值“子向父组件传值”
       },
 
       async changeFaceAlbumName(value, album) {
@@ -321,17 +308,6 @@
         this.$refs['vabUpload'].handleShow(data)
       },
 
-      //双击事件
-      onDoubleClick(event, index, item) {
-        console.log('双击事件')
-        this.$router.push({
-          name: this.routeName,
-          query: {
-            id: this.jumpId,
-            title: item.name,
-          },
-        })
-      },
       load() {
         this.$emit('load') //自定义事件  传递值“子向父组件传值”
       },

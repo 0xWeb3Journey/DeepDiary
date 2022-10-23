@@ -7,7 +7,7 @@ from library.models import Category, Img
 
 
 class GalleryPageNumberPagination(PageNumberPagination):
-    page_size = 15  # default page size
+    page_size = 20  # default page size
     # page_size_query_param = 'size'  # ?page=xx&size=??
     max_page_size = 20  # max page size
 
@@ -37,7 +37,7 @@ class GalleryPageNumberPagination(PageNumberPagination):
                 'next': self.get_next_link(),
                 'previous': self.get_previous_link()
             },
-            'totalCount': self.page.paginator.count,
+            'totalCnt': self.page.paginator.count,
             'totalPage': self.page.number,
             'msg': 'success',
             'code': 200,

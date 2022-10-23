@@ -44,7 +44,7 @@
     },
     watch: {
       items(newVal, oldVal) {
-        console.log('items have bee changed: %s --> %s', oldVal, newVal)
+        // console.log('items have bee changed: %s --> %s', oldVal, newVal)
         // if the tags string changed, the update the dynamicTags, else set it to null
         if (newVal) this.dynamicTags = newVal.split(',')
         else this.dynamicTags = []
@@ -52,7 +52,7 @@
       // deep: true, //为true，表示深度监听，这时候就能监测到a值变化
     },
     mounted() {
-      console.log('INFO: get the tags source for parent component:', this.items)
+      // console.log('INFO: get the tags source for parent component:', this.items)
       // if the tags string changed, the update the dynamicTags, else set it to null
       if (this.items) this.dynamicTags = this.items.split(',')
       else this.dynamicTags = []

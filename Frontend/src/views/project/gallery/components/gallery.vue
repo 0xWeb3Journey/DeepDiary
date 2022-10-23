@@ -22,28 +22,19 @@
     <!-- FaceGallery -->
     <el-card v-if="true" class="box-card">
       <div slot="header" class="clearfix">
-        <span>{{ name }}</span>
+        <span>{{ name }}({{ items.length }} / {{ total }})</span>
         <el-button-group style="float: right">
-          <el-button type="primary" icon="el-icon-plus"></el-button>
           <el-button type="primary" icon="el-icon-edit"></el-button>
-          <el-button type="primary" icon="el-icon-map-location"></el-button>
           <el-button
             type="primary"
-            icon="el-icon-user-solid"
-            @click="onChangeDispType('face')"
-          ></el-button>
-
-          <el-button
-            type="primary"
-            icon="el-icon-picture"
-            @click="onChangeDispType('thumb')"
+            icon="el-icon-map-location"
+            @click="test"
           ></el-button>
           <el-button
             type="primary"
             icon="el-icon-upload"
             @click="handleShow({ key: 'value' })"
           ></el-button>
-          <el-button type="primary" icon="el-icon-plus"></el-button>
         </el-button-group>
       </div>
 
@@ -109,6 +100,11 @@
         default: '88888888888888', // model field name
         required: true,
       },
+      total: {
+        type: Number,
+        default: 50,
+        required: true,
+      },
       dispType: {
         type: String,
         default: 'face', // model field name
@@ -153,7 +149,8 @@
         this.$nextTick(() => {
           console.log('gallery have been changed')
           window.gallery.refresh()
-          $('#gallery').justifiedGallery('norewind')
+          // $('#gallery').justifiedGallery('norewind')
+          $('#gallery').justifiedGallery()
         })
       },
     },
@@ -217,6 +214,7 @@
         // console.log('onChangeDispType')
         // console.log(this.srcList)
       },
+      test() {},
       handleShow(data) {
         this.$refs['vabUpload'].handleShow(data)
       },

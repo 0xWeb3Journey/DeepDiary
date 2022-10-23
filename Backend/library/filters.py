@@ -134,6 +134,7 @@ class ImgFilter(FilterSet):
         model = Img  # 模型名
 
         fields = {
+            # 'id': ['exact', 'gte', 'lte'],
             # color
             'colors__image__closest_palette_color_parent': ['exact'],
             'colors__foreground__closest_palette_color_parent': ['exact'],
@@ -170,7 +171,7 @@ class ImgFilter(FilterSet):
             'tags': ['exact', 'icontains'],  #
             'tags__name': ['exact', 'icontains'],  #
             # img
-            'filename': ['exact', 'icontains'],  #
+            'name': ['exact', 'icontains'],  #
             'title': ['exact', 'icontains'],  #
             'caption': ['exact', 'icontains'],  #
             "type": ['exact'],
@@ -310,7 +311,7 @@ class ImgSearchFilter(filters.SearchFilter):
 
             '$tags__name': ['exact', 'icontains'],  #
             # img
-            'filename': ['exact', 'icontains'],  #
+            'name': ['exact', 'icontains'],  #
             'title': ['exact', 'icontains'],  #
             'caption': ['exact', 'icontains'],  #
             "type": ['exact'],

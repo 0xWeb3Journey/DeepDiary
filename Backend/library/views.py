@@ -91,7 +91,7 @@ class ImgViewSet(viewsets.ModelViewSet):
 
         '$tags__name': ['exact', 'icontains'],  #
         # img
-        'filename': ['exact', 'icontains'],  #
+        'name': ['exact', 'icontains'],  #
         'title': ['exact', 'icontains'],  #
         'caption': ['exact', 'icontains'],  #
         "type": ['exact'],
@@ -120,7 +120,7 @@ class ImgViewSet(viewsets.ModelViewSet):
 
         # print(f"INFO: instance.src: {instance.src}")
         # print(f"INFO: instance.src.name: {instance.src.name}")
-        # print(f"INFO: instance.src__filename: {os.path.basename(instance.src.name)}")
+        # print(f"INFO: instance.src__name: {os.path.basename(instance.src.name)}")
         # print(f"INFO: instance.src__filetype: {os.path.splitext(instance.src.name)[-1]}")  # 获取带点文件后缀
         # print(f"INFO: instance.src__filetype: {instance.src.name.split('.')[-1]}")  # 获取不带点文件后缀
 
@@ -194,7 +194,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         # set_img_categories(img)
         # set_all_img_categories()
         # save_all_img_info()
-        set_all_img_address()
+        # set_all_img_address()
         # add_all_img_colors_to_category()
 
         # serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
@@ -202,9 +202,32 @@ class ImgViewSet(viewsets.ModelViewSet):
         # serializer = self.get_serializer(img)
         # return Response(serializer.data)
 
-        filter_class = self.filter_class
-        print(filter_class)
-        return Response({"msg": "success"})
+        # filter_class = self.filter_class
+        # print(filter_class)
+        data = {
+            'categories': {
+                'person': '人物',
+                'organization': '机构',
+                'location': '地点',
+            },
+            "data": {
+                "nodes": [
+                    {"id": "1", "label": "bluejoe", "image": "https://bluejoe2008.github.io/bluejoe3.png",
+                     "categories": ["person"]},
+                    {"id": "2", "label": "CNIC", "image": "https://bluejoe2008.github.io/cas.jpg",
+                     "categories": ["organization"]},
+                    {"id": "3", "label": "beijing", "image": "https://bluejoe2008.github.io/beijing.jpg",
+                     "categories": ["location"]}
+                ],
+                "edges": [
+                    {"from": "1", "to": "2", "label": "work for"},
+                    {"from": "1", "to": "3", "label": "live in"},
+                    {"from": "2", "to": "3", "label": "test"}
+                ]
+            }
+        }
+        return Response(data)
+        # return Response({"msg": "success"})
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def check_mcs(self, request, pk=None):
@@ -291,19 +314,30 @@ class CategoryViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def get_filter_list(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
         data = {
-            'fc_nums': Img.objects.annotate(fc_nums=Count('faces')).values_list('fc_nums', flat=True).distinct().order_by('fc_nums'),
-            'fc_name': FaceAlbum.objects.annotate(value=Count('img')).filter(value__gte=1).values('name', 'value').distinct().order_by('-value'),
+            'fc_nums': Img.objects.annotate(fc_nums=Count('faces')).values_list('fc_nums',
+                                                                                flat=True).distinct().order_by(
+                'fc_nums'),
+            'fc_name': FaceAlbum.objects.annotate(value=Count('img')).filter(value__gte=1).values('name',
+                                                                                                  'value').distinct().order_by(
+                '-value'),
 
             # 'tags': Img.objects.values_list('tags__name', flat=True).distinct().order_by('tags__name'),
-            'tags': Tag.objects.annotate(value=Count('imgs')).filter(value__gt=0).order_by('-value').values('name','value'),
+            'tags': Tag.objects.annotate(value=Count('imgs')).filter(value__gt=0).order_by('-value').values('name',
+                                                                                                            'value'),
 
             # 'c_img': Img.objects.filter(categories__type='img_color').values('categories__name', 'categories__value').distinct().order_by('categories__name'),
             'c_img': Category.objects.filter(type='img_color').values('name', 'value').distinct().order_by('name'),
             'c_back': Category.objects.filter(type='back_color').values('name', 'value').distinct().order_by('name'),
             'c_fore': Category.objects.filter(type='fore_color').values('name', 'value').distinct().order_by('name'),
-            'category': Category.objects.filter(type='category').annotate(img_nums=Count('img')).values('name', 'img_nums').distinct().order_by('-img_nums'),
-            'group': Category.objects.filter(type='group').annotate(img_nums=Count('img')).values('name', 'img_nums').distinct().order_by('-img_nums'),
-            'city': Category.objects.filter(type='address').annotate(img_nums=Count('img')).values('name', 'img_nums').distinct().order_by('-img_nums'),
+            'category': Category.objects.filter(type='category').annotate(img_nums=Count('img')).values('name',
+                                                                                                        'img_nums').distinct().order_by(
+                '-img_nums'),
+            'group': Category.objects.filter(type='group').annotate(img_nums=Count('img')).values('name',
+                                                                                                  'img_nums').distinct().order_by(
+                '-img_nums'),
+            'city': Category.objects.filter(type='address').annotate(img_nums=Count('img')).values('name',
+                                                                                                   'img_nums').distinct().order_by(
+                '-img_nums'),
 
             'layout': ['Square', 'Wide', 'Tall'],
             'size': ['Small', 'Medium', 'Large', 'Extra large', 'At least'],

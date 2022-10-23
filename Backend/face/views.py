@@ -1,6 +1,8 @@
 # face/view.py
 
 # Create your views here.
+from collections import OrderedDict
+
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
@@ -8,7 +10,8 @@ from rest_framework.decorators import action
 
 from face.models import Face, FaceAlbum
 from face.pagination import FacePageNumberPagination
-from face.serializers import FaceSerializer, FaceDetailSerializer, FaceAlbumSerializer, FaceAlbumDetailSerializer
+from face.serializers import FaceSerializer, FaceDetailSerializer, FaceAlbumSerializer, FaceAlbumDetailSerializer, \
+    FaceAlbumGraphSerializer
 from face.task import change_album_name, change_face_name, change_confirm_state
 from rest_framework.response import Response
 
@@ -49,7 +52,7 @@ class FaceViewSet(viewsets.ModelViewSet):
 
 
 class FaceAlbumViewSet(viewsets.ModelViewSet):
-    queryset = FaceAlbum.objects.annotate(item_cnt=Count('faces')).order_by('-item_cnt')
+    queryset = FaceAlbum.objects.annotate(value=Count('faces')).order_by('-value')
 
     # serializer_class = FaceAlbumSerializer
     # permission_classes = (AllowAny,)
@@ -63,7 +66,6 @@ class FaceAlbumViewSet(viewsets.ModelViewSet):
         old_name, new_name = change_album_name(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
 
         print(serializer.validated_data)
-
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -88,6 +90,654 @@ class FaceAlbumViewSet(viewsets.ModelViewSet):
             "code": 200,
             "msg": "success to clear the Face Album "
         }
+        return Response(data)
+
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def test(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        # objs = FaceAlbum.objects.annotate(value=Count('faces')).order_by('-value')
+        serializer = FaceAlbumGraphSerializer(self.queryset.exclude(name__startswith='unknown'), many=True, context={'request': request})  # 不报错
+        person_node = serializer.data
+
+        # print(type(person_node))
+        # person_node['image'] = person_node.pop('src')
+        # data = {
+        #     'categories': {
+        #         'person': '人物',
+        #         'organization': '机构',
+        #         'location': '地点',
+        #         'event': '事件',
+        #         'company': '公司',
+        #     },
+        #     "data": {
+        #         "nodes": person_node,
+        #         "edges": [{"from": item['id'], "to": 32, "label": item['label']} for item in serializer.data]
+        #     }
+        # }
+
+        # demo
+        data = {
+            "categories": {
+                "date": "时间",
+                "location": "地点",
+                "person": "人物",
+                "event": "事件",
+                "image": "图片",
+                "video": "视频",
+                "voice": "语音",
+                "company": "公司",
+            },
+            "data": {
+                "nodes": [
+                    {
+                        "id": 1,
+                        "label": "deep-diary",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/b1fc6cc28c297f6910f267da332d7fc8/7bb5bfc1d897419122805b02b8a0379e.jpeg",
+                        "value": 30,
+                        "desc": "make your own data values",
+                        "categories": [
+                            "company"
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "label": "blue",
+                        "image": "http://127.0.0.1:8000/media/face/face_aQVml.jpg",
+                        "value": 30,
+                        "desc": "deep-diary creator",
+                        "categories": [
+                            "person"
+                        ]
+                    },
+                    {
+                        "id": 3,
+                        "label": "prepare for the live broadcast",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/1310f1459e8cabf0e02cea3fd5960e7d/c8212dc44d7c29de7843e74580f5cb8b.jpeg",
+                        "value": 40,
+                        "desc": "won the 6th in the Hackathon competition, after that, our team need to have a live "
+                                "stream on Oct. 21th to present our project, that is important to us, so we prepare "
+                                "for it every day",
+                        "categories": [
+                            "event"
+                        ]
+                    },
+                    {
+                        "id": 4,
+                        "label": "2022-10",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/avatar_TqNd2Yf/b9f276c6f29f62239a4d23e8d0dc0bd5.jpg",
+                        "value": 30,
+                        "desc": "this event happened on this month",
+                        "categories": [
+                            "date"
+                        ]
+                    },
+                    {
+                        "id": 5,
+                        "label": "Ningbo",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/5d14677a3fa465509513930caeacf2b2/018d88d7b9718578a44fa66738c3496c.jpeg",
+                        "value": 30,
+                        "desc": "location of this event",
+                        "categories": [
+                            "location"
+                        ]
+                    },
+                    {
+                        "id": 6,
+                        "label": "img1",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/e8e4be52ba59a1a124665c82bb3f5ae2/02ef4bc0bd7a2f7c593296a416974cfc.jpeg",
+                        "value": 30,
+                        "desc": "image memories of this event",
+                        "categories": [
+                            "image"
+                        ]
+                    },
+                    {
+                        "id": 7,
+                        "label": "img2",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/aaf757201bbf5a549ceab52008817eb7/94eb614e5cd71d70e9ceab22c3c4583f.jpeg",
+                        "value": 30,
+                        "desc": "image memories of this event",
+                        "categories": [
+                            "image"
+                        ]
+                    },
+                    {
+                        "id": 8,
+                        "label": "video1",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/14521c818922da50f83c2bfa7189db0b/df4b5d9b47f2c8cf2d69590316f58c88.jpeg",
+                        "value": 30,
+                        "desc": "video memories of this event",
+                        "categories": [
+                            "video"
+                        ]
+                    },
+                    {
+                        "id": 9,
+                        "label": "voice1",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/69a8364435cf80991f383a575afa77e5/dae181e5d1e22c0e2e91ccc6084270cb.jpeg",
+                        "value": 30,
+                        "desc": "voice memories of this event",
+                        "categories": [
+                            "voice"
+                        ]
+                    },
+
+                    {
+                        "id": 10,
+                        "label": "Design the databased structure of deep-diary",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/1f823568d8eafa515b055fc9d0b0caf3/2b59b6af416b24dd3adad28319f67923.jpeg",
+                        "value": 40,
+                        "desc": "graph display is attractive for human, but the relationship between is complex, "
+                                "so we need take some time to find out all the realtionships between each nodes",
+                        "categories": [
+                            "event"
+                        ]
+                    },
+                    {
+                        "id": 12,
+                        "label": "2022-11",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/301112218b977280ffd5ce64eda157e2/2b5a057ee68c5f158749ad5eb408d800.jpeg",
+                        "value": 30,
+                        "desc": "this event happened on this month",
+                        "categories": [
+                            "date"
+                        ]
+                    },
+                    {
+                        "id": 11,
+                        "label": "Taizhou",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/bdf36d3cca08de7c0331e08d84c9d18b/b0b08588af28e8f0c4549329c7e27387.jpeg",
+                        "value": 30,
+                        "desc": "location of this event",
+                        "categories": [
+                            "location"
+                        ]
+                    },
+                    {
+                        "id": 13,
+                        "label": "video2",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/0b40b4ae6f872c2358abdc8401fcd8bb/7955fb802fd8d9237be98cc60e2d50fe.jpeg",
+                        "value": 30,
+                        "desc": "video memories of this event",
+                        "categories": [
+                            "video"
+                        ]
+                    },
+                    {
+                        "id": 14,
+                        "label": "voice2",
+                        "image": "http://127.0.0.1:8000/media/CACHE/images/blue/img/1970/01/01/b4dccead83555244d5d065aa12965006/4fc85f59caf86359360b2d10611bca8d.jpg",
+                        "value": 30,
+                        "desc": "voice memories of this event",
+                        "categories": [
+                            "voice"
+                        ]
+                    },
+
+                ],
+                "edges": [
+                    {
+                        "from": 2,
+                        "to": 1,
+                        "label": "work in"
+                    },
+                    {
+                        "from": 2,
+                        "to": 3,
+                        "label": "join in"
+                    },
+                    {
+                        "from": 2,
+                        "to": 10,
+                        "label": "join in"
+                    },
+                    # {
+                    #     "from": 2,
+                    #     "to": 5,
+                    #     "label": "live in"
+                    # },
+                    # {
+                    #     "from": 2,
+                    #     "to": 11,
+                    #     "label": "hometown"
+                    # },
+                    {
+                        "from": 3,
+                        "to": 4,
+                        "label": "happened on"
+                    },
+                    {
+                        "from": 3,
+                        "to": 5,
+                        "label": "located in"
+                    },
+                    {
+                        "from": 3,
+                        "to": 6,
+                        "label": "recorded by"
+                    },
+                    {
+                        "from": 3,
+                        "to": 7,
+                        "label": "recorded by"
+                    },
+                    {
+                        "from": 3,
+                        "to": 8,
+                        "label": "recorded by"
+                    },
+                    {
+                        "from": 3,
+                        "to": 9,
+                        "label": "recorded by"
+                    },
+
+                    {
+                        "from": 10,
+                        "to": 11,
+                        "label": "happened on"
+                    },
+                    {
+                        "from": 10,
+                        "to": 12,
+                        "label": "located in"
+                    },
+                    {
+                        "from": 10,
+                        "to": 13,
+                        "label": "recorded by"
+                    },
+                    {
+                        "from": 10,
+                        "to": 14,
+                        "label": "recorded by"
+                    },
+
+                ]
+            }
+        }
+
+        # database demo
+        # data = {
+        #     "categories": {
+        #         "date": "时间",
+        #         "location": "地点",
+        #         "person": "人物",
+        #         "event": "事件",
+        #         "image": "图片",
+        #         "video": "视频",
+        #         "voice": "语音",
+        #         "company": "公司",
+        #         "info": "信息",
+        #     },
+        #     "data": {
+        #         "nodes": [
+        #             {
+        #                 "id": 1,
+        #                 "label": "User",
+        #                 "value": 20,
+        #                 "desc": "Django build-in User model.",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 2,
+        #                 "label": "Profile",
+        #                 "value": 30,
+        #                 "image": "http://127.0.0.1:8000/media/face/face_aQVml.jpg",
+        #                 "desc": "inherit build-in AbstractUser model.",
+        #                 "categories": [
+        #                     "person"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 3,
+        #                 "label": "Company",
+        #                 "value": 20,
+        #                 "desc": "one to one relationship to Experience model.",
+        #                 "categories": [
+        #                     "company"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 4,
+        #                 "label": "Experience",
+        #                 "value": 20,
+        #                 "desc": "working experience of this user.",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 5,
+        #                 "label": "Supply",
+        #                 "value": 20,
+        #                 "desc": "the resources that the user could provide",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 6,
+        #                 "label": "Demand",
+        #                 "value": 20,
+        #                 "desc": "the resources that the user that needed",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 7,
+        #                 "label": "Event",
+        #                 "value": 20,
+        #                 "desc": "could understand like diary which not based on the date, but based on the event",
+        #                 "categories": [
+        #                     "event"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 8,
+        #                 "label": "Category",
+        #                 "value": 20,
+        #                 "desc": "auto category all the images based on the deep learning",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 9,
+        #                 "label": "Img",
+        #                 "value": 30,
+        #                 "image": "http://127.0.0.1:8000/media/blue/img/1970/01/01/b1fc6cc28c297f6910f267da332d7fc8.jpeg",
+        #                 "desc": "img is the most important memory element",
+        #                 "categories": [
+        #                     "image"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 10,
+        #                 "label": "ImgCategory",
+        #                 "value": 20,
+        #                 "desc": "intermediate table of Img and Category",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 11,
+        #                 "label": "FaceAlbum",
+        #                 "value": 20,
+        #                 "desc": "Person face interface",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 12,
+        #                 "label": "Face",
+        #                 "value": 30,
+        #                 "image": "http://127.0.0.1:8000/media/face/face_42tyr.jpg",
+        #                 "desc": "intermediate table of Img and FaceAlbum",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 13,
+        #                 "label": "Video",
+        #                 "value": 20,
+        #                 "desc": "daily video",
+        #                 "categories": [
+        #                     "video"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 14,
+        #                 "label": "Voice",
+        #                 "value": 20,
+        #                 "desc": "daily voice",
+        #                 "categories": [
+        #                     "voice"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 15,
+        #                 "label": "Color",
+        #                 "value": 20,
+        #                 "desc": "the color in the img, which include image, foreground and background color",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 16,
+        #                 "label": "Evaluate",
+        #                 "value": 20,
+        #                 "desc": "some values to evaluate the img, like total view, total likes, total click, etc.",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 17,
+        #                 "label": "Date",
+        #                 "value": 20,
+        #                 "desc": "date based on month, you could filter all the memories in a certain month",
+        #                 "categories": [
+        #                     "date"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 18,
+        #                 "label": "Address",
+        #                 "value": 20,
+        #                 "desc": "based on city, you could filter all the memories that happened in this city",
+        #                 "categories": [
+        #                     "location"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 19,
+        #                 "label": "Mcs",
+        #                 "value": 20,
+        #                 "desc": "Multi-chain storage based on the web3 concept, keep your date more safe",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #             {
+        #                 "id": 20,
+        #                 "label": "Tag",
+        #                 "value": 20,
+        #                 "desc": "add some tags to some nodes like Img, Event, etc.",
+        #                 "categories": [
+        #                     "info"
+        #                 ]
+        #             },
+        #         ],
+        #         "edges": [
+        #             {
+        #                 "from": 1,
+        #                 "to": 2,
+        #                 "label": "inherit"
+        #             },
+        #             {
+        #                 "from": 2,
+        #                 "to": 3,
+        #                 "label": "work in"
+        #             },
+        #
+        #             {
+        #                 "from": 2,
+        #                 "to": 4,
+        #                 "label": "own"
+        #             },
+        #             {
+        #                 "from": 2,
+        #                 "to": 5,
+        #                 "label": "provide"
+        #             },
+        #             {
+        #                 "from": 2,
+        #                 "to": 6,
+        #                 "label": "need"
+        #             },
+        #             {
+        #                 "from": 2,
+        #                 "to": 7,
+        #                 "label": "join in"
+        #             },
+        #             {
+        #                 "from": 2,
+        #                 "to": 11,
+        #                 "label": "face info"
+        #             },
+        #             {
+        #                 "from": 2,
+        #                 "to": 9,
+        #                 "label": "own"
+        #             },
+        #             {
+        #                 "from": 4,
+        #                 "to": 3,
+        #                 "label": "experience in"
+        #             },
+        #             {
+        #                 "from": 4,
+        #                 "to": 9,
+        #                 "label": "include"
+        #             },
+        #
+        #             {
+        #                 "from": 5,
+        #                 "to": 9,
+        #                 "label": "include"
+        #             },
+        #             {
+        #                 "from": 6,
+        #                 "to": 9,
+        #                 "label": "include"
+        #             },
+        #             {
+        #                 "from": 7,
+        #                 "to": 9,
+        #                 "label": "memory"
+        #             },
+        #             {
+        #                 "from": 7,
+        #                 "to": 13,
+        #                 "label": "memory"
+        #             },
+        #             {
+        #                 "from": 7,
+        #                 "to": 14,
+        #                 "label": "memory"
+        #             },
+        #             {
+        #                 "from": 7,
+        #                 "to": 20,
+        #                 "label": "include"
+        #             },
+        #             {
+        #                 "from": 8,
+        #                 "to": 10,
+        #                 "label": "record in "
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 8,
+        #                 "label": "belongs to "
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 10,
+        #                 "label": "record in"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 11,
+        #                 "label": "belongs to "
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 12,
+        #                 "label": "have faces"
+        #             },
+        #
+        #             {
+        #                 "from": 9,
+        #                 "to": 15,
+        #                 "label": "include"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 16,
+        #                 "label": "include "
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 17,
+        #                 "label": "token on"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 18,
+        #                 "label": "located in"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 19,
+        #                 "label": "include"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 20,
+        #                 "label": "include"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 12,
+        #                 "label": "have faces"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 8,
+        #                 "label": "belongs to "
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 10,
+        #                 "label": "record in"
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 11,
+        #                 "label": "belongs to "
+        #             },
+        #             {
+        #                 "from": 9,
+        #                 "to": 12,
+        #                 "label": "have faces"
+        #             },
+        #             {
+        #                 "from": 11,
+        #                 "to": 12,
+        #                 "label": "have faces "
+        #             },
+        #             {
+        #                 "from": 13,
+        #                 "to": 20,
+        #                 "label": "include"
+        #             },
+        #             {
+        #                 "from": 14,
+        #                 "to": 20,
+        #                 "label": "include"
+        #             },
+        #
+        #         ]
+        #     }
+        # }
         return Response(data)
 
 #

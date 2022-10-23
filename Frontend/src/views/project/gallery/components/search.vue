@@ -8,327 +8,327 @@
       label="faceNums"
       @change="handleFaceNumsChange"
     ></el-input-number> -->
+    <!-- prefix-icon="el-icon-search" -->
     <el-input
       v-model="imgQuery.search"
+      clearable
       placeholder="Please input what you want"
-      prefix-icon="el-icon-search"
       @change="handelSearchChange"
     >
       <!-- <el-button slot="append" icon="el-icon-search"></el-button> -->
+      <i
+        slot="prefix"
+        class="el-input__icon el-icon-search"
+        @click="advancedSearch"
+      ></i>
       <el-button
         slot="append"
         icon="el-icon-delete"
         @click="reset_search"
       ></el-button>
     </el-input>
-    <!-- face numbers filter -->
-    <el-select
-      v-model="imgQuery.fc_nums"
-      clearable
-      filterable
-      default-first-option
-      placeholder="People Numbers"
-      :loading="loading"
-      @change="handleFaceNumsChange"
-    >
-      <el-option
-        v-for="item in filterList.fc_nums"
-        :key="item"
-        :label="item"
-        :value="item"
-        :disabled="false"
-      ></el-option>
-    </el-select>
-
-    <!-- face group filter -->
-    <el-select
-      v-model="checked_fcGroup"
-      clearable
-      filterable
-      default-first-option
-      placeholder="Group Name"
-      :loading="loading"
-      @change="handleGroupChange"
-    >
-      <el-option
-        v-for="item in filterList.group"
-        :key="item.name"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
+    <div v-if="advanced" class="advancedSearch">
+      <!-- face numbers filter -->
+      <el-select
+        v-model="imgQuery.fc_nums"
+        clearable
+        filterable
+        default-first-option
+        placeholder="People Numbers"
+        :loading="loading"
+        @change="handleFaceNumsChange"
       >
-        <span style="float: left; color: #8492a6">{{ item.name }}</span>
-        <span style="float: right; color: #8492a6; font-size: 13px">
-          {{ item.img_nums }}
-        </span>
-      </el-option>
-    </el-select>
-    <!-- face name filter -->
-    <el-select
-      v-model="checked_fcName"
-      multiple
-      clearable
-      filterable
-      default-first-option
-      placeholder="Friend Name"
-      :loading="loading"
-      @change="handleFaceAlbumChange"
-    >
-      <el-option
-        v-for="item in filterList.fc_name"
-        :key="item.name"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
-      >
-        <span style="float: left; color: #8492a6">{{ item.name }}</span>
-        <span style="float: right; color: #8492a6; font-size: 13px">
-          {{ item.value }}
-        </span>
-      </el-option>
-    </el-select>
-    <!-- Tags filter -->
-    <el-select
-      v-model="checked_tags"
-      multiple
-      clearable
-      filterable
-      placeholder="Tags"
-      default-first-option
-      :loading="loading"
-      @change="handleTagsChange"
-    >
-      <el-option
-        v-for="item in filterList.tags"
-        :key="item.name"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
-      >
-        <span style="float: left; color: #8492a6">{{ item.name }}</span>
-        <span style="float: right; color: #8492a6; font-size: 13px">
-          {{ item.value }}
-        </span>
-      </el-option>
-    </el-select>
-
-    <!-- address filter -->
-    <el-select
-      v-model="imgQuery.address__city"
-      clearable
-      filterable
-      default-first-option
-      placeholder="City"
-      :loading="loading"
-      @change="handleAddressChange"
-    >
-      <el-option
-        v-for="item in filterList.city"
-        :key="item.name"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
-      >
-        <span style="float: left; color: #8492a6">{{ item.name }}</span>
-        <span style="float: right; color: #8492a6; font-size: 13px">
-          {{ item.img_nums }}
-        </span>
-      </el-option>
-    </el-select>
-
-    <!-- category filter -->
-    <el-select
-      v-model="checked_category"
-      clearable
-      filterable
-      default-first-option
-      placeholder="Auto Category"
-      :loading="loading"
-      @change="handleCategoryChange"
-    >
-      <el-option
-        v-for="item in filterList.category"
-        :key="item.name"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
-      >
-        <span style="float: left; color: #8492a6">{{ item.name }}</span>
-        <span style="float: right; color: #8492a6; font-size: 13px">
-          {{ item.img_nums }}
-        </span>
-      </el-option>
-    </el-select>
-
-    <!-- Layout filter -->
-    <el-select
-      v-model="imgQuery.layout"
-      clearable
-      filterable
-      default-first-option
-      placeholder="Layout"
-      :loading="loading"
-      @change="handleLayoutChange"
-    >
-      <el-option
-        v-for="item in filterList.layout"
-        :key="item"
-        :label="item"
-        :value="item"
-        :disabled="false"
-      ></el-option>
-    </el-select>
-
-    <!-- image color filter -->
-    <el-select
-      v-model="checked_cImg"
-      multiple
-      clearable
-      filterable
-      default-first-option
-      placeholder="Image Colors"
-      :loading="loading"
-      @change="handleImgColorChange(checked_cImg, 'img_color')"
-    >
-      <el-option
-        v-for="item in filterList.c_img"
-        :key="item.value"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
-        :style="`background-color: ${item.value}`"
-      >
-        <span style="float: left; color: #ffffff">{{ item.name }}</span>
-        <span style="float: right; color: #ffffff; font-size: 13px">
-          {{ item.value }}
-        </span>
-      </el-option>
-    </el-select>
-    <!-- background color filter -->
-    <el-select
-      v-model="checked_cBack"
-      multiple
-      clearable
-      filterable
-      default-first-option
-      placeholder="Background Colors"
-      :loading="loading"
-      @change="handleImgColorChange(checked_cBack, 'back_color')"
-    >
-      <el-option
-        v-for="item in filterList.c_back"
-        :key="item.value"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
-        :style="`background-color: ${item.value}`"
-      >
-        <span style="float: left; color: #ffffff">{{ item.name }}</span>
-        <span style="float: right; color: #ffffff; font-size: 13px">
-          {{ item.value }}
-        </span>
-      </el-option>
-    </el-select>
-    <!-- foreground color filter -->
-    <el-select
-      v-model="checked_cFore"
-      multiple
-      clearable
-      filterable
-      default-first-option
-      placeholder="Foreground Colors"
-      :loading="loading"
-      @change="handleImgColorChange(checked_cFore, 'fore_color')"
-    >
-      <el-option
-        v-for="item in filterList.c_fore"
-        :key="item.value"
-        :label="item.name"
-        :value="item.name"
-        :disabled="false"
-        :style="`background-color: ${item.value}`"
-      >
-        <span style="float: left; color: #ffffff">{{ item.name }}</span>
-        <span style="float: right; color: #ffffff; font-size: 13px">
-          {{ item.value }}
-        </span>
-      </el-option>
-    </el-select>
-
-    <!-- rating -->
-    <el-select
-      v-model="imgQuery.evaluates__rating"
-      clearable
-      filterable
-      default-first-option
-      placeholder="Rating"
-      :loading="loading"
-      @change="handleRatingChange"
-    >
-      <el-option
-        v-for="item in [1, 2, 3, 4, 5]"
-        :key="item"
-        :label="item"
-        :value="item"
-        :disabled="false"
-      >
-        <el-rate
+        <el-option
+          v-for="item in filterList.fc_nums"
+          :key="item"
+          :label="item"
           :value="item"
-          disabled
-          show-score
-          text-color="#ff9900"
-          :colors="ratingColors"
-        ></el-rate>
-      </el-option>
-    </el-select>
+          :disabled="false"
+        ></el-option>
+      </el-select>
 
-    <!-- ordering -->
-    <el-select
-      v-model="imgQuery.ordering"
-      clearable
-      filterable
-      default-first-option
-      placeholder="Ording"
-      :loading="loading"
-      @change="handleOrdingChange"
-    >
-      <el-option
-        v-for="item in filterList.ordering"
-        :key="item"
-        :label="item"
-        :value="item"
-        :disabled="false"
-      ></el-option>
-    </el-select>
+      <!-- face group filter -->
+      <el-select
+        v-model="checked_fcGroup"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Group Name"
+        :loading="loading"
+        @change="handleGroupChange"
+      >
+        <el-option
+          v-for="item in filterList.group"
+          :key="item.name"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.img_nums }}
+          </span>
+        </el-option>
+      </el-select>
+      <!-- face name filter -->
+      <el-select
+        v-model="checked_fcName"
+        multiple
+        clearable
+        filterable
+        default-first-option
+        placeholder="Friend Name"
+        :loading="loading"
+        @change="handleFaceAlbumChange"
+      >
+        <el-option
+          v-for="item in filterList.fc_name"
+          :key="item.name"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }}
+          </span>
+        </el-option>
+      </el-select>
+      <!-- Tags filter -->
+      <el-select
+        v-model="checked_tags"
+        multiple
+        clearable
+        filterable
+        placeholder="Tags"
+        default-first-option
+        :loading="loading"
+        @change="handleTagsChange"
+      >
+        <el-option
+          v-for="item in filterList.tags"
+          :key="item.name"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }}
+          </span>
+        </el-option>
+      </el-select>
 
-    <el-row :gutter="10">
-      <el-col :xs="24" :sm="12">
-        <!-- date filter -->
-        <!-- <div class="block">
+      <!-- address filter -->
+      <el-select
+        v-model="imgQuery.address__city"
+        clearable
+        filterable
+        default-first-option
+        placeholder="City"
+        :loading="loading"
+        @change="handleAddressChange"
+      >
+        <el-option
+          v-for="item in filterList.city"
+          :key="item.name"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.img_nums }}
+          </span>
+        </el-option>
+      </el-select>
+
+      <!-- category filter -->
+      <el-select
+        v-model="checked_category"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Auto Category"
+        :loading="loading"
+        @change="handleCategoryChange"
+      >
+        <el-option
+          v-for="item in filterList.category"
+          :key="item.name"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.img_nums }}
+          </span>
+        </el-option>
+      </el-select>
+
+      <!-- Layout filter -->
+      <el-select
+        v-model="imgQuery.layout"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Layout"
+        :loading="loading"
+        @change="handleLayoutChange"
+      >
+        <el-option
+          v-for="item in filterList.layout"
+          :key="item"
+          :label="item"
+          :value="item"
+          :disabled="false"
+        ></el-option>
+      </el-select>
+
+      <!-- image color filter -->
+      <el-select
+        v-model="checked_cImg"
+        multiple
+        clearable
+        filterable
+        default-first-option
+        placeholder="Image Colors"
+        :loading="loading"
+        @change="handleImgColorChange(checked_cImg, 'img_color')"
+      >
+        <el-option
+          v-for="item in filterList.c_img"
+          :key="item.value"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+          :style="`background-color: ${item.value}`"
+        >
+          <span style="float: left; color: #ffffff">{{ item.name }}</span>
+          <span style="float: right; color: #ffffff; font-size: 13px">
+            {{ item.value }}
+          </span>
+        </el-option>
+      </el-select>
+      <!-- background color filter -->
+      <el-select
+        v-model="checked_cBack"
+        multiple
+        clearable
+        filterable
+        default-first-option
+        placeholder="Background Colors"
+        :loading="loading"
+        @change="handleImgColorChange(checked_cBack, 'back_color')"
+      >
+        <el-option
+          v-for="item in filterList.c_back"
+          :key="item.value"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+          :style="`background-color: ${item.value}`"
+        >
+          <span style="float: left; color: #ffffff">{{ item.name }}</span>
+          <span style="float: right; color: #ffffff; font-size: 13px">
+            {{ item.value }}
+          </span>
+        </el-option>
+      </el-select>
+      <!-- foreground color filter -->
+      <el-select
+        v-model="checked_cFore"
+        multiple
+        clearable
+        filterable
+        default-first-option
+        placeholder="Foreground Colors"
+        :loading="loading"
+        @change="handleImgColorChange(checked_cFore, 'fore_color')"
+      >
+        <el-option
+          v-for="item in filterList.c_fore"
+          :key="item.value"
+          :label="item.name"
+          :value="item.name"
+          :disabled="false"
+          :style="`background-color: ${item.value}`"
+        >
+          <span style="float: left; color: #ffffff">{{ item.name }}</span>
+          <span style="float: right; color: #ffffff; font-size: 13px">
+            {{ item.value }}
+          </span>
+        </el-option>
+      </el-select>
+
+      <!-- rating -->
+      <el-select
+        v-model="imgQuery.evaluates__rating"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Rating"
+        :loading="loading"
+        @change="handleRatingChange"
+      >
+        <el-option
+          v-for="item in [1, 2, 3, 4, 5]"
+          :key="item"
+          :label="item"
+          :value="item"
+          :disabled="false"
+        >
+          <el-rate
+            :value="item"
+            disabled
+            show-score
+            text-color="#ff9900"
+            :colors="ratingColors"
+          ></el-rate>
+        </el-option>
+      </el-select>
+
+      <!-- ordering -->
+      <el-select
+        v-model="imgQuery.ordering"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Ording"
+        :loading="loading"
+        @change="handleOrdingChange"
+      >
+        <el-option
+          v-for="item in filterList.ordering"
+          :key="item"
+          :label="item"
+          :value="item"
+          :disabled="false"
+        ></el-option>
+      </el-select>
+      <!-- date -->
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="12">
+          <!-- date filter -->
+          <!-- <div class="block">
           <span class="demonstration">Date Range</span> -->
-        <el-date-picker
-          v-model="checked_dateRange"
-          type="daterange"
-          align="right"
-          unlink-panels
-          range-separator="To"
-          start-placeholder="Start Date"
-          end-placeholder="End Date"
-          :picker-options="pickerOptions"
-          value-format="yyyy-MM-dd"
-          @change="handleDateRangeChange"
-        ></el-date-picker>
-        <!-- </div> -->
-      </el-col>
-      <el-col :md="6" :lg="4" :xl="3">
-        <!-- rate -->
-        <!-- <el-rate
-          v-model="checked_rating"
-          show-text
-          @change="handleRatingChange"
-        ></el-rate> -->
-      </el-col>
-    </el-row>
+          <el-date-picker
+            v-model="checked_dateRange"
+            type="daterange"
+            align="right"
+            unlink-panels
+            range-separator="To"
+            start-placeholder="Start Date"
+            end-placeholder="End Date"
+            :picker-options="pickerOptions"
+            value-format="yyyy-MM-dd"
+            @change="handleDateRangeChange"
+          ></el-date-picker>
+          <!-- </div> -->
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 
@@ -1360,6 +1360,7 @@
             },
           ],
         },
+        advanced: false,
       }
     },
     watch: {
@@ -1479,6 +1480,10 @@
         Object.assign(this.$data, this.$options.data())
         this.fetchCategory()
         this.onSearch()
+      },
+      advancedSearch() {
+        console.log('advancedSearch')
+        this.advanced = !this.advanced
       },
     },
   }
