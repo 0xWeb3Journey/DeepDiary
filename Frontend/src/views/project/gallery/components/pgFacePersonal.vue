@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- <el-alert title="父组件消息提示的文案" type="info">
-      <span>curAlbumCnt: {{ curAlbumCnt }}, totalCount: {{ totalCount }}</span>
+      <span>curAlbumCnt: {{ curAlbumCnt }}, totalCnt: {{ totalCnt }}</span>
     </el-alert>
     <el-button type="primary" @click="fetchFaceAlbum()">get albums</el-button>
      -->
@@ -11,7 +11,7 @@
       title="人脸相册"
       type="personal"
       :items="albums"
-      :total="totalCount"
+      :total="totalCnt"
       @albumClick="onGetAlbumId"
       @doubleClick="onRouteJump"
     ></Album>
@@ -49,7 +49,7 @@
 
         albums: [],
         albumLoading: false,
-        totalCount: 0,
+        totalCnt: 0,
         curAlbumCnt: 0,
         checkedIndex: -1,
         checkedId: -1,
@@ -85,21 +85,19 @@
         if (this.albumLoading) return //incase fetch more data during the fetching time
 
         this.albumLoading = true
-        if (this.curAlbumCnt < this.totalCount || this.totalCount === 0) {
+        if (this.curAlbumCnt < this.totalCnt || this.totalCnt === 0) {
           console.log('start to get the album...')
-          const { data, totalCount } = await getFaceAlbum(
-            this.faceAlbumQueryForm
-          )
-          if (totalCount === 0) return //could fetch any data
+          const { data, totalCnt } = await getFaceAlbum(this.faceAlbumQueryForm)
+          if (totalCnt === 0) return //could fetch any data
           // this.faceAlbumQueryForm.page += 1
           console.log(
             'get img api result, data is %o, total is %d',
             data,
-            totalCount
+            totalCnt
           )
           this.albums = [...this.albums, ...data]
           this.curAlbumCnt = this.albums.length
-          this.totalCount = totalCount
+          this.totalCnt = totalCnt
           setTimeout(() => {
             this.albumLoading = false
           }, 300)
