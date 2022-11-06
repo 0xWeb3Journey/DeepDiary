@@ -12,11 +12,11 @@ from taggit.models import Tag
 from deep_diary.config import wallet_info
 from face.models import FaceAlbum
 from face.task import get_all_fts
-from library.filters import ImgFilter, ImgSearchFilter, CategoryFilter
+from library.filters import ImgFilter, ImgSearchFilter, CategoryFilter, AddressFilter
 from library.models import Img, Category, Mcs, Address
-from library.pagination import GalleryPageNumberPagination
+from library.pagination import GalleryPageNumberPagination, AddressNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
-    CategorySerializer
+    CategorySerializer, AddressSerializer
 from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, \
     set_img_colors, set_img_categories, set_all_img_categories, save_all_img_info, set_all_img_group, \
     add_all_img_colors_to_category, set_all_img_address
@@ -193,6 +193,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         # set_img_colors(img)
         # set_img_categories(img)
         # set_all_img_categories()
+        set_all_img_group()
         # save_all_img_info()
         # set_all_img_address()
         # add_all_img_colors_to_category()
@@ -204,30 +205,30 @@ class ImgViewSet(viewsets.ModelViewSet):
 
         # filter_class = self.filter_class
         # print(filter_class)
-        data = {
-            'categories': {
-                'person': '人物',
-                'organization': '机构',
-                'location': '地点',
-            },
-            "data": {
-                "nodes": [
-                    {"id": "1", "label": "bluejoe", "image": "https://bluejoe2008.github.io/bluejoe3.png",
-                     "categories": ["person"]},
-                    {"id": "2", "label": "CNIC", "image": "https://bluejoe2008.github.io/cas.jpg",
-                     "categories": ["organization"]},
-                    {"id": "3", "label": "beijing", "image": "https://bluejoe2008.github.io/beijing.jpg",
-                     "categories": ["location"]}
-                ],
-                "edges": [
-                    {"from": "1", "to": "2", "label": "work for"},
-                    {"from": "1", "to": "3", "label": "live in"},
-                    {"from": "2", "to": "3", "label": "test"}
-                ]
-            }
-        }
-        return Response(data)
-        # return Response({"msg": "success"})
+        # data = {
+        #     'categories': {
+        #         'person': '人物',
+        #         'organization': '机构',
+        #         'location': '地点',
+        #     },
+        #     "data": {
+        #         "nodes": [
+        #             {"id": "1", "label": "bluejoe", "image": "https://bluejoe2008.github.io/bluejoe3.png",
+        #              "categories": ["person"]},
+        #             {"id": "2", "label": "CNIC", "image": "https://bluejoe2008.github.io/cas.jpg",
+        #              "categories": ["organization"]},
+        #             {"id": "3", "label": "beijing", "image": "https://bluejoe2008.github.io/beijing.jpg",
+        #              "categories": ["location"]}
+        #         ],
+        #         "edges": [
+        #             {"from": "1", "to": "2", "label": "work for"},
+        #             {"from": "1", "to": "3", "label": "live in"},
+        #             {"from": "2", "to": "3", "label": "test"}
+        #         ]
+        #     }
+        # }
+        # return Response(data)
+        return Response({"msg": "success"})
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def check_mcs(self, request, pk=None):
@@ -353,3 +354,14 @@ class CategoryViewSet(viewsets.ModelViewSet):
             'code': 200,
             'data': data,
         })
+
+
+class AddressViewSet(viewsets.ModelViewSet):
+    queryset = Address.objects.all().order_by('img')
+    serializer_class = AddressSerializer
+    # permission_classes = (AllowAny,)
+    pagination_class = AddressNumberPagination  # could disp the filter button in the web
+
+    filter_class = AddressFilter  # 过滤类
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter,
+                       filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容

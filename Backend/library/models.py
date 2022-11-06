@@ -47,6 +47,10 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
     return user_img_path
 
 
+def category_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return 'category/{0}/{1}'.format(instance.name, filename)
+
 class Img(models.Model):
     ## 图片基本属性：basic
     STATE_OPTION = (
@@ -149,7 +153,20 @@ class Category(models.Model):
     type = models.CharField(max_length=20, default='category', blank=True, verbose_name="分类类型", help_text='分类类型')
     value = models.CharField(max_length=50, null=True, blank=True, verbose_name="类型值", help_text='类型值')
     numeric_value = models.IntegerField(null=True, blank=True, verbose_name="数值类型值", help_text='数值类型值')
+    avatar = models.ImageField(upload_to=user_directory_path,
+                               verbose_name="分类相册封面",
+                               help_text='分类相册封面',
+                               null=True, blank=True,
+                               default='sys_img/logo_lg.png',
+                               )
 
+    avatar_thumb = ImageSpecField(source='avatar',
+                                  processors=[ResizeToFill(400, 400)],
+                                  # processors=[ResizeToFit(width=400, height=400)],
+                                  # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
+                                  format='JPEG',
+                                  options={'quality': 80},
+                                  )
     class Meta:
         ordering = ['-id']
 
@@ -197,7 +214,7 @@ class Mcs(models.Model):
                                    help_text='nft_tx_hash')
 
     def __str__(self):
-        return self.id.filename
+        return self.id.name
 
 
 class Address(models.Model):
@@ -230,7 +247,7 @@ class Address(models.Model):
                                help_text='拍摄国家')
 
     def __str__(self):
-        return self.img.filename
+        return self.img.name
 
 
 class Date(models.Model):
@@ -281,7 +298,7 @@ class Date(models.Model):
     digitized_date = models.DateTimeField(null=True, blank=True, verbose_name="照片修改日期", help_text='照片修改日期')
 
     def __str__(self):
-        return self.img.filename
+        return self.img.name
 
 
 class Evaluate(models.Model):
@@ -303,7 +320,7 @@ class Evaluate(models.Model):
     likes = models.PositiveIntegerField(null=True, blank=True, default=0, verbose_name="点赞个数", help_text='点赞个数')
 
     def __str__(self):
-        return self.img.filename
+        return self.img.name
 
 
 class Color(models.Model):
@@ -322,7 +339,7 @@ class Color(models.Model):
                                                 help_text='colors with `percentage` value lower than this number won’t be included in the response')
 
     def __str__(self):
-        return self.img.filename
+        return self.img.name
 
 
 class ColorItem(models.Model):

@@ -26,7 +26,7 @@ from rest_framework_simplejwt.views import (
 from article.views import ArticleViewSet
 from comment.views import CommentViewSet
 from face.views import FaceViewSet, FaceAlbumViewSet
-from library.views import ImgViewSet, ImgCategoryViewSet, McsViewSet, CategoryViewSet
+from library.views import ImgViewSet, ImgCategoryViewSet, McsViewSet, CategoryViewSet, AddressViewSet
 from project.views import ProjectViewSet, ProductViewSet, ToolingViewSet, OutsourcingViewSet, PurchaseViewSet, \
     DeliveryViewSet, ResumeViewSet, IssueViewSet
 from tags.views import TagViewSet
@@ -58,6 +58,7 @@ router.register(r'mcs', McsViewSet)  # 新增
 router.register(r'ad', AdViewSet)  # 新增
 router.register(r'supplydemand', SupplyDemandSet)  # 新增
 router.register(r'category', CategoryViewSet)  # 新增
+router.register(r'address', AddressViewSet)  # 新增
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -1,7 +1,6 @@
 <template>
   <div>
     <h1>这里是合影页的vue。。。</h1>
-    <map-container></map-container>
   </div>
 </template>
 
@@ -10,11 +9,11 @@
 
   import Gallery from './gallery.vue'
   import Img from './img.vue'
-  import MapContainer from '../../amap/MapContainer.vue'
+
   import { getImg, getFaceAlbum, getFaceGallery } from '@/api/gallery'
   export default {
     name: 'PgFaceGroup',
-    components: { MapContainer },
+    components: {},
     data: function () {
       return {
         bannerHeight: '',

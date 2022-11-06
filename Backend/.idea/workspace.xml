@@ -3,6 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_train_list.txt" beforeDir="false" />
@@ -1478,133 +1479,19 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/丰氏.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/乌进孝.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/代儒夫人.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/何婆子.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/侍书.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/倪二.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/入画.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/冯紫英.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/冷子兴.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/刘姥姥.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/北静王.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/南安太妃.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/卜世仁.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/卫若兰.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/史湘云.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/司棋.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/司棋母.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/吴新登家的.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/周瑞.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/周瑞家的.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/善姐.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/坠儿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/夏金桂.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/多姑娘.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/妙玉.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/娇杏.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/孙绍祖.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/宝珠.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/宝蟾.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/小红.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/尤三姐.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/尤二姐.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/尤氏.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/尤老娘.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/平儿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/张华.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/彩云.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/旺儿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/春燕.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/晴雯.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/李嬷嬷.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/李纨.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/李贵.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/板儿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/林之孝.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/林之孝家的.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/林如海.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/林黛玉.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/柳五儿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/柳家的.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/柳湘莲.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/潘又安.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/焦大.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/玉钏.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/王善保家的.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/王夫人.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/王嬷嬷.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/王熙凤.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/王短腿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/瑞珠.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/甄士隐.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/男.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/癞头和尚.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/碧痕.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/秋桐.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/秋纹.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/秦可卿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/秦显家的.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/秦钟.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/紫鹃.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/绣橘.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/翠缕.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/花自芳.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/芳官.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/茗烟.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/莺儿.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/董婆子.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/蒋玉涵.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/蕊官.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/薛姨妈.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/薛宝琴.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/薛宝钗.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/薛蝌.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/薛蟠.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/藕官.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/袭人.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾代儒.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾元春.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾兰.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾宝玉.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾巧姐.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾惜春.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾探春.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾政.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾敬.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾母.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾环.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾珍.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾琏.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾瑞.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾芸.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾芹.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾蓉.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾蔷.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾赦.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾迎春.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/贾雨村.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/赖大.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/赖嬷嬷.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/赖尚荣.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/赵姨娘.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/赵嬷嬷.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/跛足道人.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/邢夫人.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/邢岫烟.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/邢忠.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/金钏.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/静虚.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/香菱.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/马道婆.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/鸳鸯.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/麝月.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/images/photo/龄官.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/filters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/gps.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/gps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/pagination.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/pagination.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/amap/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/amap/index.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAddress.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAddress.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFacePersonal.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFacePersonal.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

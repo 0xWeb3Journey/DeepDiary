@@ -104,9 +104,6 @@
   import VabUpload from '@/components/VabUpload'
 
   import {
-    getGallery,
-    getAlbum,
-    getFaceAlbum,
     changeFaceAlbumName,
     changeFaceName,
     clear_face_album,
@@ -163,7 +160,6 @@
         checkedIndex: -1, //if set this default value to 0, then the album will auto checked once enter this page
         checkedId: 0,
         checkedName: '',
-        jumpId: 0,
         dispTags: false,
 
         albumName: '', //相册下面的具体名字
@@ -202,40 +198,11 @@
       },
 
       onAlbumChoose($event, index, item) {
-        console.log('单击事件')
+        console.log('单击事件: ', item)
 
         this.checkedIndex = index
         if (index < 0) return //reture directly if there is no item in items
-        // this.drawer = true
-        // let jumpId
 
-        // if (this.type === 'img') {
-        //   this.jumpId = item.face_album //choose the face album
-        //   this.checkedId = item.id // choose the face img
-        //   this.routeName = 'FaceGallery'
-        //   this.albumName = item.name
-        //   this.dispTags = false
-        //   // this.albumCnt = item.item_cnt
-        // }
-        // if (this.type === 'personal') {
-        //   this.jumpId = item.id
-        //   this.checkedId = item.id
-        //   this.routeName = 'FaceGallery'
-        //   this.albumName = item.name
-        //   this.albumCnt = item.item_cnt
-        //   this.dispTags = false
-        // }
-        // if (this.type === 'collection') {
-        //   this.jumpId = item.id
-        //   this.checkedId = item.id
-        //   this.routeName = 'Img'
-        //   // this.albumName = item.names.join(',')
-        //   this.albumName = item.filename
-        //   // this.albumCnt = item.item_cnt
-        //   this.dispTags = false
-        // }
-        // console.log(this.type, this.checkedIndex, this.checkedId)
-        // // $('#album').justifiedGallery()
         this.$emit('albumClick', index, item) //自定义事件  传递值“子向父组件传值”
       },
 

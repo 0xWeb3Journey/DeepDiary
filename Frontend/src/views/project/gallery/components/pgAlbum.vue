@@ -82,6 +82,8 @@
           c_fore: '',
           c_back: '',
           address__city: '',
+          address__longitude__range: '',
+          address__latitude__range: '',
         },
         img: {
           id: 424,
@@ -385,7 +387,11 @@
         this.fetchImgDetail()
       },
       onRouteJump(index, item) {
-        console.log('album double click event item is  %d,%o', index, item)
+        console.log(
+          'album double click event item is  %d,%o, start jump to Img',
+          index,
+          item
+        )
         this.$router.push({
           name: 'Img',
           query: {

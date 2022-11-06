@@ -5,7 +5,7 @@
       imgLoading: {{ imgLoading }}; route.query.id:{{ $route.query.id }}
     </el-alert> -->
     <div class="img_wrap">
-      <el-image :src="img.src" lazy class="imgDetai"></el-image>
+      <el-image :src="img.src" lazy class="imgDetail"></el-image>
 
       <Tags :items="img.tags"></Tags>
     </div>
@@ -18,6 +18,7 @@
       :items="img.faces"
       :total="img.faces.length"
       @albumClick="onGetAlbumId"
+      @doubleClick="onRouteJump"
     ></Album>
 
     <Mcs
@@ -39,6 +40,7 @@
     getFaceAlbum,
     getFaceGallery,
     getImg,
+    getImgDetail,
     changeFaceName,
   } from '@/api/gallery'
 
@@ -106,32 +108,40 @@
     },
     activated() {
       console.log('the img component is activated')
-      this.fetchImg()
+      this.fetchImgDetail()
     },
     deactivated() {
       console.log('the img component is deactivated')
     },
     methods: {
-      onGetAlbumId(index, id) {
-        console.log('recieved the child component value %d,%d', index, id)
+      onGetAlbumId(index, item) {
+        console.log('recieved the child component value %d,%o', index, item)
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
-        this.checkedId = id
+        this.checkedId = item.face_album
       },
 
-      async fetchImg() {
-        console.log('start to get the img...')
-        if (this.imgLoading) return //incase fetch more data during the fetching time
+      onRouteJump(index, item) {
+        console.log(
+          'album double click event item is  %d,%o, start join to FaceGallery',
+          index,
+          item
+        )
+        this.$router.push({
+          name: 'FaceGallery',
+          query: {
+            id: item.face_album,
+            title: item.name,
+          },
+        })
+      },
 
-        this.imgLoading = true
+      async fetchImgDetail() {
+        console.log('start to get the img, id is : ', this.$route.query.id)
         this.ImgQueryForm.id = this.$route.query.id
-        const { data } = await getImg(this.ImgQueryForm)
+        const { data } = await getImgDetail(this.ImgQueryForm)
         console.log(data)
         this.img = data
-
-        setTimeout(() => {
-          this.imgLoading = false
-        }, 300)
       },
     },
   }

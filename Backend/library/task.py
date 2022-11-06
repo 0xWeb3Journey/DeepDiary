@@ -425,6 +425,11 @@ def save_img_info(instance):
             # 是否包含经纬度数据
             addr.is_located = True
             long_lati = GPS_to_coordinate(addr.longitude, addr.latitude)
+            # TODO: need update the lnglat after transform the GPS info
+            addr.longitude = long_lati[0]
+            addr.latitude = long_lati[1]
+            long_lati = f'{long_lati[0]},{long_lati[1]}'  # change to string
+
             addr.location, addr.district, addr.city, addr.province, addr.country = GPS_get_address(
                 long_lati)
 
@@ -484,9 +489,9 @@ def set_img_group(img_obj):
     name_cnt = names.count()
     name_str = 'no face'  # default
     if name_cnt == 1:
-        name_str = 'single face'
         print(
-            f'--------------------{img_obj.id} :this is the single face---------------------------')
+            f'--------------------{img_obj.id} :return-->this is the single face---------------------------')
+        return
     elif 1 < name_cnt <= 6:  # if faces biger then 1, small then 6
         print(
             f'--------------------{img_obj.id} :found the face group---------------------------')
@@ -513,7 +518,7 @@ def set_img_group(img_obj):
         rst = rst.first()
         # rst.img.add(*img_set)
     else:
-        rst = Category.objects.create(name=name_str, type='group', numeric_value=name_cnt)
+        rst = Category.objects.create(name=name_str, type='group', numeric_value=name_cnt, avatar=img_obj.src)
         # rst.img.set(img_set)
     rst.img.add(img_obj)
     print(

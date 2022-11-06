@@ -142,3 +142,13 @@ export function getFilterList(params) {
     params,
   })
 }
+
+// get all the gps point from the img database
+export function getAddress(params) {
+  console.log(params)
+  return request({
+    url: '/api/address/',
+    method: 'get',
+    params,
+  })
+}

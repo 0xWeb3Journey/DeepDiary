@@ -17,7 +17,13 @@ class AddressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Address
-        fields = '__all__'
+        fields = ['img', 'is_located', 'country', 'province', 'city', 'district']
+
+    def to_representation(self, value):
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        data['lnglat'] = [value.longitude, value.latitude]
+        return data
 
 
 class EvaluateSerializer(serializers.ModelSerializer):
@@ -115,12 +121,12 @@ class ImgSerializer(serializers.ModelSerializer):
     tags = TagSerializerField(read_only=True)
     thumb = serializers.ImageField(read_only=True)
     img_url = serializers.HyperlinkedIdentityField(view_name='img-detail')
-    mcs = McsSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
+    # mcs = McsSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     # categories = CategorySerializer(read_only=True, many=True)
 
     class Meta:
         model = Img
-        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name', 'mcs', 'categories']  # 'faces', 'names',
+        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name']  # 'faces', 'names','mcs', 'categories'
 
     def to_representation(self, value):
         rst = {}
@@ -134,6 +140,7 @@ class ImgSerializer(serializers.ModelSerializer):
         # print(data['categories'])
 
         data['size'] = '{:d}-{:d}'.format(value.wid, value.height)
+        data['lnglat'] = [value.address.longitude, value.address.latitude]
         return data
 
 

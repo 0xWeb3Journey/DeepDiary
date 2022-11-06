@@ -41,7 +41,7 @@ def GPS_format(data):
 def GPS_to_coordinate(longitude, latitude):
     # 注意：由于gps获取的坐标在国内高德等主流地图上逆编码不够精确，这里需要转换为火星坐标系
     long_lati = wgs84togcj02(longitude, latitude)
-    long_lati = f'{long_lati[0]},{long_lati[1]}'
+    # long_lati = f'{long_lati[0]},{long_lati[1]}'
     return long_lati
 
 

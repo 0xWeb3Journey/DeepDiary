@@ -4,7 +4,7 @@ from django_filters.rest_framework import FilterSet, DjangoFilterBackend
 from rest_framework import filters
 from taggit.managers import TaggableManager
 
-from library.models import Img, Category
+from library.models import Img, Category, Address
 from django.db import models
 import django_filters
 
@@ -144,13 +144,14 @@ class ImgFilter(FilterSet):
             'categories__type': ['exact'],  #
             'categories__value': ['exact'],  #
             # address
-            'address__is_located': ['exact', 'contains'],
-            # if searching with contains or icontains, should do like this: address__is_located__contains = **
+            'address__is_located': ['exact'],
             'address__country': ['exact', 'contains'],
             'address__province': ['exact', 'contains'],
-            'address__city': ['exact', 'contains', 'isnull'],
+            'address__city': ['exact', 'contains'],
             'address__district': ['exact', 'contains'],
             'address__location': ['icontains'],
+            'address__longitude': ['gte', 'lte', 'range'],
+            'address__latitude': ['gte', 'lte', 'range'],
             # face
 
             # 'faces': ['exact', 'gte', 'lte'],  #
@@ -282,7 +283,6 @@ class ImgFilter(FilterSet):
         return qs
 
 
-
 class ImgSearchFilter(filters.SearchFilter):
     class Meta:
         model = Img  # 模型名
@@ -321,3 +321,24 @@ class ImgSearchFilter(filters.SearchFilter):
         if request.query_params.get('title_only'):
             return ['title']
         return super(ImgSearchFilter, self).get_search_fields(view, request)
+
+
+class AddressFilter(FilterSet):
+
+    class Meta:
+        model = Address  # 模型名
+
+        fields = {
+            # if searching with contains or icontains, should do like this: address__is_located__contains = **
+            'is_located': ['exact'],
+            'country': ['exact', 'contains'],
+            'province': ['exact', 'contains'],
+            'city': ['exact', 'contains', 'isnull'],
+            'district': ['exact', 'contains'],
+            'location': ['icontains'],
+            'longitude': ['gte', 'lte', 'range'],
+            'latitude': ['gte', 'lte', 'range'],
+        }
+
+
+

@@ -3,14 +3,14 @@
     <!-- <el-alert title="父组件消息提示的文案" type="info">
       <span>curAlbumCnt: {{ curAlbumCnt }}, totalCnt: {{ totalCnt }}</span>
     </el-alert>
-    <el-button type="primary" @click="fetchFaceAlbum()">get albums</el-button>
+    <el-button type="primary" @click="fetchFaceAlbum()">get persons</el-button>
      -->
     <Album
       v-if="true"
       ref="album"
       title="人脸相册"
       type="personal"
-      :items="albums"
+      :items="persons"
       :total="totalCnt"
       @albumClick="onGetAlbumId"
       @doubleClick="onRouteJump"
@@ -47,7 +47,8 @@
           faces__id__gte: 0,
         },
 
-        albums: [],
+        persons: [],
+        groups: [],
         albumLoading: false,
         totalCnt: 0,
         curAlbumCnt: 0,
@@ -66,8 +67,8 @@
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
         this.checkedId = id || 0 // if return unexpected id, then set the id to default 1
-        if (this.albums[index].profile !== null)
-          this.checkedProfile = this.albums[index].profile
+        if (this.persons[index].profile !== null)
+          this.checkedProfile = this.persons[index].profile
         else this.checkedProfile = 0
       },
       onRouteJump(index, item) {
@@ -95,8 +96,8 @@
             data,
             totalCnt
           )
-          this.albums = [...this.albums, ...data]
-          this.curAlbumCnt = this.albums.length
+          this.persons = [...this.persons, ...data]
+          this.curAlbumCnt = this.persons.length
           this.totalCnt = totalCnt
           setTimeout(() => {
             this.albumLoading = false

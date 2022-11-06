@@ -165,7 +165,7 @@ export const asyncRoutes = [
       {
         path: 'address',
         name: 'Address',
-        component: () => import('@/views/project/gallery/components/pgAddress'),
+        component: () => import('@/views/project/amap'),
         meta: {
           title: 'Address',
           icon: 'marker',
