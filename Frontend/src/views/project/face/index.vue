@@ -1,16 +1,10 @@
 <template>
   <div>
-    <!-- <el-alert title="父组件消息提示的文案" type="info">
-      <span>curAlbumCnt: {{ curAlbumCnt }}, totalCnt: {{ totalCnt }}</span>
-    </el-alert>
-    <el-button type="primary" @click="fetchFaceAlbum()">get persons</el-button>
-     -->
     <Album
       v-if="true"
       ref="album"
       title="人脸相册"
-      type="personal"
-      :items="persons"
+      :items="$store.state.face.isGroupMode ? groups : persons"
       :total="totalCnt"
       @albumClick="onGetAlbumId"
       @doubleClick="onRouteJump"
@@ -25,17 +19,11 @@
 </template>
 
 <script>
-  import $ from 'jquery'
-  import Album from './album.vue'
+  import Album from '@/components/Album'
   import Profile from './profile.vue'
-  import {
-    getGallery,
-    getAlbum,
-    getFaceAlbum,
-    getFaceGallery,
-  } from '@/api/gallery'
+  import { getFaceAlbum, getCategory } from '@/api/gallery'
   export default {
-    name: 'PgFacePersonal',
+    name: 'Face',
     components: { Album, Profile },
     data: function () {
       return {
@@ -45,6 +33,11 @@
           search: '',
           faceAlumId: 1,
           faces__id__gte: 0,
+        },
+        categoryQueryForm: {
+          page: 1,
+          pageSize: 10,
+          type: 'group',
         },
 
         persons: [],
@@ -57,16 +50,22 @@
         checkedProfile: 0,
       }
     },
-    created() {
-      this.fetchFaceAlbum()
+    watch: {
+      '$store.state.face.isGroupMode'(newVal, oldVal) {
+        console.log('$store.state.face.isGroupMode', newVal)
+      },
     },
-    mounted() {},
+    created() {},
+    mounted() {
+      this.fetchFaceAlbum()
+      this.fetchFaceGroup()
+    },
     methods: {
-      onGetAlbumId(index, id) {
-        console.log('recieved the child component value %d,%d', index, id)
+      onGetAlbumId(index, item) {
+        console.log('recieved the child component value %d,%o', index, item)
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
-        this.checkedId = id || 0 // if return unexpected id, then set the id to default 1
+        this.checkedId = item.id || 0 // if return unexpected id, then set the id to default 1
         if (this.persons[index].profile !== null)
           this.checkedProfile = this.persons[index].profile
         else this.checkedProfile = 0
@@ -74,7 +73,10 @@
       onRouteJump(index, item) {
         console.log('album double click event item is  %d,%o', index, item)
         this.$router.push({
-          name: 'FaceGallery',
+          // name: 'GroupDetail',
+          name: this.$store.state.face.isGroupMode
+            ? 'GroupDetail'
+            : 'PersonDetail',
           query: {
             id: item.id,
             title: item.name,
@@ -103,6 +105,16 @@
             this.albumLoading = false
           }, 300)
         }
+      },
+      async fetchFaceGroup() {
+        const { data, totalCnt } = await getCategory(this.categoryQueryForm)
+        console.log(
+          'get fetchFaceGroup result, data is %o, total is %d',
+          data,
+          totalCnt
+        )
+        this.groups = data
+        this.totalCnt = totalCnt
       },
     },
   }

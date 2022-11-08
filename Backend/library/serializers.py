@@ -17,7 +17,7 @@ class AddressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Address
-        fields = ['img', 'is_located', 'country', 'province', 'city', 'district']
+        fields = ['img', 'is_located', 'country', 'province', 'city', 'district', 'location']
 
     def to_representation(self, value):
         # 调用父类获取当前序列化数据，value代表每个对象实例ob
@@ -47,16 +47,6 @@ class ImgCategorySerializer(serializers.ModelSerializer):
         model = ImgCategory
         # fields = '__all__'
         exclude = ['created_at']
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='category-detail')
-    # imgs = ImgCategorySerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
-
-    class Meta:
-        model = Category
-        # fields = '__all__'
-        exclude = ['img']
 
 
 class ColorItemSerializer(serializers.ModelSerializer):
@@ -179,4 +169,46 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
         rst['data'] = data
         rst['code'] = 200
         rst['msg'] = 'img detail info'
+        return rst
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='category-detail')
+    src = serializers.ImageField(source="avatar", read_only=True)
+    # imgs = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
+
+    class Meta:
+        model = Category
+        # fields = '__all__'
+        exclude = ['img', 'avatar']
+
+    # def to_representation(self, value):
+    #     rst = {}
+    #     # 调用父类获取当前序列化数据，value代表每个对象实例ob
+    #     data = super().to_representation(value)
+    #     # 对序列化数据做修改，添加新的数据
+    #     rst['data'] = data
+    #     rst['code'] = 200
+    #     rst['msg'] = 'category detail info'
+    #     return rst
+
+
+class CategoryDetailSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='category-detail')
+    src = serializers.ImageField(source="avatar", read_only=True)
+    img = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
+
+    class Meta:
+        model = Category
+        # fields = '__all__'
+        exclude = ['avatar']
+
+    def to_representation(self, value):
+        rst = {}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        # 对序列化数据做修改，添加新的数据
+        rst['data'] = data
+        rst['code'] = 200
+        rst['msg'] = 'category detail info'
         return rst

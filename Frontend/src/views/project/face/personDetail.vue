@@ -12,11 +12,8 @@
 </template>
 
 <script>
-  import $ from 'jquery'
-
-  import Gallery from './gallery.vue'
+  import Gallery from '@/components/Gallery'
   import Carosel from './carosel.vue'
-  import Img from './img.vue'
   import {
     getGallery,
     getAlbum,
@@ -25,7 +22,7 @@
     getFaceAlbumDetail,
   } from '@/api/gallery'
   export default {
-    name: 'PgFaceDetail',
+    name: 'PersonDetail',
     components: { Gallery, Carosel },
     data() {
       return {
@@ -47,7 +44,7 @@
     watch: {
       // album_id(newVal, oldVal) {
       //   console.log('album_id have bee changed: %d --> %d', oldVal, newVal)
-      //   this.fetchFaceGallery()
+      //   this.fetchFacePerson()
       // },
     },
     created() {
@@ -55,7 +52,7 @@
     },
     mounted() {
       console.log('component have been mounted --')
-      this.fetchFaceGallery()
+      this.fetchFacePerson()
     },
     activated() {
       console.log('the face component is activated')
@@ -64,8 +61,8 @@
       console.log('the face component is deactivated')
     },
     methods: {
-      async fetchFaceGallery() {
-        console.log('start to get the fetchFaceGallery...')
+      async fetchFacePerson() {
+        console.log('start to get the fetchFacePerson...')
         // if (this.faceLoading) return //incase fetch more data during the fetching time
         // this.faceLoading = true
         // await getFaceGallery(this.faceQueryForm, 1)
@@ -79,6 +76,7 @@
         this.faceQueryForm.id = this.$route.query.id
 
         const { data } = await getFaceAlbumDetail(this.faceQueryForm)
+        console.log('getFaceAlbumDetail: ', data)
         this.faces = [...data.faces]
 
         // this.faceQueryForm.face_album__id = this.$route.query.id

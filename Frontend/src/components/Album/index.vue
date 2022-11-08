@@ -29,7 +29,7 @@
           <el-button
             type="primary"
             icon="el-icon-user-solid"
-            @click="onChangeDetailType('album')"
+            @click="changeFaceMode"
           ></el-button>
 
           <el-button
@@ -75,10 +75,7 @@
               class="item"
               type="primary"
             >
-              <!-- <Tags items="'demo1','test'"></Tags> -->
-              <Tags v-if="dispTags" :items="album.tags"></Tags>
               <el-input
-                v-else
                 v-model="album.name"
                 size="small"
                 placeholder="Change the Name"
@@ -108,11 +105,10 @@
     changeFaceName,
     clear_face_album,
   } from '@/api/gallery'
-  import Tags from './tags.vue'
 
   export default {
     name: 'Album',
-    components: { VabUpload, Tags },
+    components: { VabUpload },
     props: {
       items: {
         type: Array,
@@ -160,7 +156,7 @@
         checkedIndex: -1, //if set this default value to 0, then the album will auto checked once enter this page
         checkedId: 0,
         checkedName: '',
-        dispTags: false,
+        // dispTags: false,
 
         albumName: '', //相册下面的具体名字
         albumCnt: 1, //某个相册下面的具体数量
@@ -255,6 +251,11 @@
         if (this.type === 'img') {
           this.changeFaceName(value, album)
         }
+      },
+
+      changeFaceMode() {
+        this.$store.state.face.isGroupMode = !this.$store.state.face.isGroupMode
+        this.checkedIndex = -1 //clear the select one, back to default state
       },
 
       //回车失去焦点

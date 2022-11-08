@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deep_diary/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_train_list.txt" beforeDir="false" />
@@ -1479,19 +1478,28 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/filters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/gps.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/gps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/pagination.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/pagination.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/amap/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/amap/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAddress.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAddress.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/router/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/album.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/carosel.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/color.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/gallery.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/img.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/mcs.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAddress.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgAlbum.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFace.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFaceDetail.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFaceGroup.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgFacePersonal.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgGallery.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/pgObject.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/profile.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/search.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/components/tags.vue" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

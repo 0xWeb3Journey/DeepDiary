@@ -58,9 +58,9 @@ export const asyncRoutes = [
     path: '/',
     component: Layout,
     redirect: '/gallery',
-    name: 'Gallery',
+    name: 'index',
     alwaysShow: true,
-    meta: { title: 'Deep Gallery', icon: 'box-open' },
+    meta: { title: 'Deep Diary', icon: 'box-open' },
     children: [
       // {
       //   path: 'index',
@@ -72,10 +72,11 @@ export const asyncRoutes = [
       //     affix: true,
       //   },
       // },
+
       {
         path: 'gallery',
-        name: 'pgGallery',
-        component: () => import('@/views/project/gallery/components/pgGallery'),
+        name: 'Gallery',
+        component: () => import('@/views/project/gallery'),
         meta: {
           title: 'Gallery',
           icon: 'marker',
@@ -83,20 +84,9 @@ export const asyncRoutes = [
         },
       },
       {
-        path: 'img',
-        name: 'Img',
-        hidden: true,
-        component: () => import('@/views/project/gallery/components/img'),
-        meta: {
-          title: 'Img Detail',
-          icon: 'marker',
-          permissions: ['admin'],
-        },
-      },
-      {
         path: 'album',
         name: 'Album',
-        component: () => import('@/views/project/gallery/components/pgAlbum'),
+        component: () => import('@/views/project/album'),
         meta: {
           title: 'Album',
           icon: 'marker',
@@ -105,62 +95,97 @@ export const asyncRoutes = [
         },
       },
       {
+        path: 'img',
+        name: 'Img',
+        hidden: true,
+        component: () => import('@/views/project/img'),
+        meta: {
+          title: 'Img Detail',
+          icon: 'marker',
+          permissions: ['admin'],
+          noKeepAlive: false,
+        },
+      },
+      {
         path: 'face',
         name: 'Face',
-        // component: () => import('@/views/project/gallery/components/pgFace'),
-        component: EmptyLayout,
+        component: () => import('@/views/project/face'),
+        // component: EmptyLayout,
         meta: {
           title: 'People',
           icon: 'marker',
           permissions: ['admin'],
         },
-        children: [
-          // {
-          //   path: 'personal',
-          //   name: 'Personal',
-          //   component: () =>
-          //     import('@/views/project/gallery/components/pgFace'),
-          //   meta: {
-          //     title: '个人',
-          //     icon: 'marker',
-          //     permissions: ['admin'],
-          //   },
-          // },
-          {
-            path: 'personal',
-            name: 'Personal',
-            component: () =>
-              import('@/views/project/gallery/components/pgFacePersonal'),
-            meta: {
-              title: 'Personl',
-              icon: 'marker',
-              permissions: ['admin'],
-            },
-          },
-          {
-            path: 'group',
-            name: 'Group',
-            component: () =>
-              import('@/views/project/gallery/components/pgFaceGroup'),
-            meta: {
-              title: 'Group',
-              icon: 'marker',
-              permissions: ['admin'],
-            },
-          },
-          {
-            path: 'gallery',
-            name: 'FaceGallery',
-            hidden: true,
-            component: () =>
-              import('@/views/project/gallery/components/pgFace'),
-            meta: {
-              title: 'Face Gallery',
-              icon: 'marker',
-              permissions: ['admin'],
-            },
-          },
-        ],
+        // children: [
+        //   {
+        //     path: 'personal',
+        //     name: 'Personal',
+        //     component: () =>
+        //       import('@/views/project/gallery/components/pgFacePersonal'),
+        //     meta: {
+        //       title: 'Personl',
+        //       icon: 'marker',
+        //       permissions: ['admin'],
+        //     },
+        //   },
+        //   {
+        //     path: 'group',
+        //     name: 'Group',
+        //     component: () =>
+        //       import('@/views/project/gallery/components/pgFaceGroup'),
+        //     meta: {
+        //       title: 'Group',
+        //       icon: 'marker',
+        //       permissions: ['admin'],
+        //     },
+        //   },
+        //   {
+        //     path: 'FacePerson',
+        //     name: 'FacePerson',
+        //     hidden: true,
+        //     component: () =>
+        //       import('@/views/project/gallery/components/pgFace'),
+        //     meta: {
+        //       title: 'Face Gallery',
+        //       icon: 'marker',
+        //       permissions: ['admin'],
+        //     },
+        //   },
+        //   {
+        //     path: 'faceGroup',
+        //     name: 'FaceGroup',
+        //     hidden: true,
+        //     component: () =>
+        //       import('@/views/project/gallery/components/pgGroup'),
+        //     meta: {
+        //       title: 'Face Group',
+        //       icon: 'marker',
+        //       permissions: ['admin'],
+        //     },
+        //   },
+        // ],
+      },
+      {
+        path: 'PersonDetail',
+        name: 'PersonDetail',
+        hidden: true,
+        component: () => import('@/views/project/face/personDetail'),
+        meta: {
+          title: 'Face Person',
+          icon: 'marker',
+          permissions: ['admin'],
+        },
+      },
+      {
+        path: 'GroupDetail',
+        name: 'GroupDetail',
+        hidden: true,
+        component: () => import('@/views/project/face/groupDetail'),
+        meta: {
+          title: 'Face Group',
+          icon: 'marker',
+          permissions: ['admin'],
+        },
       },
       {
         path: 'address',
@@ -175,7 +200,7 @@ export const asyncRoutes = [
       {
         path: 'object',
         name: 'Object',
-        component: () => import('@/views/project/gallery/components/pgObject'),
+        component: () => import('@/views/project/object'),
         meta: {
           title: 'Object',
           icon: 'marker',
@@ -185,8 +210,7 @@ export const asyncRoutes = [
       {
         path: 'graph',
         name: 'Graph',
-        component: () =>
-          import('@/views/project/interactiveGraph/interactiveGraph'),
+        component: () => import('@/views/project/graph/interactiveGraph'),
         meta: {
           title: 'Graph',
           icon: 'marker',

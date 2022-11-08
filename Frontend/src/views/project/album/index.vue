@@ -31,36 +31,31 @@
     </div>
     <div v-show="busy" class="loading">{{ msg }}</div>
 
-    <Tags v-if="checkedIndex >= 0" :items="img.tags"></Tags>
+    <!-- <Tags v-if="checkedIndex >= 0" :items="img.tags"></Tags>
     <Color v-if="checkedIndex >= 0" :colors="img.colors"></Color>
     <Mcs
       v-if="checkedIndex >= 0"
       :mcs="img.mcs"
       mcstype="img"
       :title="`Mcs Info-${checkedId}`"
-    ></Mcs>
+    ></Mcs> -->
+    <!-- <Img :id="checkedId"></Img> -->
   </div>
 </template>
 
 <script>
-  import $ from 'jquery'
-  import Album from './album.vue'
-  import Mcs from './mcs.vue'
-
-  import {
-    getGallery,
-    getImg,
-    getFaceAlbum,
-    getFaceGallery,
-    getImgDetail,
-  } from '@/api/gallery'
-  import Tags from './tags.vue'
-  import Color from './color.vue'
-  import ImgSearch from './search.vue'
+  import { getImg, getImgDetail } from '@/api/gallery'
+  // import Album from './album.vue'
+  import Album from '@/components/Album'
+  // import Mcs from './mcs.vue'
+  // import Tags from './tags.vue'
+  // import Color from './color.vue'
+  import ImgSearch from '@/components/Search'
+  //   import Img from '../../img'
   import infiniteScroll from 'vue-infinite-scroll'
   export default {
     name: 'PgAlbum',
-    components: { Album, Mcs, Tags, Color, ImgSearch },
+    components: { Album, ImgSearch }, //Mcs, Tags, Color,Img
     directives: { infiniteScroll },
     data: function () {
       return {
@@ -384,7 +379,7 @@
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
         this.checkedId = item.id
-        this.fetchImgDetail()
+        // this.fetchImgDetail()
       },
       onRouteJump(index, item) {
         console.log(
@@ -429,17 +424,13 @@
         // for (i = 0; i < this.currentCnt; i++) {
         //   this.filteredAlbumsId[i] = this.albums[i].id
         // }
-
-        // setTimeout(() => {
-
-        // }, 300)
       },
-      async fetchImgDetail() {
-        console.log('start to get the img ...')
-        this.queryForm.id = this.checkedId
-        const { data } = await getImgDetail(this.queryForm)
-        this.img = data
-      },
+      // async fetchImgDetail() {
+      //   console.log('start to get the img ...')
+      //   this.queryForm.id = this.checkedId
+      //   const { data } = await getImgDetail(this.queryForm)
+      //   this.img = data
+      // },
 
       onImgSearch(queryForm) {
         console.log('recieve the queryForm info from the search component')

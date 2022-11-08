@@ -16,7 +16,7 @@ from library.filters import ImgFilter, ImgSearchFilter, CategoryFilter, AddressF
 from library.models import Img, Category, Mcs, Address
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
-    CategorySerializer, AddressSerializer
+    CategorySerializer, AddressSerializer, CategoryDetailSerializer
 from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, \
     set_img_colors, set_img_categories, set_all_img_categories, save_all_img_info, set_all_img_group, \
     add_all_img_colors_to_category, set_all_img_address
@@ -354,6 +354,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
             'code': 200,
             'data': data,
         })
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CategorySerializer
+        else:
+            return CategoryDetailSerializer
 
 
 class AddressViewSet(viewsets.ModelViewSet):

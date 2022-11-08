@@ -77,7 +77,7 @@
     methods: {
       carouselChange: function (key1, key2) {
         // const id = this.gallerys[key1].id
-        console.log(key1, key2)
+        // console.log(key1, key2)
       },
       imgLoad(id) {
         this.$nextTick(() => {

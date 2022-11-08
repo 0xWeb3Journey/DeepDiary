@@ -480,7 +480,7 @@ def save_all_img_info():
 
 @shared_task
 def set_img_group(img_obj):
-    # check whether has the unknown face
+    # check whether has the unknown face, unknown means unnamed
     fc_unknown_obj = img_obj.faces.filter(name__startswith='unknown')
     if fc_unknown_obj.exists():
         print(f'--------------------{img_obj.id} :return-->exist the unknown face in this img-------------------------')
@@ -488,9 +488,9 @@ def set_img_group(img_obj):
     names = img_obj.faces.order_by('name').values_list('name', flat=True)
     name_cnt = names.count()
     name_str = 'no face'  # default
-    if name_cnt == 1:
+    if name_cnt <= 1:
         print(
-            f'--------------------{img_obj.id} :return-->this is the single face---------------------------')
+            f'--------------------{img_obj.id} :return-->this is the single or no face---------------------------')
         return
     elif 1 < name_cnt <= 6:  # if faces biger then 1, small then 6
         print(

@@ -9,9 +9,9 @@ export function getImg(params) {
   })
 }
 
-export function getImgDetail(params) {
+export function getImgDetail(id) {
   return request({
-    url: '/api/img/' + params.id + '/',
+    url: '/api/img/' + id + '/',
     method: 'get',
   })
 }
@@ -131,6 +131,14 @@ export function getCategory(params) {
     url: '/api/category/',
     method: 'get',
     params,
+  })
+}
+
+export function getCategoryDetail(id) {
+  console.log(id)
+  return request({
+    url: '/api/category/' + id + '/',
+    method: 'get',
   })
 }
 

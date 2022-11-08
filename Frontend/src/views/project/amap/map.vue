@@ -58,64 +58,21 @@
           }
         "
       ></el-amap-circle-marker>
-
-      <!-- 覆盖物圆: 搜索结果 -->
-      <!-- <el-amap-circle
-        v-for="item in circles"
-        :key="item.id"
-        :center="item.center"
-        :radius="item.radius"
-        :fill-color="item.color"
-        :stroke-color="item.color"
-        :stroke-opacity="item.strokeOpacity"
-        :stroke-weight="item.strokeWeight"
-      ></el-amap-circle> -->
-
-      <!-- 覆盖物-停车场 -->
-      <!-- <el-amap-marker
-        v-for="(item, index) in imgs"
-        :key="item.id"
-        :offset="item.offset"
-        :content="item.content"
-        :position="item.position"
-        :vid="index"
-      ></el-amap-marker> -->
-      <!-- 覆盖物 -->
-      <!-- <el-amap-marker
-        v-for="(item, index) in imgs"
-        :key="index"
-        :ext-data="item"
-        :events="item.events"
-        :offset="item.offsetText"
-        :content="item.text"
-        :position="item.position"
-        :vid="index"
-      ></el-amap-marker> -->
-      <!--覆盖物 - 停车场 - 距离信息-->
-      <!-- <el-amap-marker
-        v-for="(item, index) in imgsInfo"
-        :key="item.id"
-        z-index="1000"
-        :content="item.text"
-        :offset="item.offset"
-        :position="item.position"
-        :vid="index"
-      ></el-amap-marker> -->
     </el-amap>
   </div>
 </template>
 
 <script>
   // import { AMapManager, lazyAMapApiLoaderInstance } from 'vue-amap'
-  import VueAMap from '@vuemap/vue-amap'
-  import { lazyAMapApiLoaderInstance } from '@vuemap/vue-amap'
-  import { SelfLocation } from './location'
-  import { Walking } from './walking'
-  import StyleCss from './style'
+  // import VueAMap from '@vuemap/vue-amap'
+  // import { lazyAMapApiLoaderInstance } from '@vuemap/vue-amap'
+  // import { SelfLocation } from './location'
+  // import { Walking } from './walking'
+  // import StyleCss from './style'
   import '@/plugins/aMap'
   // let amapManager = new AMapManager()
 
-  import AMapLoader from '@amap/amap-jsapi-loader'
+  // import AMapLoader from '@amap/amap-jsapi-loader'
 
   export default {
     name: 'Map',
@@ -274,8 +231,8 @@
       clickMap(e) {
         // console.log('click map :', e)
         console.log('click map :', e.lnglat.lng, e.lnglat.lat)
-        this.map.setCenter([e.lnglat.lng, e.lnglat.lat])
-
+        // this.map.setCenter([e.lnglat.lng, e.lnglat.lat])
+        this.center = [e.lnglat.lng, e.lnglat.lat]
         this.poi.location = [e.lnglat.lng, e.lnglat.lat]
         this.$store.commit('map/setSwiper', false)
         console.log(this.$store.state.map.isShowSwiper)

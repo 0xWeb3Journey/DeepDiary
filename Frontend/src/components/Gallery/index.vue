@@ -1,16 +1,5 @@
 <template>
   <div class="gallery-container">
-    <!-- <el-alert title="子组件消息提示的文案" type="info">
-      <br />
-      albumInfo: {{ curAlbumCnt }}/{{ totalAlbumCnt }} {{ msg }}
-      <br />
-      pageInfo: {{ queryForm.page }}
-      <br />
-      clickInfo: {{ checkedIndex }}
-      <br />
-      dispType: {{ dispType }}
-    </el-alert> -->
-
     <vab-upload
       ref="vabUpload"
       url="/api/img/"
@@ -80,12 +69,9 @@
 
   import 'justifiedGallery/dist/js/jquery.justifiedGallery.min'
   import 'justifiedGallery/dist/css/justifiedGallery.css'
-  import { getAlbum } from '@/api/gallery'
 
   import VabUpload from '@/components/VabUpload'
-  import { clearScreenDown } from 'readline'
 
-  let galleryInstance = null
   export default {
     name: 'Gallery',
     components: { VabUpload },
@@ -132,18 +118,7 @@
         // srcList: this.items, //初始化直接用props中的值
       }
     },
-    computed: {
-      // srcList: {
-      //   get() {
-      //     console.log('get')
-      //     return this.items
-      //   },
-      //   set(val) {
-      //     console.log('set')
-      //     return val
-      //   },
-      // },
-    },
+    computed: {},
     watch: {
       items(newVal, oldVal) {
         this.$nextTick(() => {
@@ -154,10 +129,7 @@
         })
       },
     },
-    created() {
-      // this.fetchAlbum()
-      // this.srcList = []
-    },
+    created() {},
     mounted() {
       this.lgInit()
       this.justifyInit()
