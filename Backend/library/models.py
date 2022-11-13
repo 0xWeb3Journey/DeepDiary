@@ -30,12 +30,9 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
         print('跳过：未找到时间信息！')
 
     tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
-    date_path = os.path.join(tt.year, tt.month, tt.day)
+    date_path = os.path.join(str(tt.year), str(tt.month), str(tt.day))
 
-    # instance.capture_date, instance.capture_time, instance.year, instance.month, instance.day, \
-    # instance.is_weekend, instance.earthly_branches, date_path = get_date_info(date_str)  # 通过时间戳，计算出时间相关的属性，并赋值给数据库字段
-
-    instance.filename = filename
+    instance.name = filename
     instance.type = filename.split('.')[-1]
     # instance = get_img_info(instance)  # 本打算在这里获取更多的图片元数据，但是这里的实例还没保存，图片路径还不存在
 

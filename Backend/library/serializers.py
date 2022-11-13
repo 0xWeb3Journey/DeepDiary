@@ -128,9 +128,11 @@ class ImgSerializer(serializers.ModelSerializer):
         # rst['msg'] = 'list info'
         # return rst
         # print(data['categories'])
-
+        # print(f'value.wid: {value.wid}, value.height: {value.height}')
         data['size'] = '{:d}-{:d}'.format(value.wid, value.height)
-        data['lnglat'] = [value.address.longitude, value.address.latitude]
+        if hasattr(value, 'address'):
+            data['lnglat'] = [value.address.longitude, value.address.latitude]
+        # library.models.Img.address.RelatedObjectDoesNotExist: Img has no address
         return data
 
 
@@ -176,6 +178,14 @@ class CategorySerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='category-detail')
     src = serializers.ImageField(source="avatar", read_only=True)
     # imgs = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
+    value = serializers.SerializerMethodField()  # method 2: through method
+
+    def get_value(self, ins):
+        if ins.type == 'group':
+            value = ins.img.count()  # return the img counts
+        else:
+            value = ins.value  # return the original value
+        return value  # some thing you do
 
     class Meta:
         model = Category

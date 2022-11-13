@@ -42,6 +42,7 @@
         swiperOption: {
           slidesPerView: 5,
           breakpoints: {
+            // responsive define
             1920: {
               slidesPerView: 6,
               spaceBetween: 10,
@@ -141,22 +142,13 @@
         ],
       }
     },
-    watch: {
-      '$store.state.app.isClickimgsList': {
-        handler(newValue) {
-          if (!newValue) {
-            this.imgsList = []
-          } // 为 false 时，点击的不是车辆列表
-          this.$store.commit('app/SET_Imgs_LIST_STATUS', true)
-        },
-      },
-    },
+    watch: {},
     methods: {},
   }
 </script>
 <style lang="scss">
   .imgs-wrap {
-    position: absolute;
+    position: absolute; // refer to the father div
     left: 0;
     bottom: 100px;
     right: 0;

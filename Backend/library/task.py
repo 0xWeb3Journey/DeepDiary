@@ -1,3 +1,4 @@
+import os
 import pickle
 import time
 from datetime import datetime
@@ -8,7 +9,7 @@ from pyexiv2 import Image as exivImg
 
 from deep_diary.config import wallet_info
 from face.models import Face
-from face.task import upload_face_to_mcs
+from face.task import set_face_mcs
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
 from library.imagga import imagga_post
 from library.models import Img, ColorBackground, Category, ImgCategory, Address, Date, Evaluate
@@ -128,8 +129,8 @@ def send_email(name):
 #         # obj.tags.set(lm_tags)
 
 # @app.task
-@shared_task
-def upload_img_to_mcs(img):  # img = self.get_object()  # 获取详情的实例对象
+# @shared_task
+def set_img_mcs(img):  # img = self.get_object()  # 获取详情的实例对象
     if not hasattr(img, 'mcs'):  # 判断是否又对应的mcs存储
 
         data = upload_file_pay(wallet_info, img.src.path)
@@ -155,26 +156,26 @@ def upload_img_to_mcs(img):  # img = self.get_object()  # 获取详情的实例�
     print(msg)
 
 
-@shared_task
-def upload_to_mcs():
+# @shared_task
+def set_all_img_mcs():
     print('-----------------start upload all the imgs to mcs-----------------')
     imgs = Img.objects.filter(mcs__isnull=True)
     for (img_idx, img) in enumerate(imgs):
         print(f'--------------------INFO: This is img{img_idx}: {img.id} ---------------------')
-        upload_img_to_mcs(img)
+        set_img_mcs(img)
     print('------------all the imgs have been uploaded to mcs----------------')
 
     print('-----------------start upload all the faces to mcs-----------------')
     fcs = Face.objects.filter(mcs__isnull=True)
     for (fc_idx, fc) in enumerate(fcs):
         print(f'--------------------NFO: This is face{fc_idx}: {fc.name}---------------------')
-        upload_face_to_mcs(fc)
+        set_face_mcs(fc)
     print('------------all the faces have been uploaded to mcs----------------')
 
     print('----end----')
 
 
-@shared_task
+# @shared_task
 def set_img_tags(img_obj):
     img_path = img_obj.src.path
     endpoint = 'tags'
@@ -203,14 +204,14 @@ def set_img_tags(img_obj):
         print(f'--------------------{img_obj.id} :tags have been store to the database---------------------------')
 
 
-@shared_task
+# @shared_task
 def set_all_img_tags():
     imgs = Img.objects.all()
     for img in imgs:
         set_img_tags(img)
 
 
-@shared_task
+# @shared_task
 def set_img_colors(img_obj):
     # this is through post method to get the tags. mainly is used for local img
     img_path = img_obj.src.path
@@ -296,16 +297,17 @@ def set_img_colors(img_obj):
         #         serializer = ColorImgSerializer(color_obj.image, data=img)
         #         result = serializer.is_valid(raise_exception=True)
         #         img_color_obj = serializer.save()
+        print(f'--------------------{img_obj.id} :colors have been store to the database---------------------------')
 
 
-@shared_task
+# @shared_task
 def set_all_img_colors():
     imgs = Img.objects.all()
     for img in imgs:
         set_img_colors(img)
 
 
-@shared_task
+# @shared_task
 def set_img_categories(img_obj):
     img_path = img_obj.src.path
     endpoint = 'categories/personal_photos'
@@ -341,7 +343,6 @@ def set_img_categories(img_obj):
             img_cate_list.append(item)
             categories_list.append(obj)
 
-        print(img_cate_list)
         ImgCategory.objects.bulk_create(img_cate_list)
 
         # img_obj.categories.add(*categories_list, through_defaults=confidence_list)
@@ -350,7 +351,7 @@ def set_img_categories(img_obj):
             f'--------------------{img_obj.id} :categories have been store to the database---------------------------')
 
 
-@shared_task
+# @shared_task
 def set_all_img_categories():
     imgs = Img.objects.all()
     for img in imgs:
@@ -388,9 +389,10 @@ def set_img_date(date_str):  # '%Y:%m:%d %H:%M:%S'
     return date
 
 
-@shared_task
-def save_img_info(instance):
+# @shared_task
+def set_img_info(instance):
     print(f'INFO: **************img instance have been created, saving img info now...')
+
     addr = Address()
     eval = Evaluate()
     date = Date()
@@ -419,15 +421,15 @@ def save_img_info(instance):
             addr.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
             alt = addr.altitude.split('/')
             addr.altitude = float(alt[0]) / float(alt[1])
-        print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
         addr.is_located = False
         if addr.longitude and addr.latitude:
             # 是否包含经纬度数据
             addr.is_located = True
             long_lati = GPS_to_coordinate(addr.longitude, addr.latitude)
             # TODO: need update the lnglat after transform the GPS info
-            addr.longitude = long_lati[0]
-            addr.latitude = long_lati[1]
+            addr.longitude = round(long_lati[0], 6)  # only have Only 6 digits of precision for AMAP
+            addr.latitude = round(long_lati[1], 6)
+            # print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
             long_lati = f'{long_lati[0]},{long_lati[1]}'  # change to string
 
             addr.location, addr.district, addr.city, addr.province, addr.country = GPS_get_address(
@@ -453,7 +455,7 @@ def save_img_info(instance):
     instance.height = instance.src.height
     instance.aspect_ratio = instance.height / instance.wid
     instance.is_exist = True
-    # instance.save()   # save the image instance, already saved during save the author
+    instance.save()   # save the image instance, already saved during save the author
 
     if lm_tags:
         print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
@@ -471,135 +473,147 @@ def save_img_info(instance):
         f'--------------------{instance.id} :img infos have been store to the database---------------------------')
 
 
-@shared_task
-def save_all_img_info():
+# @shared_task
+def set_all_img_info():
     imgs = Img.objects.all()
     for img in imgs:
-        save_img_info(img)
+        set_img_info(img)
 
 
 @shared_task
-def set_img_group(img_obj):
+def img_process(instance):
+    set_img_info(instance)  # if this add the delay function, this function will be processed by celery
+    set_img_tags(instance)  # if this add the delay function, this function will be processed by celery
+    set_img_colors(instance)  # if this add the delay function, this function will be processed by celery
+    set_img_categories(instance)  # if this add the delay function, this function will be processed by celery
+    # set_img_mcs(instance)
+    instance.refresh_from_db()
+
+    add_img_face_to_category(instance)
+    add_img_addr_to_category(instance)
+    add_img_colors_to_category(instance)
+
+
+# @shared_task
+def add_img_face_to_category(img_obj):
+    if not hasattr(img_obj, 'faces'):
+        print(f"\033[1;32m ----------{img_obj.id} INFO: there is no faces info in this img--------- \033[0m")
+        return
     # check whether has the unknown face, unknown means unnamed
     fc_unknown_obj = img_obj.faces.filter(name__startswith='unknown')
     if fc_unknown_obj.exists():
-        print(f'--------------------{img_obj.id} :return-->exist the unknown face in this img-------------------------')
+        print(f'\033[1;32m ----------{img_obj.id} INFO: there is unknown face in this img---------- \033[0m')
         return
     names = img_obj.faces.order_by('name').values_list('name', flat=True)
     name_cnt = names.count()
     name_str = 'no face'  # default
     if name_cnt <= 1:
-        print(
-            f'--------------------{img_obj.id} :return-->this is the single or no face---------------------------')
+        # print(
+        #     f'----------------{img_obj.id} :return-->this is the single or no face-----------------------')
         return
     elif 1 < name_cnt <= 6:  # if faces biger then 1, small then 6
-        print(
-            f'--------------------{img_obj.id} :found the face group---------------------------')
+        # print(
+            # f'----------------{img_obj.id} :found the face group-----------------------')
         name_str = ','.join(names)
     elif name_cnt > 6:  # if faces biger then 5, then break
-        print(
-            f'--------------------{img_obj.id} :too many faces in the img---------------------------')
+        # print(
+        #     f'----------------{img_obj.id} :too many faces in the img-----------------------')
         name_str = 'group face'
-
-    # name_str = name_str[0:29]  # the name couldn't be too long
-    # check whether have a result ing the Group database
-    # img_set = Img.objects.annotate(faces_num=Count('faces')).filter(faces_num=name_cnt)
-    # for name in names:
-    #     if not img_set.exists():
-    #         print(f'--------------------{img_obj.id} :the filter result is none--------------------')
-    #         break
-    #     img_set = img_set.filter(faces__name=name)
-    # print(f'img_set number is: {img_set.count()}')
-    # rst = Category.objects.filter(type='group').filter(img__in=img_set)
 
     rst = Category.objects.filter(type='group', name=name_str)
 
     if rst.exists():
         rst = rst.first()
         # rst.img.add(*img_set)
+        print(f"\033[1;32m --------{img_obj.id} :img group have been added to the database------------ \033[0m")
     else:
         rst = Category.objects.create(name=name_str, type='group', numeric_value=name_cnt, avatar=img_obj.src)
+        print(f"\033[1;32m --------{img_obj.id} :img group have been created to the database---------- \033[0m")
         # rst.img.set(img_set)
     rst.img.add(img_obj)
-    print(
-        f'--------------------{img_obj.id} :img group have been store to the database---------------------------')
 
 
 @shared_task
-def set_all_img_group():
+def add_all_img_face_to_category():
     imgs = Img.objects.all()
     for img in imgs:
-        set_img_group(img)
+        add_img_face_to_category(img)
 
 
-@shared_task
-def set_img_address(img_obj):
-
+# @shared_task
+def add_img_addr_to_category(img_obj):
+    if not hasattr(img_obj, 'address'):
+        print(f'\033[1;32m ----------{img_obj.id} INFO: there is no address info in this img--------- \033[0m')
+        return
     city = img_obj.address.city
     if city is None:
-        print(f'--------------------{img_obj.id} :there is no address info in this img-------------------------')
+        # print(f'----------------{img_obj.id} :there is no address info in this img---------------------')
         city = 'No GPS'
 
     rst, created = Category.objects.get_or_create(name=city, type='address')
 
     rst.img.add(img_obj)
-    print(
-        f'--------------------{img_obj.id} :img address have been store to the database---------------------------')
+    if created:
+        print(f'\033[1;32m --------{img_obj.id} :img address have been created to the database-------- \033[0m')
+    else:
+        print(f'\033[1;32m --------{img_obj.id} :img address have been added to the database---------- \033[0m')
 
 
 @shared_task
-def set_all_img_address():
+def add_all_img_addr_to_category():
     imgs = Img.objects.all()
     for img in imgs:
-        set_img_address(img)
+        add_img_addr_to_category(img)
 
 
-@shared_task
+# @shared_task
 def add_img_colors_to_category(img_obj):
     if not hasattr(img_obj, 'colors'):
-        print(f'----------{img_obj.id} INFO: there is no color info in this img-------------')
+        print(f'----------{img_obj.id} INFO: there is no color info in this img---------')
+        return
         # Color fetch here later
-        set_img_colors(img_obj)
-        img_obj.refresh_from_db()  # refresh the result from the database since the color is checked
+        # set_img_colors(img_obj)
+        # img_obj.refresh_from_db()  # refresh the result from the database since the color is checked
 
     img_colors = img_obj.colors.image.all()
     fore_colors = img_obj.colors.foreground.all()
     back_colors = img_obj.colors.background.all()
     for color in img_colors:
-        print(color)
         cate_obj = Category.objects.filter(name=color.closest_palette_color_parent, type='img_color')  # checking whether exist this palette
         if cate_obj.exists():
             cate_obj = cate_obj.first()
+            print(f'\033[1;32m --------{img_obj.id} :img colors have been added to the category database---- \033[0m')
         else:
             cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='img_color',
                                                value=color_palette[color.closest_palette_color_parent])
+            print(f'\033[1;32m --------{img_obj.id} :img colors have been created to the category database---- \033[0m')
         cate_obj.img.add(img_obj)
 
     for color in fore_colors:
-        print(color)
         cate_obj = Category.objects.filter(name=color.closest_palette_color_parent, type='fore_color')  # checking whether exist this palette
         if cate_obj.exists():
             cate_obj = cate_obj.first()
+            print(f'\033[1;32m --------{img_obj.id} :fore colors have been added to the category database---- \033[0m')
         else:
             cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='fore_color',
                                                value=color_palette[color.closest_palette_color_parent])
+            print(f'\033[1;32m --------{img_obj.id} :fore colors have been created to the category database---- \033[0m')
         cate_obj.img.add(img_obj)
 
     for color in back_colors:
-        print(color)
         cate_obj = Category.objects.filter(name=color.closest_palette_color_parent, type='back_color')  # checking whether exist this palette
         if cate_obj.exists():
             cate_obj = cate_obj.first()
+            print(f'\033[1;32m --------{img_obj.id} :back colors have been added to the category database---- \033[0m')
         else:
             cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='back_color',
                                                value=color_palette[color.closest_palette_color_parent])
+            print(f'\033[1;32m --------{img_obj.id} :back colors have been created to the category database---- \033[0m')
         cate_obj.img.add(img_obj)
-    print(
-        f'-------------------{img_obj.id} :img colors have been added to the category database------------------------')
 
 
 @shared_task
 def add_all_img_colors_to_category():
-    imgs = Img.objects.filter(id__lt=425)
+    imgs = Img.objects.all()
     for img in imgs:
         add_img_colors_to_category(img)

@@ -8,7 +8,7 @@ from library.models import Category, Img
 
 class GalleryPageNumberPagination(PageNumberPagination):
     page_size = 20  # default page size
-    # page_size_query_param = 'size'  # ?page=xx&size=??
+    page_size_query_param = 'size'  # ?page=xx&size=??
     max_page_size = 20  # max page size
 
     def get_paginated_response(self, data):
@@ -45,7 +45,7 @@ class GalleryPageNumberPagination(PageNumberPagination):
 
 class AddressNumberPagination(PageNumberPagination):
     page_size = 10000  # default page size
-    # page_size_query_param = 'size'  # ?page=xx&size=??
+    page_size_query_param = 'size'  # ?page=xx&size=??
     max_page_size = 10  # max page size
 
     def get_paginated_response(self, data):

@@ -77,7 +77,7 @@
 <script>
   import { baseURL, tokenName } from '@/config'
   import store from '@/store'
-  import { checkImgMcs } from '@/api/gallery'
+  import { getUploadState } from '@/api/gallery'
 
   export default {
     name: 'Upload',
@@ -218,12 +218,12 @@
         
 
         this.action = this.api + this.url; */
-        this.checkMcs()
+        this.uploadFinished()
         this.dialogFormVisible = false
       },
-      async checkMcs() {
+      async uploadFinished() {
         console.log('handleClose')
-        const { msg } = await checkImgMcs('')
+        const { msg } = await getUploadState('')
         this.$message({
           message: msg,
           type: 'success',

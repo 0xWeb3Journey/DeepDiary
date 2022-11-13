@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- <h1>这里是地点页的vue。。。</h1> -->
     <!-- 地图 -->
     <Map ref="map" :addrs="addrs" @callbackComponent="callbackComponent" />
 
@@ -63,7 +62,7 @@
         // console.log('data is :', data)
         this.fetchAddress()
       },
-      // 地图初始化完成回调
+      // 地图点击聚合点后完成回调
       loadImg(data) {
         this.fetchImg()
       },

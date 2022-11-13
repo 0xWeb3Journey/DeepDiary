@@ -11,7 +11,7 @@
       @click="clickMap"
       @complete="initMapComplete"
     >
-      <!-- 浏览器定位 -->
+      <!-- browser location-->
       <el-amap-control-geolocation
         ref="location"
         :zoom-to-accuracy="true"
@@ -23,7 +23,7 @@
         @complete="getLocation"
       ></el-amap-control-geolocation>
 
-      <!-- 点聚合 -->
+      <!-- marker-cluster -->
       <el-amap-marker-cluster
         ref="cluster"
         :visible="visible"
@@ -32,7 +32,7 @@
         @click="clickMarker"
       ></el-amap-marker-cluster>
 
-      <!-- 搜索框 -->
+      <!-- poi search -->
       <el-amap-search-box
         ref="search"
         :visible="visible"
@@ -253,6 +253,7 @@
           function: 'loadMap',
         })
       },
+
       // location functions
       onLocationComplete(status, result) {
         console.log('onLocationComplete: ')
@@ -262,31 +263,38 @@
           this.onLocationError(result)
         }
       },
-      onLocationSuccess(data) {
+      onLocationSuccess(e) {
         var str = []
-        str.push('定位结果：' + data.position)
-        str.push('定位类别：' + data.location_type)
-        if (data.accuracy) {
-          str.push('精度：' + data.accuracy + ' 米')
+        console.log('=====================onLocationSuccess', e)
+        console.log('getLocation: ', e.position.lat, e.position.lng)
+        str.push('定位结果：' + e.position)
+        str.push('定位类别：' + e.location_type)
+        if (e.accuracy) {
+          str.push('精度：' + e.accuracy + ' 米')
         } //如为IP精确定位结果则没有精度信息
-        str.push('是否经过偏移：' + (data.isConverted ? '是' : '否'))
+        str.push('是否经过偏移：' + (e.isConverted ? '是' : '否'))
         console.log(str)
+        this.lat = e.position.lat
+        this.lng = e.position.lng
       },
-      onLocationError(result) {
+      onLocationError(e) {
         var str = []
         str.push(
           '失败原因排查信息' +
-            data.message +
+            e.message +
             '</br>浏览器返回信息：' +
-            data.originMessage
+            e.originMessage
         )
         console.log(str)
       },
       getLocation(e) {
+        // this function is similar with onLocationSuccess, the object is same
+        console.log('=====================getLocation', e)
         console.log('getLocation: ', e.position.lat, e.position.lng)
         this.lat = e.position.lat
         this.lng = e.position.lng
       },
+
       // marker fuctions
       markerInit(e) {
         console.log('marker init: ', e)
@@ -335,6 +343,7 @@
           data: imgQuery,
         })
       },
+
       // poi fuctions
       selectPoi(e) {
         console.log('selectPoi: ', e)

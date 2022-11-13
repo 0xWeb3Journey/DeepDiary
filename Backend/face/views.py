@@ -40,7 +40,7 @@ class FaceViewSet(viewsets.ModelViewSet):
         print(f'当前访问人脸的用户是 =  {self.request.user}')
 
         fc = self.get_object()
-        change_face_name(fc, serializer)  # 如果执行了改名，则返回真，人脸改名后，确认状态自动为True
+        change_face_name.delay(fc, serializer)  # 如果执行了改名，则返回真，人脸改名后，确认状态自动为True
         # if not change_face_name(fc, serializer):  # 如果执行了改名，则返回真，人脸改名后，确认状态自动为True
         #     change_confirm_state(fc, serializer)  # 人名已经是识别出来的名字，进行确认后，同样要计算人脸特征
 
@@ -62,8 +62,8 @@ class FaceAlbumViewSet(viewsets.ModelViewSet):
         print(f'当前访问人脸相册的用户是 =  {self.request.user}')
 
         album = self.get_object()
-        # change_album_name.delay(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
-        old_name, new_name = change_album_name(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
+        change_album_name.delay(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
+        # old_name, new_name = change_album_name(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
 
         print(serializer.validated_data)
 

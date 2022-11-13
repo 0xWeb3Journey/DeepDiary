@@ -459,7 +459,7 @@ def get_face_name(ft, based='database'):
     if based == 'database':
         names, all_fts = get_all_fts()  # 得到所有的人名和中心向量
 
-    print(f'INFO names is {names}')
+    # print(f'INFO names is {names}')
     # if len(names) == 0:  # there is no info in the database
     if len(names) == 0:  # there is no info in the database
         print('there is no info in the database')
@@ -486,7 +486,7 @@ def get_face_name(ft, based='database'):
 
 # @app.task
 @shared_task
-def upload_face_to_mcs(fc_obj):  # img = self.get_object()  # 获取详情的实例对象
+def set_face_mcs(fc_obj):  # img = self.get_object()  # 获取详情的实例对象
     if not hasattr(fc_obj, 'mcs'):  # 判断是否又对应的mcs存储
 
         data = upload_file_pay(wallet_info, fc_obj.src.path)

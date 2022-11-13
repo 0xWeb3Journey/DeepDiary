@@ -29,14 +29,14 @@
       return {
         faceAlbumQueryForm: {
           page: 1,
-          pageSize: 10,
+          size: 30,
           search: '',
           faceAlumId: 1,
           faces__id__gte: 0,
         },
         categoryQueryForm: {
           page: 1,
-          pageSize: 10,
+          size: 20,
           type: 'group',
         },
 

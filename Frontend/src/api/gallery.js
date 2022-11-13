@@ -30,9 +30,9 @@ export function getTags(params) {
   })
 }
 
-export function checkImgMcs(params) {
+export function getUploadState(params) {
   return request({
-    url: '/api/img/check_mcs/',
+    url: '/api/img/upload_finished/',
     method: 'get',
   })
 }

@@ -17,9 +17,10 @@ from library.models import Img, Category, Mcs, Address
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer, AddressSerializer, CategoryDetailSerializer
-from library.task import save_img_info, upload_img_to_mcs, upload_to_mcs, set_img_tags, set_all_img_tags, \
-    set_img_colors, set_img_categories, set_all_img_categories, save_all_img_info, set_all_img_group, \
-    add_all_img_colors_to_category, set_all_img_address
+from library.task import set_img_info, set_img_mcs, set_all_img_mcs, set_img_tags, set_all_img_tags, \
+    set_img_colors, set_img_categories, set_all_img_categories, set_all_img_info, add_all_img_face_to_category, \
+    add_all_img_colors_to_category, add_all_img_addr_to_category, add_img_addr_to_category, add_img_colors_to_category, \
+    add_img_face_to_category, img_process
 from library.task import send_email
 
 from mycelery.library.tasks import send_sms
@@ -103,15 +104,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         print(f"INFO:{self.request.user}")
         instance = serializer.save(user=self.request.user)
         print(f'INFO: Img start perform_create........{instance.src}')
-        # save_img_info.delay(instance)  # if this add the delay function, this function will be processed by celery
-        # set_img_tags.delay(instance)  # if this add the delay function, this function will be processed by celery
-        # set_img_colors(instance)  # if this add the delay function, this function will be processed by celery
-        # set_img_categories(instance)  # if this add the delay function, this function will be processed by celery
-
-        # upload_img_to_mcs.delay(instance)
-        # upload_img_to_mcs(instance)  # Cannot run in parallel
-
-        # w3_api = approve_usdc(wallet_info)
+        img_process.delay(instance)
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
         # print(f'图片更新：{self.request.data}')
@@ -166,37 +159,23 @@ class ImgViewSet(viewsets.ModelViewSet):
     #
     #     return self.queryset
 
-    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def set_colors(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
-        img = self.get_object()  # 获取详情的实例对象
-        print(f'INFO pk: {pk}')
-        print(f'INFO img: {type(img)}')
-        print(f'INFO img: {img.id}')
-        # print(f'INFO request: {dir(request)}')
-
-        set_img_colors(img)
-
-        serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
-        # serializer = ImgSerializer(img, many=False)  # 报错
-        # serializer = self.get_serializer(img)
-        return Response(serializer.data)
-
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def test(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
-        # img = self.get_object()  # 获取详情的实例对象
-        # print(f'INFO pk: {pk}')
-        # print(f'INFO img: {type(img)}')
-        # print(f'INFO img: {img.id}')
-        # print(f'INFO request: {dir(request)}')
+    def get_batch_image_info(self, request, pk=None):
+        set_all_img_info()
+        return Response({"msg": "success"})
 
-        # save_img_info(img)
-        # set_img_colors(img)
-        # set_img_categories(img)
-        # set_all_img_categories()
-        set_all_img_group()
-        # save_all_img_info()
-        # set_all_img_address()
-        # add_all_img_colors_to_category()
+    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def add_img_to_category(self, request, pk=None):
+        instance = self.get_object()  # 获取详情的实例对象
+        add_img_face_to_category.delay(instance)
+        add_img_addr_to_category.delay(instance)
+        add_img_colors_to_category.delay(instance)
+        return Response({"msg": "success"})
+
+    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def test(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        instance = self.get_object()  # 获取详情的实例对象
+        # set_img_info(instance)
 
         # serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
         # serializer = ImgSerializer(img, many=False)  # 报错
@@ -223,6 +202,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         #         "edges": [
         #             {"from": "1", "to": "2", "label": "work for"},
         #             {"from": "1", "to": "3", "label": "live in"},
+
         #             {"from": "2", "to": "3", "label": "test"}
         #         ]
         #     }
@@ -230,67 +210,13 @@ class ImgViewSet(viewsets.ModelViewSet):
         # return Response(data)
         return Response({"msg": "success"})
 
-    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def check_mcs(self, request, pk=None):
-        print('---------------------------------------checking mcs')
-        upload_to_mcs.delay()
+    @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
+    def upload_finished(self, request, pk=None):
+        # TODO do something after uploading the image
         data = {
             "data": '',
             'code': 200,
-            'msg': 'All the images have been uploaded successfully, will start synchronize to MCS now'
-        }
-        return Response(data)
-
-    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def set_tags(self, request, pk=None):
-        print('---------------------------------------setting tags')
-        # img_obj = self.get_object()  # 获取详情的实例对象
-        # set_img_tags(img_obj)
-        set_all_img_tags.delay()
-        # result = send_email.delay('blue')
-        # # result = send_sms.delay('111111')
-        # async_result = AsyncResult(id=result.id, app=app)
-        # if async_result.successful():
-        #     result = async_result.get()
-        #     print(result)
-        #     # result.forget() # 将结果删除
-        # elif async_result.failed():
-        #     print('执行失败')
-        # elif async_result.status == 'PENDING':
-        #     print('任务等待中被执行')
-        # elif async_result.status == 'RETRY':
-        #     print('任务异常后正在重试')
-        # elif async_result.status == 'STARTED':
-        #     print('任务已经开始被执行')
-        # else:
-        #     print('无法识别错误')
-
-        ################################# 定时任务
-
-        # ctime = datetime.now()
-        # # 默认用utc时间
-        # utc_ctime = datetime.utcfromtimestamp(ctime.timestamp())
-        # time_delay = timedelta(seconds=5)
-        # task_time = utc_ctime + time_delay
-        # result = send_sms.apply_async(["911", ], eta=task_time)
-        # print(result.id)
-
-        # img = self.get_object()  # 获取详情的实例对象
-        # mcs = img.mcs
-        # if mcs.file_upload_id == 0:  # The file is not synchronized to the MCS
-        #     mcs.file_upload_id, mcs.nft_url = upload_file_pay(wallet_info, img.src.path)
-        #     mcs.save()
-        #
-        #     msg = 'The file is not synchronized to the MCS'
-        # else:
-        #     msg = 'The file already synchronized to the MCS, the file_upload_id is %d' % mcs.file_upload_id
-
-        # return Response({"data": msg, 'code': 200})
-
-        data = {
-            "data": '',
-            'code': 200,
-            'msg': 'success to get the tags'
+            'msg': 'All the images have been uploaded successfully'
         }
         return Response(data)
 
@@ -303,7 +229,7 @@ class McsViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all().order_by('name')
+    queryset = Category.objects.all().annotate(img_nums=Count('img')).order_by('-img_nums')  # ordered by the image num
     serializer_class = CategorySerializer
     # permission_classes = (AllowAny,)
     pagination_class = GeneralPageNumberPagination  # could disp the filter button in the web

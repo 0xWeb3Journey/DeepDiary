@@ -33,6 +33,7 @@ VueAMap.initAMapApiLoader({
   //   version: '2.0.0', // Loca 版本，缺省 1.3.2
   // },
 })
+// for the new version of AMAP, we must include the securityJsCode, or the poi will be wrong
 window._AMapSecurityConfig = {
   securityJsCode: 'aa6935254da67f77412663214c4bff37',
 }

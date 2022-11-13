@@ -31,8 +31,8 @@ def create_face_info(sender, instance, created, **kwargs):
         # graphviz = GraphvizOutput()
         # graphviz.output_file = 'graph.png'
         # with PyCallGraph(output=graphviz, config=config):
-        # save_insight_faces.delay(instance)  # 保存insightface识别结果
-        save_insight_faces(instance)  # 保存insightface识别结果
+        save_insight_faces.delay(instance)  # 保存insightface识别结果
+        # save_insight_faces(instance)  # 保存insightface识别结果
     pass
 
 

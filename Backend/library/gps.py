@@ -2,7 +2,6 @@ import json
 import math
 import requests
 
-
 #  Location Process
 from deep_diary.config import Amap_api_key
 
@@ -13,6 +12,7 @@ def GPS_format(data):
     :param data: 原始经度和纬度值
     :return:
     """
+    print(f'original GPS string: {data}')
     if not data:
         return None
 
@@ -21,27 +21,37 @@ def GPS_format(data):
     # data_list = [data.strip() for data in data_list_tmp]
 
     # 度的值
-    data_degree = int(data_list[0].split('/')[0])
-
+    data_tmp = data_list[0].split('/')
+    temp_degree = int(data_tmp[0]) / int(data_tmp[1])
+    print(f'original GPS temp_degree string: {temp_degree}')
     # 分的值， 单位为度
     # 替换分秒的值
-    data_tmp = data_list[-2].split('/')
-    temp_min_sec = int(data_tmp[0]) / int(data_tmp[1])
-    data_minute = int(temp_min_sec)  # 单位为分
-
+    data_tmp = data_list[1].split('/')
+    temp_min = int(data_tmp[0]) / int(data_tmp[1])
+    print(f'original GPS temp_min string: {temp_min}')
     # 秒的值  单位为度
-    data_sec = (temp_min_sec - data_minute)  # 单位为分
+    data_tmp = data_list[2].split('/')
+    temp_sec = int(data_tmp[0]) / int(data_tmp[1])
+    print(f'original GPS temp_sec string: {temp_sec}')
 
+    # original GPS string: 121/1 8249816/1000000 0/1
+    # original GPS string: 121/1 7/1 55350952/1000000
+    # need combine those 2 format, so need to change degree together
+    data_degree = temp_degree + temp_min / 60 + temp_sec / 3600
+    print(f'original GPS data_degree value: {data_degree}')
     # 由于高德API只能识别到小数点后的6位
     # 需要转换为浮点数，并保留为6位小数
-    result = "%.6f" % (data_degree + data_minute / 60 + data_sec / 60)  # 单位为度
+    result = "%.6f" % data_degree  # 单位为度
     return float(result)
 
 
 def GPS_to_coordinate(longitude, latitude):
     # 注意：由于gps获取的坐标在国内高德等主流地图上逆编码不够精确，这里需要转换为火星坐标系
+    # print(longitude, latitude)
+    # print(type(longitude), type(latitude))
     long_lati = wgs84togcj02(longitude, latitude)
     # long_lati = f'{long_lati[0]},{long_lati[1]}'
+    # print(long_lati)
     return long_lati
 
 
@@ -52,7 +62,7 @@ def GPS_get_address(long_lati):
     :return:
     """
     addr = []  # 5级地址，依次从小到大
-    api_key = Amap_api_key   # 高德账户API密钥
+    api_key = Amap_api_key  # 高德账户API密钥
     url_get_position = 'https://restapi.amap.com/v3/geocode/regeo?key={}&location={}'
     resp = requests.get(
         url_get_position.format(api_key, long_lati))
