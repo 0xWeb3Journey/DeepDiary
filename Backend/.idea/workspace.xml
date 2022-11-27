@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/deep_diary/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deep_diary/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_train_list.txt" beforeDir="false" />
@@ -1480,33 +1478,6 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/app.5b4d7291.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/app.5b4d7291.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-0b4404b9.4b4e9f6d.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-0b4404b9.4b4e9f6d.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-1788f7ae.9127a7d3.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-1788f7ae.9127a7d3.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-20d8dc3e.e4cc302c.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-20d8dc3e.e4cc302c.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-9e7c9e88.650671f4.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-9e7c9e88.650671f4.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/element-ui.0e3a750b.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/element-ui.0e3a750b.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/dist/static/js/element-ui.6c77b9ee.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/js/element-ui.6c77b9ee.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/public/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/api/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/api/user.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/Album/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/Album/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/VabUpload/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/VabUpload/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/router/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/carosel.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/carosel.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/groupDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/groupDetail.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/personDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/personDetail.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/img/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/img/index.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
