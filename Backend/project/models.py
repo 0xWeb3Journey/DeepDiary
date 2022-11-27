@@ -179,7 +179,7 @@ class Project(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
 
     def __str__(self):
-        return f'{self.company.name}_{self.prg_code}_{self.name}'
+        return self.name
 
     def info(self):
         queryset = self.product.all()  # 获取所有子对象

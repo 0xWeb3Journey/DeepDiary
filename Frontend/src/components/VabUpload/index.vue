@@ -109,7 +109,7 @@
         loading: false,
         dialogVisible: false,
         dialogImageUrl: '',
-        action: 'http://127.0.0.1:8000/api/img/',
+        action: baseURL + this.url,
         headers: {
           Authorization: 'Bearer ' + store.getters['user/accessToken'], // there have a space after Bearer
         },
@@ -132,6 +132,15 @@
     },
     methods: {
       submitUpload() {
+        if ('development' === process.env.NODE_ENV) {
+          // this.api = process.env.VUE_APP_BASE_API
+          this.api = baseURL
+        } else {
+          this.api = `${window.location.protocol}//${window.location.host}`
+        }
+
+        this.action = this.api + this.url
+        console.log('this.action:', this.action, process.env.NODE_ENV, baseURL)
         this.$refs.upload.submit()
       },
       handleProgress(event, file, fileList) {
@@ -210,14 +219,7 @@
         this.imgNum = 0
         this.imgSuccessNum = 0
         this.imgErrorNum = 0
-        /* if ("development" === process.env.NODE_ENV) {
-          this.api = process.env.VUE_APP_BASE_API;
-        } else {
-          this.api = `${window.location.protocol}//${window.location.host}`;
-        }
-        
 
-        this.action = this.api + this.url; */
         this.uploadFinished()
         this.dialogFormVisible = false
       },

@@ -68,7 +68,7 @@ urlpatterns = [
     path(r'mdeditor/', include('mdeditor.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # there is no api for original design
 
 ]
 # 把媒体文件的路由注册了

@@ -116,54 +116,6 @@ export const asyncRoutes = [
           icon: 'marker',
           permissions: ['admin'],
         },
-        // children: [
-        //   {
-        //     path: 'personal',
-        //     name: 'Personal',
-        //     component: () =>
-        //       import('@/views/project/gallery/components/pgFacePersonal'),
-        //     meta: {
-        //       title: 'Personl',
-        //       icon: 'marker',
-        //       permissions: ['admin'],
-        //     },
-        //   },
-        //   {
-        //     path: 'group',
-        //     name: 'Group',
-        //     component: () =>
-        //       import('@/views/project/gallery/components/pgFaceGroup'),
-        //     meta: {
-        //       title: 'Group',
-        //       icon: 'marker',
-        //       permissions: ['admin'],
-        //     },
-        //   },
-        //   {
-        //     path: 'FacePerson',
-        //     name: 'FacePerson',
-        //     hidden: true,
-        //     component: () =>
-        //       import('@/views/project/gallery/components/pgFace'),
-        //     meta: {
-        //       title: 'Face Gallery',
-        //       icon: 'marker',
-        //       permissions: ['admin'],
-        //     },
-        //   },
-        //   {
-        //     path: 'faceGroup',
-        //     name: 'FaceGroup',
-        //     hidden: true,
-        //     component: () =>
-        //       import('@/views/project/gallery/components/pgGroup'),
-        //     meta: {
-        //       title: 'Face Group',
-        //       icon: 'marker',
-        //       permissions: ['admin'],
-        //     },
-        //   },
-        // ],
       },
       {
         path: 'PersonDetail',
@@ -210,9 +162,29 @@ export const asyncRoutes = [
       {
         path: 'graph',
         name: 'Graph',
-        component: () => import('@/views/project/graph/interactiveGraph'),
+        component: () => import('@/views/project/graph'),
         meta: {
           title: 'Graph',
+          icon: 'marker',
+          permissions: ['admin'],
+        },
+      },
+      {
+        path: 'explorer',
+        name: 'Explorer',
+        component: () => import('@/views/project/graph/explorer'),
+        meta: {
+          title: 'Explorer',
+          icon: 'marker',
+          permissions: ['admin'],
+        },
+      },
+      {
+        path: 'finder',
+        name: 'Finder',
+        component: () => import('@/views/project/graph/finder'),
+        meta: {
+          title: 'Finder',
           icon: 'marker',
           permissions: ['admin'],
         },

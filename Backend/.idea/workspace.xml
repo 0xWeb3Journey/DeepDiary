@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_train_list.txt" beforeDir="false" />
@@ -1478,22 +1480,33 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/pagination.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/signals.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/task.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/face/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/gps.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/gps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/app.5b4d7291.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/app.5b4d7291.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-0b4404b9.4b4e9f6d.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-0b4404b9.4b4e9f6d.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-1788f7ae.9127a7d3.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-1788f7ae.9127a7d3.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-20d8dc3e.e4cc302c.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-20d8dc3e.e4cc302c.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/chunk-9e7c9e88.650671f4.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/chunk-9e7c9e88.650671f4.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/static/css/element-ui.0e3a750b.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/css/element-ui.0e3a750b.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/dist/static/js/element-ui.6c77b9ee.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/static/js/element-ui.6c77b9ee.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/pagination.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/pagination.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/plugins/aMap.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/plugins/aMap.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/amap/imgSlide.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/amap/imgSlide.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/amap/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/amap/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/amap/map.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/amap/map.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/public/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/api/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/api/user.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/Album/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/Album/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/VabUpload/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/VabUpload/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/router/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/carosel.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/carosel.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/groupDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/groupDetail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/personDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/personDetail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/img/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/img/index.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1533,7 +1546,7 @@
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/face" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="ReaderModeSettings">
@@ -1541,11 +1554,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\BlueDoc\DeepDiary\Backend" />
       <recent name="D:\BlueDoc\DeepDiary\Backend\face" />
       <recent name="D:\BlueDoc\deep_diary\utils" />
       <recent name="D:\BlueDoc\deep_diary\face" />
       <recent name="D:\BlueDoc\deep_diary\vue-element-admin" />
-      <recent name="D:\BlueDoc\deep_diary\mmdetection\demo\gif_demo" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\BlueDoc\deep_diary\mmdetection\checkpoints" />
@@ -1570,6 +1583,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/face/detect.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Backend" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../Study/python" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../../Study/python/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1641,27 +1675,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="tests" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="deep_diary" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/face" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/face/tests.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="views" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -1685,19 +1698,19 @@
     </configuration>
     <list>
       <item itemvalue="Python.detect" />
+      <item itemvalue="Python.main" />
       <item itemvalue="Python.mcs_storage" />
       <item itemvalue="Python.tests (1)" />
       <item itemvalue="Python.tests (2)" />
-      <item itemvalue="Python.tests" />
       <item itemvalue="Python.views" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.tests (1)" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.tests (2)" />
         <item itemvalue="Python.views" />
         <item itemvalue="Python.mcs_storage" />
-        <item itemvalue="Python.tests" />
       </list>
     </recent_temporary>
   </component>
@@ -1752,8 +1765,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/library/tests.py</url>
-          <line>263</line>
+          <line>42</line>
           <option name="timeStamp" value="48" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/library/tests.py</url>
+          <line>17</line>
+          <option name="timeStamp" value="49" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

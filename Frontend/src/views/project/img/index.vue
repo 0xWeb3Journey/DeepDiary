@@ -8,9 +8,10 @@
     <Album
       v-if="true"
       ref="album"
-      title="人脸"
-      :items="img.faces"
-      :total="img.faces.length"
+      title="Person"
+      type="person"
+      :items="img.persons"
+      :total="totalPerson"
       @albumClick="onGetAlbumId"
       @doubleClick="onRouteJump"
     ></Album>
@@ -306,6 +307,7 @@
         // center: [116.127808, 30.173239],
         checkedIndex: 0,
         checkedId: 0,
+        totalPerson: 0,
         ImgQueryForm: {
           id: 0,
         },
@@ -346,7 +348,8 @@
         console.log('recieved the child component value %d,%o', index, item)
         // 声明这个函数，便于子组件调用
         this.checkedIndex = index
-        this.checkedId = item.face_album
+        this.checkedId = item.face_album //using faces
+        this.checkedId = item.id //using persons
       },
 
       onRouteJump(index, item) {
@@ -358,7 +361,8 @@
         this.$router.push({
           name: 'PersonDetail',
           query: {
-            id: item.face_album,
+            // id: item.face_album,  //using faces
+            id: item.id, // using persons
             title: item.name,
           },
         })
@@ -370,6 +374,7 @@
         const { data } = await getImgDetail(this.ImgQueryForm.id)
         console.log(data)
         this.img = data
+        this.totalPerson = this.img.persons.length
         // this.center = this.img.address.lnglat
       },
     },

@@ -6,7 +6,7 @@ from rest_framework import serializers
 # from face.serializers import FaceSerializer
 from rest_framework.fields import SerializerMethodField
 
-from face.serializers import FaceSerializer, facesField, FaceSimpleSerializer
+from face.serializers import FaceSerializer, facesField, FaceSimpleSerializer, FaceAlbumSerializer
 from library.models import Img, Category, Mcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg, \
     ImgCategory, Address, Evaluate, Date
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
@@ -145,6 +145,7 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     # face = FaceSerializer(many=True, read_only=True)  # 这里的名字，必须是Face 定义Img 外键时候的'related_name'
     # names = facesField(many=True, read_only=True)  # 获取子集模型字段的方法一，指定序列化器
     faces = FaceSimpleSerializer(many=True, read_only=True)
+    persons = FaceAlbumSerializer(many=True, read_only=True)
     # imgcategories = ImgCategorySerializer(many=True, read_only=True)
     # categories = CategorySerializer(read_only=True, many=True)
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数

@@ -6,7 +6,7 @@ const network = {
   baseURL:
     process.env.NODE_ENV === 'development'
       ? 'http://127.0.0.1:8000' //http://127.0.0.1:8000'
-      : 'http://121.43.166.145:8000', // vab-mock-server
+      : 'http://www.deep-diary.com', //this solution is without port number http://121.43.166.145
   //配后端数据的接收方式application/json;charset=UTF-8或者application/x-www-form-urlencoded;charset=UTF-8
   contentType: 'application/x-www-form-urlencoded;charset=UTF-8',
   //消息框消失时间

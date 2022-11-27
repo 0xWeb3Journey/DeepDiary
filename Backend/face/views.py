@@ -62,7 +62,7 @@ class FaceAlbumViewSet(viewsets.ModelViewSet):
         print(f'当前访问人脸相册的用户是 =  {self.request.user}')
 
         album = self.get_object()
-        change_album_name.delay(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
+        change_album_name(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
         # old_name, new_name = change_album_name(album, serializer)  # 相册改名后，对应的人脸都需要改名，或者后续直接用相册名字
 
         print(serializer.validated_data)

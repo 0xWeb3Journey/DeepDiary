@@ -56,7 +56,7 @@ class FaceAlbum(MPTTModel):
                                  blank=True,
                                  help_text='对图片按人脸进行分类',
                                  default=None,
-                                 related_name='facealbums')
+                                 related_name='persons')
     profile = models.OneToOneField(
         Profile,
         related_name='facealbum',

@@ -9,7 +9,7 @@ export async function login(data) {
     console.log(data)
   }
   return request({
-    url: '/login/',
+    url: '/api/login/',
     method: 'post',
     data,
   })
@@ -53,7 +53,7 @@ export function logout() {
 
 export function register() {
   return request({
-    url: '/register',
+    url: '/api/register',
     method: 'post',
   })
 }

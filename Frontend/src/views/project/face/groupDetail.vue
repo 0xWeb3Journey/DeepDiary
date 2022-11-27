@@ -28,16 +28,27 @@
       }
     },
     computed: {},
-    watch: {},
+    watch: {
+      'queryForm.id'(newVal, oldVal) {
+        console.log(
+          'this.faceQueryForm.id have bee changed: %d --> %d',
+          oldVal,
+          newVal
+        )
+        this.groups = []
+        this.fetchFaceGroupDetail()
+      },
+    },
     created() {
       console.log('component have been created --')
     },
     mounted() {
       console.log('component have been mounted --')
-      this.fetchFaceGroupDetail()
+      // this.fetchFaceGroupDetail()
     },
     activated() {
       console.log('the face component is activated')
+      this.queryForm.id = this.$route.query.id
     },
     deactivated() {
       console.log('the face component is deactivated')

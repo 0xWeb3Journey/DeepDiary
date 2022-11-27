@@ -42,27 +42,36 @@
       // },
     },
     watch: {
-      // album_id(newVal, oldVal) {
-      //   console.log('album_id have bee changed: %d --> %d', oldVal, newVal)
-      //   this.fetchFacePerson()
-      // },
+      'faceQueryForm.id'(newVal, oldVal) {
+        console.log(
+          'this.faceQueryForm.id have bee changed: %d --> %d',
+          oldVal,
+          newVal
+        )
+        this.faces = []
+        this.fetchFacePerson()
+      },
     },
     created() {
       console.log('component have been created --')
     },
     mounted() {
       console.log('component have been mounted --')
-      this.fetchFacePerson()
+      // this.fetchFacePerson()
     },
     activated() {
       console.log('the face component is activated')
+      this.faceQueryForm.id = this.$route.query.id
     },
     deactivated() {
       console.log('the face component is deactivated')
     },
     methods: {
       async fetchFacePerson() {
-        console.log('start to get the fetchFacePerson...')
+        console.log(
+          'start to get the fetchFacePerson...',
+          this.faceQueryForm.id
+        )
         // if (this.faceLoading) return //incase fetch more data during the fetching time
         // this.faceLoading = true
         // await getFaceGallery(this.faceQueryForm, 1)
@@ -73,8 +82,9 @@
         // }
         // this.faceQueryForm.face_album__id = this.album_id
 
-        this.faceQueryForm.id = this.$route.query.id
+        // this.faceQueryForm.id = this.$route.query.id
 
+        // if (this.faceQueryForm.id !== true) return
         const { data } = await getFaceAlbumDetail(this.faceQueryForm)
         console.log('getFaceAlbumDetail: ', data)
         this.faces = [...data.faces]

@@ -101,15 +101,17 @@ class ImgViewSet(viewsets.ModelViewSet):
     ordering_fields = ['id', 'dates__capture_date']  # 这里的字段，需要总上面定义字段中选择
 
     def perform_create(self, serializer):
-        print(f"INFO:{self.request.user}")
+        print(f"INFO:Img start perform_create, {self.request.user}")
         instance = serializer.save(user=self.request.user)
-        print(f'INFO: Img start perform_create........{instance.src}')
-        img_process.delay(instance)
+        # print(f'INFO: Img start perform_create........{instance.src}')
+        # # img_process.delay(instance)
+        # set_img_info(instance)
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
-        # print(f'图片更新：{self.request.data}')
-        instance = serializer.save()  # ProcessedImageField, 也就是ImageField的实例对象
-        print(f'INFO: start perform_update........data is: {serializer.validated_data}')
+        print(f'图片更新：{self.request.data}')
+        instance = self.get_object()  # 获取详情的实例对象
+        # instance = serializer.save()  # ProcessedImageField, 也就是ImageField的实例对象
+        # print(f'INFO: start perform_update........data is: {serializer.validated_data}')
 
         # print(f"INFO: instance.src: {instance.src}")
         # print(f"INFO: instance.src.name: {instance.src.name}")

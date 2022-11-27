@@ -197,6 +197,7 @@
         console.log('单击事件: ', item)
 
         this.checkedIndex = index
+        this.checkedId = item.id
         if (index < 0) return //reture directly if there is no item in items
 
         this.$emit('albumClick', index, item) //自定义事件  传递值“子向父组件传值”
@@ -232,7 +233,7 @@
         if (value !== this.albumName) {
           this.postData.id = this.checkedId
           this.postData.name = value
-
+          console.log('this.postData.id', this.postData.id)
           const { data, msg } = await changeFaceName(this.postData)
           console.log(data, msg)
           this.$message({
@@ -245,7 +246,7 @@
       },
 
       changeName(value, album) {
-        if (this.type === 'personal') {
+        if (this.type === 'person') {
           this.changeFaceAlbumName(value, album)
         }
         if (this.type === 'img') {

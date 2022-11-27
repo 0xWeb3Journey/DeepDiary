@@ -16,30 +16,16 @@ from project.models import Issue
 from user_info.models import Profile
 
 
-def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/%Y/%m/%d/file
+def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "img"
-    print('INFO: instance.user.username！' + instance.user.username)
-    print(instance.id)
-
-    p = Image.open(instance.src)  # 创建图像实例
-    if p._getexif() and 36867 in p._getexif():
-        date_str = p._getexif()[36867]  # 获取时间戳
-        print('照片日期：' + date_str)  # 照片日期：2021:07:31 18:13:31
-    else:
-        date_str = '1970:01:01 00:00:00'
-        print('跳过：未找到时间信息！')
-
-    tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
-    date_path = os.path.join(str(tt.year), str(tt.month), str(tt.day))
-
     instance.name = filename
     instance.type = filename.split('.')[-1]
-    # instance = get_img_info(instance)  # 本打算在这里获取更多的图片元数据，但是这里的实例还没保存，图片路径还不存在
-
     if not instance.user.username:
         instance.user.username = 'unauthorized'
-    user_img_path = os.path.join(instance.user.username, sub_folder, date_path, filename)  # 生成照片保存的路径
-    print('照片存放路径为：' + user_img_path)  # dir struct MEDIA/user/subfolder/%Y/%m/%d/file
+    # os.path.join will be wrong: blue\img\1970\1\1\avatar.jpg
+    # user_img_path = os.path.join(instance.user.username, sub_folder, date_path, filename)
+    user_img_path = '{0}/{1}/{2}'.format(instance.user.username, sub_folder, filename)
+    print('照片存放路径为：' + user_img_path)  # dir struct MEDIA/user/subfolder/file
 
     return user_img_path
 
@@ -47,6 +33,7 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
 def category_directory_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     return 'category/{0}/{1}'.format(instance.name, filename)
+
 
 class Img(models.Model):
     ## 图片基本属性：basic
@@ -56,7 +43,7 @@ class Img(models.Model):
         (9, "已经删除"),
     )
     # 所属用户
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name="所属用户")
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name="所属用户", default=1)
     src = models.ImageField(upload_to=user_directory_path,
                             verbose_name="照片路径",
                             help_text='请选择需要上传的图片',
@@ -164,6 +151,7 @@ class Category(models.Model):
                                   format='JPEG',
                                   options={'quality': 80},
                                   )
+
     class Meta:
         ordering = ['-id']
 

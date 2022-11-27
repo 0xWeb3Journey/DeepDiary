@@ -15,7 +15,8 @@ from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-from deep_diary.config import mysql_account
+from deep_diary.config import mysql_account, oss
+import django_oss_storage
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -61,9 +62,9 @@ INSTALLED_APPS = [
     'mptt',  # 实现多级评论
     'django_extensions',
     'coreschema',  # 解决跨域问题
+    'django_oss_storage',
     # 'notifications',  # 实现消息通知
     # 'password_reset',  # 实现密码重置
-
 
 ]
 
@@ -156,22 +157,37 @@ USE_L10N = True
 
 USE_TZ = True
 
+# 配置OSS信息
+OSS_ACCESS_KEY_ID = oss['OSS_ACCESS_KEY_ID']
+OSS_ACCESS_KEY_SECRET = oss['OSS_ACCESS_KEY_SECRET']
+OSS_ENDPOINT = oss['OSS_ENDPOINT']
+OSS_BUCKET_NAME = oss['OSS_BUCKET_NAME']
+OSS_BUCKET_ACL = "public-read"  # private, public-read, public-read-write
+OSS_PREFIX = 'oss://'
+
+# 设置上传的媒体文件
+DEFAULT_FILE_STORAGE = 'django_oss_storage.backends.OssMediaStorage'
+STATICFILES_STORAGE = 'django_oss_storage.backends.OssStaticStorage'
+
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
-# 静态文件收集目录,使用本地静态资源文件
-STATIC_URL = '/static/'
-
+# https://docs.djangoproject.com/en/1.11/howto/static-files/
+# Staticfiles storage settings
+STATIC_PREFIX = 'static/'
+STATIC_URL = '/static/'  # 静态文件收集目录,使用本地静态资源文件
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # 指定需要收集的静态文件的位置
 # 即前端打包文件所在位置
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend/dist/')
 ]
 # 静态文件收集目录
-STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
+# File storage settings: ImageField and FileField
+MEDIA_PREFIX = 'media/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 IMG_ROOT = os.path.join(MEDIA_ROOT, 'img')
 FACE_ROOT = os.path.join(MEDIA_ROOT, 'face')
 FACE_INFO_ROOT = os.path.join(MEDIA_ROOT, 'face_info')
@@ -180,6 +196,7 @@ FACE_INFO_ROOT = os.path.join(MEDIA_ROOT, 'face_info')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024  # 默认设置为5M
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -255,20 +272,18 @@ SIMPLE_JWT = {
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-
 broker_url = 'redis://127.0.0.1:6379/15'
 result_backend = 'redis://127.0.0.1:6379/14'
 
-
 # django-redis 配置
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "CONNECTION_POOL_KWARGS": {"max_connections": 100}
-            # "PASSWORD": "123",
-        }
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             "CONNECTION_POOL_KWARGS": {"max_connections": 100}
+#             # "PASSWORD": "123",
+#         }
+#     }
+# }
