@@ -166,8 +166,8 @@ OSS_BUCKET_ACL = "public-read"  # private, public-read, public-read-write
 OSS_PREFIX = 'oss://'
 
 # 设置上传的媒体文件
-DEFAULT_FILE_STORAGE = 'django_oss_storage.backends.OssMediaStorage'
-STATICFILES_STORAGE = 'django_oss_storage.backends.OssStaticStorage'
+# DEFAULT_FILE_STORAGE = 'django_oss_storage.backends.OssMediaStorage'
+# STATICFILES_STORAGE = 'django_oss_storage.backends.OssStaticStorage'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
