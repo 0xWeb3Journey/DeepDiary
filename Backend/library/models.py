@@ -15,6 +15,23 @@ from project.models import Issue
 # Create your models here.
 from user_info.models import Profile
 
+STATE_OPTION = (
+    (0, "正常"),
+    (1, "禁用"),
+    (9, "已经删除"),
+)
+SEX_OPTION = (
+    (0, "男"),
+    (1, "女"),
+    (2, "保密"),
+)
+
+DET_METHOD_OPTION = (
+    (0, "Lightroom"),
+    (1, "InsightFace"),
+    (2, "Others"),
+)
+
 
 def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "img"
@@ -35,18 +52,25 @@ def category_directory_path(instance, filename):
     return 'category/{0}/{1}'.format(instance.name, filename)
 
 
+def face_directory_path(instance, filename):
+    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
+    return 'face/{0}'.format(filename)
+
+
 class Img(models.Model):
-    ## 图片基本属性：basic
-    STATE_OPTION = (
-        (0, "正常"),
-        (1, "禁用"),
-        (9, "已经删除"),
-    )
     # 所属用户
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name="所属用户", default=1)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, verbose_name="所属用户", default=1, related_name='imgs')
+    # 230624 新增多对多关系
+    profiles = models.ManyToManyField(Profile, through='Face', verbose_name="相关用户", related_name='face_imgs')
     src = models.ImageField(upload_to=user_directory_path,
                             verbose_name="照片路径",
-                            help_text='请选择需要上传的图片',
+                            help_text='保存到本地路径',
+                            null=True, blank=True,
+                            default='sys_img/logo_lg.png',
+                            )
+    url = models.ImageField(upload_to=user_directory_path,
+                            verbose_name="照片路径",
+                            help_text='保存到网络中的路径',
                             null=True, blank=True,
                             default='sys_img/logo_lg.png',
                             )
@@ -59,52 +83,39 @@ class Img(models.Model):
     #                             null=True, blank=True,
     #                             default='sys_img/logo_lg.png'
     #                             )
-    thumb = ImageSpecField(source='src',
-                           # processors=[ResizeToFill(400, 400)],
-                           processors=[ResizeToFit(width=500, height=500)],
-                           # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
-                           format='JPEG',
-                           options={'quality': 80},
-                           )
-    issue = models.ForeignKey(
-        Issue,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='img',
-        help_text='这张照片隶属于哪个问题清单'
-    )
+    # thumb = ImageSpecField(source='src',
+    #                        # processors=[ResizeToFill(400, 400)],
+    #                        processors=[ResizeToFit(width=500, height=500)],
+    #                        # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
+    #                        format='JPEG',
+    #                        options={'quality': 80},
+    #                        )
 
-    name = models.CharField(default='unnamed', max_length=40, null=True, blank=True, unique=False,
+    name = models.CharField(default='unnamed', max_length=40, null=True, blank=True, unique=True,
                             verbose_name="图片名", help_text='')  # unique=False, 方便调试
     type = models.CharField(max_length=10, null=True, blank=True, verbose_name="图片格式", help_text='图片格式')
     wid = models.IntegerField(default=0, blank=True, verbose_name="图片宽度", help_text='图片宽度')
     height = models.IntegerField(default=0, blank=True, verbose_name="图片高度", help_text='图片高度')
     aspect_ratio = models.DecimalField(default=0.0, max_digits=3, decimal_places=2, null=True, blank=True,
                                        verbose_name="长宽比")
-    is_exist = models.BooleanField(default=True, null=True, blank=True,
-                                   verbose_name="路径是否存在", help_text='路径是否存在')
 
     ## 标签属性: label
     title = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片标题", help_text='图片标题')
     caption = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片描述", help_text='图片描述')
     label = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片说明", help_text='图片说明')
     tags = TaggableManager(blank=True, verbose_name="照片标签", help_text='照片标签', related_name='imgs')
+    embedding = models.BinaryField(null=True, blank=True, verbose_name='图片特征',
+                                   help_text='图片特征向量，用于以文搜图，以图搜图')
 
     camera_brand = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机品牌", help_text='相机品牌')
     camera_model = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机型号", help_text='相机型号')
 
-    ## 其它属性: others
-    is_publish = models.BooleanField(null=True, blank=True, default=True, verbose_name="是否公开", help_text='是否公开')
-    state = models.SmallIntegerField(choices=STATE_OPTION, null=True, blank=True, default=0,
-                                     verbose_name="图片状态",
-                                     help_text="0:正常，1：禁用, 9: 已经删除")
     # 数据库更新日期
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     def __str__(self):
-        return self.id.__str__()
+        return self.name
 
     def to_dict(self):
         return {'id': self.id,
@@ -124,6 +135,34 @@ class Img(models.Model):
         get_latest_by = 'id'
 
 
+class Stat(models.Model):
+    """图片状态属性"""
+    img = models.OneToOneField(
+        Img,
+        related_name='stats',
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    is_publish = models.BooleanField(blank=True, default=False, verbose_name="是否公开", help_text='是否公开')
+    is_path_exist = models.BooleanField(blank=True, default=False, verbose_name="路径是否存在",
+                                        help_text='路径是否存在')
+    is_deleted = models.BooleanField(blank=True, default=False, verbose_name="是否删除", help_text='是否删除')
+    is_get_info = models.BooleanField(blank=True, default=False, verbose_name="是否提取了图片元数据",
+                                      help_text='是否提取了图片元数据')
+    is_store_mcs = models.BooleanField(blank=True, default=False, verbose_name="是否已经保存到mcs",
+                                       help_text='是否已经保存到mcs')
+    is_auto_tag = models.BooleanField(blank=True, default=False, verbose_name="是否已经完成自动标注",
+                                      help_text='是否已经完成自动标注')
+    is_get_color = models.BooleanField(blank=True, default=False, verbose_name="是否完成颜色提取",
+                                       help_text='是否完成颜色提取')
+    is_get_cate = models.BooleanField(blank=True, default=False, verbose_name="是否完成自动分类",
+                                      help_text='是否完成自动分类')
+    is_face = models.BooleanField(blank=True, default=False, verbose_name="是否完成人脸识别",
+                                  help_text='是否完成人脸识别')
+    is_object = models.BooleanField(blank=True, default=False, verbose_name="是否完成目标识别",
+                                    help_text='是否完成目标识别')
+
+
 class Category(models.Model):
     """图片分类"""
     img = models.ManyToManyField(to=Img,
@@ -133,8 +172,10 @@ class Category(models.Model):
                                  help_text='对图片按应用进行分类',
                                  default=None,
                                  related_name='categories')
-    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="图片类别", help_text='图片按应用进行划分')
-    type = models.CharField(max_length=20, default='category', blank=True, verbose_name="分类类型", help_text='分类类型')
+    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="图片类别",
+                            help_text='图片按应用进行划分')
+    type = models.CharField(max_length=20, default='category', blank=True, verbose_name="分类类型",
+                            help_text='分类类型')
     value = models.CharField(max_length=50, null=True, blank=True, verbose_name="类型值", help_text='类型值')
     numeric_value = models.IntegerField(null=True, blank=True, verbose_name="数值类型值", help_text='数值类型值')
     avatar = models.ImageField(upload_to=user_directory_path,
@@ -167,10 +208,10 @@ class ImgCategory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
 
 
-class Mcs(models.Model):
+class ImgMcs(models.Model):
     id = models.OneToOneField(
         Img,
-        related_name='mcs',
+        related_name='img_mcs',
         on_delete=models.CASCADE,
         primary_key=True,
     )
@@ -210,16 +251,20 @@ class Address(models.Model):
         primary_key=True,
     )
     ## 地点属性:location
-    is_located = models.BooleanField(default=False, blank=True, verbose_name="是否有GPS 信息", help_text='是否有GPS 信息')
+    is_located = models.BooleanField(default=False, blank=True, verbose_name="是否有GPS 信息",
+                                     help_text='是否有GPS 信息')
     longitude_ref = models.CharField(default='E', max_length=5, null=True, blank=True, verbose_name="东西经",
                                      help_text='东西经')
-    longitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="经度", help_text='经度')
+    longitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="经度",
+                                  help_text='经度')
     latitude_ref = models.CharField(default='N', max_length=5, null=True, blank=True, verbose_name="南北纬",
                                     help_text='南北纬')
-    latitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="纬度", help_text='纬度')
+    latitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="纬度",
+                                 help_text='纬度')
     altitude_ref = models.FloatField(default=0.0, max_length=5, null=True, blank=True, verbose_name="参考高度",
                                      help_text='参考高度')
-    altitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="高度", help_text='高度')
+    altitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="高度",
+                                 help_text='高度')
     location = models.CharField(default='No GPS', max_length=50, null=True, blank=True, verbose_name="拍摄地",
                                 help_text='拍摄地')
     district = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄区县",
@@ -301,7 +346,8 @@ class Evaluate(models.Model):
     flag = models.SmallIntegerField(default=0, choices=FLAG_OPTION, null=True, blank=True, verbose_name="旗标",
                                     help_text="0：无旗标，1：选中旗标，2，排除旗标")
     rating = models.IntegerField(default=0, null=True, blank=True, verbose_name="星标等级", help_text='星标等级')
-    total_views = models.PositiveIntegerField(null=True, blank=True, default=0, verbose_name="照片浏览量", help_text='照片浏览量')
+    total_views = models.PositiveIntegerField(null=True, blank=True, default=0, verbose_name="照片浏览量",
+                                              help_text='照片浏览量')
     likes = models.PositiveIntegerField(null=True, blank=True, default=0, verbose_name="点赞个数", help_text='点赞个数')
 
     def __str__(self):
@@ -375,31 +421,126 @@ class ColorImg(ColorItem):
     color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='image',
                               verbose_name="ColorImg")
 
-# def get_date_info(date_str):  # '%Y:%m:%d %H:%M:%S'
-#
-#     if not date_str:
-#         date_str = '1970:01:01 00:00:00'
-#
-#     tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
-#     t_date = tt.strftime("%Y-%m-%d")
-#     t_time = tt.strftime("%H:%M:%S")
-#     year = str(tt.year).rjust(2, '0')
-#     month = str(tt.month).rjust(2, '0')
-#     day = str(tt.day).rjust(2, '0')
-#
-#     if tt.weekday() < 5:
-#         is_weekend = False
-#     else:
-#         is_weekend = True
-#     if 0 < tt.hour < 5:
-#         earthly_branches = 0  # 这个判断需要后续完善，可以直接把字符串格式化后，再判读时间是否属于朝九晚五
-#     elif 5 < tt.hour < 8:
-#         earthly_branches = 1
-#     elif 8 < tt.hour < 17:
-#         earthly_branches = 2
-#     elif 17 < tt.hour < 21:
-#         earthly_branches = 3
-#     else:
-#         earthly_branches = 4
-#
-#     return t_date, t_time, tt.year, tt.month, tt.day, is_weekend, earthly_branches
+
+class Face(models.Model):
+    img = models.ForeignKey(Img, null=True, on_delete=models.CASCADE, verbose_name="所属照片", related_name='faces')
+    profile = models.ForeignKey(Profile, null=True, blank=True, on_delete=models.CASCADE, verbose_name="所属人脸相册",
+                                related_name='faces')
+
+    is_confirmed = models.BooleanField(blank=True, default=False, verbose_name="人脸是否已确认",
+                                       help_text='请对人脸名字进行确认')
+    det_score = models.FloatField(null=True, blank=True, verbose_name="是人脸的概率", help_text='是人脸的概率')
+    face_score = models.FloatField(null=True, blank=True, verbose_name="是这个人的概率", help_text='是这个人的概率')
+    age = models.SmallIntegerField(null=True, blank=True, verbose_name="人脸的年龄，用于训练",
+                                   help_text='人脸的年龄，用于训练')
+    gender = models.SmallIntegerField(choices=SEX_OPTION, default=2, blank=True, verbose_name="性别",
+                                      help_text="0:男，1：女, 2： 保密")
+    embedding = models.BinaryField(null=True, blank=True, verbose_name='人脸特征',
+                                   help_text='已识别的人脸特征向量')
+    src = models.ImageField(upload_to=face_directory_path,
+                            verbose_name="人脸路径",
+                            help_text='保存到本地的人脸路径',
+                            null=True, blank=True,
+                            default='sys_img/unknown.jpg',
+                            )
+    url = models.ImageField(upload_to=face_directory_path,
+                            verbose_name="人脸路径",
+                            help_text='保存到网络的人脸路径',
+                            null=True, blank=True,
+                            default='sys_img/unknown.jpg',
+                            )
+    thumb = ImageSpecField(source='src',
+                           processors=[ResizeToFill(400, 400)],
+                           format='JPEG',
+                           options={'quality': 80})
+    x = models.IntegerField(null=True, blank=True, verbose_name="左上角x坐标", help_text='人脸左上角x坐标')
+    y = models.IntegerField(null=True, blank=True, verbose_name="左上角y坐标", help_text='人脸左上角y坐标')
+    wid = models.IntegerField(null=True, blank=True, verbose_name="宽度", help_text='人脸宽度')
+    height = models.IntegerField(null=True, blank=True, verbose_name="高度", help_text='人脸高度')
+
+    pose_x = models.FloatField(null=True, blank=True, verbose_name="俯仰（Pitch）角度",
+                               help_text='俯仰角描述物体绕其横轴旋转的角度')
+    pose_y = models.FloatField(null=True, blank=True, verbose_name="偏航（Yaw）角度",
+                               help_text='偏航角描述物体绕其竖轴旋转的角度')
+    pose_z = models.FloatField(null=True, blank=True, verbose_name="翻滚（Roll）角度",
+                               help_text='翻滚角描述物体绕其纵轴旋转的角度')
+
+    det_method = models.SmallIntegerField(choices=DET_METHOD_OPTION, null=True, blank=True, default=0,
+                                          verbose_name="检测方法",
+                                          help_text="人脸检测方法")
+    state = models.SmallIntegerField(choices=STATE_OPTION, null=True, blank=True, default=0,
+                                     verbose_name="人脸状态",
+                                     help_text="0:正常，1：禁用, 9: 已经删除")
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间",
+                                      help_text='指定其在创建数据时将默认写入当前的时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间",
+                                      help_text='指定每次数据更新时自动写入当前时间')
+
+    def __str__(self):
+        #  如果外键profile存在，则返回self.profile.name，否则返回'unknown'
+        if self.profile:
+            return f'{self.pk}_{self.profile.name}'
+        else:
+            return f'{self.pk}_unknown'
+
+    class Meta:
+        ordering = ('-created_at',)
+        get_latest_by = 'created_at'
+
+
+class FaceMcs(models.Model):
+    id = models.OneToOneField(
+        Face,
+        related_name='face_mcs',
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    file_upload_id = models.IntegerField(default=0, null=True, blank=True, verbose_name="up load file id",
+                                         help_text='up load file id')
+    file_name = models.CharField(max_length=40, null=True, blank=True, verbose_name="file_name", help_text='file_name')
+    file_size = models.IntegerField(default=0, null=True, blank=True, verbose_name="file_size", help_text='file_size')
+    updated_at = models.DateTimeField(default=timezone.now, verbose_name="updated_at", help_text='updated_at')
+
+    nft_url = models.URLField(
+        default='https://calibration-ipfs.filswan.com/ipfs/QmQzPDUheTnFYA7HanxwCLw3QrR7choBvh8pswF4LgxguV', null=True,
+        blank=True, verbose_name="NFT 站点", help_text='相当于一个图片源，可以展示图片')
+    pin_status = models.CharField(max_length=8, null=True, blank=True, verbose_name="pin_status",
+                                  help_text='pin_status')
+    payload_cid = models.CharField(max_length=80, null=True, blank=True, verbose_name="payload_cid",
+                                   help_text='payload_cid')
+    w_cid = models.CharField(max_length=100, null=True, blank=True, verbose_name="w_cid", help_text='w_cid')
+    status = models.CharField(max_length=8, null=True, blank=True, verbose_name="status", help_text='status')
+
+    deal_success = models.BooleanField(default=False, blank=True, verbose_name="deal_success", help_text='deal_success')
+    is_minted = models.BooleanField(default=False, blank=True, verbose_name="is_minted", help_text='is_minted')
+    token_id = models.CharField(max_length=8, null=True, blank=True, verbose_name="token_id", help_text='token_id')
+    mint_address = models.CharField(max_length=80, null=True, blank=True, verbose_name="mint_address",
+                                    help_text='mint_address')
+    nft_tx_hash = models.CharField(max_length=80, null=True, blank=True, verbose_name="nft_tx_hash",
+                                   help_text='nft_tx_hash')
+
+    def __str__(self):
+        return self.id.name
+
+
+class FaceLandmarks3D(models.Model):
+    face = models.ForeignKey(Face, null=True, on_delete=models.CASCADE, related_name='landmarks3d',
+                             verbose_name="所属人脸")
+    x = models.FloatField()
+    y = models.FloatField()
+    z = models.FloatField()
+
+
+class FaceLandmarks2D(models.Model):
+    face = models.ForeignKey(Face, null=True, on_delete=models.CASCADE, related_name='landmarks2d',
+                             verbose_name="所属人脸")
+    x = models.FloatField()
+    y = models.FloatField()
+
+
+class Kps(models.Model):
+    face = models.ForeignKey(Face, null=True, on_delete=models.CASCADE, related_name='kps',
+                             verbose_name="所属人脸")
+    x = models.FloatField()
+    y = models.FloatField()

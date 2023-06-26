@@ -136,7 +136,7 @@
       igraph.i18n.setLanguage('chs')
       var app = new igraph.GraphExplorer(document.getElementById('graphArea'))
       app.loadGson(
-        'http://www.deep-diary.com/api/faces/test/',
+        'https://www.deep-diary.com/api/faces/test/', // need to be changed based on Base URL
         {
           onGetNodeDescription: function (node) {
             console.log(node)

@@ -1,5 +1,5 @@
 # user_info/views.py
-
+from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -84,16 +84,17 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])  # detail=False, 接口外面调用，如果是True，在详情中调用
     def logout(self, request, username=None):
+        logout(request)
         data = {
             "code": 200,
-            "msg": "success"
+            "msg": "success logout"
         }
         return Response(data)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-
+    pagination_class = GeneralPageNumberPagination
     def get_serializer_class(self):
         if self.action == 'list':
             return ProfileSerializer

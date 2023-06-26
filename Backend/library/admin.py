@@ -1,11 +1,11 @@
 from django.contrib import admin
 
 # Register your models here.
-from library.models import Img, Mcs, Color, ColorBackground, ColorForeground, ColorImg, ColorItem, Category, \
-    ImgCategory, Evaluate, Date, Address
+from library.models import Img, ImgMcs, Color, ColorBackground, ColorForeground, ColorImg, ColorItem, Category, \
+    ImgCategory, Evaluate, Date, Address, Face, FaceMcs, FaceLandmarks3D, FaceLandmarks2D, Kps
 
 admin.site.register([
-    Mcs,
+    ImgMcs,
     Img,
     Color,
     ColorBackground,
@@ -16,7 +16,14 @@ admin.site.register([
     ImgCategory,
     Address,
     Date,
-    Evaluate])  # 把这个图像表注册到管理后台中
+    Evaluate,
+    Face,
+    FaceMcs,
+    FaceLandmarks3D,
+    FaceLandmarks2D,
+    Kps
+
+    ])  # 把这个图像表注册到管理后台中
 
 # @admin.register(Img)
 # class ImgAdmin(admin.ModelAdmin):

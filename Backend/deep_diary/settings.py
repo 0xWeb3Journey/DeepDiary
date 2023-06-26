@@ -60,12 +60,14 @@ INSTALLED_APPS = [
     'ckeditor',  # 实现富文本编辑器
     'ckeditor_uploader',  # 带图片上传的ckeditor
     'mptt',  # 实现多级评论
-    'django_extensions',
     'coreschema',  # 解决跨域问题
     'django_oss_storage',
+    'sslserver',
+    'django_extensions',  # 生成数据库ER图
     # 'notifications',  # 实现消息通知
     # 'password_reset',  # 实现密码重置
-
+    # 'debug_toolbar',  # 在视图中进行调试
+    'drf_spectacular',  # 自动生成api文档
 ]
 
 # 设置站点
@@ -83,6 +85,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',  # 在视图中进行调试
 ]
 
 ROOT_URLCONF = 'deep_diary.urls'
@@ -166,8 +169,8 @@ OSS_BUCKET_ACL = "public-read"  # private, public-read, public-read-write
 OSS_PREFIX = 'oss://'
 
 # 设置上传的媒体文件
-# DEFAULT_FILE_STORAGE = 'django_oss_storage.backends.OssMediaStorage'
-# STATICFILES_STORAGE = 'django_oss_storage.backends.OssStaticStorage'
+DEFAULT_FILE_STORAGE = 'django_oss_storage.backends.OssMediaStorage'
+STATICFILES_STORAGE = 'django_oss_storage.backends.OssStaticStorage'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
@@ -184,7 +187,8 @@ STATICFILES_DIRS = [
 # STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 # File storage settings: ImageField and FileField
-MEDIA_PREFIX = 'media/'
+# MEDIA_PREFIX = 'media/'
+# MEDIA_URL = '/media/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -200,7 +204,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 1024  # 默认设置为5M
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2,  # 没有配置，则没有分页
+    'PAGE_SIZE': 10,  # 没有配置，则没有分页
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     # 'DEFAULT_AUTHENTICATION_CLASSES': (
     #     'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -215,7 +219,8 @@ REST_FRAMEWORK = {
     # python中权限的配置，如果没有指明，系统默认的权限是允许所有人访问的
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 
 }
 
@@ -271,6 +276,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
+SECURE_SSL_REDIRECT = False
 
 broker_url = 'redis://127.0.0.1:6379/15'
 result_backend = 'redis://127.0.0.1:6379/14'
@@ -287,3 +293,20 @@ result_backend = 'redis://127.0.0.1:6379/14'
 #         }
 #     }
 # }
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Deep Diary API',
+    'DESCRIPTION': 'Make personal data valuable, both for yourself and others',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
+}
+# 在Django中使用django-debug-toolbar进行调试
+INTERNAL_IPS = [
+    # 添加您的IP地址，例如 '127.0.0.1'
+    '127.0.0.1'
+]
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}

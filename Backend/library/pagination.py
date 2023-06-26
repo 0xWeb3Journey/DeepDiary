@@ -12,7 +12,6 @@ class GalleryPageNumberPagination(PageNumberPagination):
     max_page_size = 20  # max page size
 
     def get_paginated_response(self, data):
-
         # category_id = []
         # img_id = []
         # for item in data:
@@ -56,6 +55,24 @@ class AddressNumberPagination(PageNumberPagination):
             },
             'totalCnt': self.page.paginator.count,
             'msg': 'success: get all the gps info',
+            'code': 200,
+            'data': data
+        })
+
+
+class FacePageNumberPagination(PageNumberPagination):
+    page_size = 10  # default page size
+    page_size_query_param = 'size'  # ?page=xx&size=??
+    max_page_size = 50  # max page size
+
+    def get_paginated_response(self, data):
+        return Response({
+            'links': {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link()
+            },
+            'totalCnt': self.page.paginator.count,
+            'msg': 'success',
             'code': 200,
             'data': data
         })

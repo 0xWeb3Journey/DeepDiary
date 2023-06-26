@@ -17,26 +17,31 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from drf_yasg.renderers import SwaggerUIRenderer
+from rest_framework import permissions
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-
 from article.views import ArticleViewSet
 from comment.views import CommentViewSet
-from face.views import FaceViewSet, FaceAlbumViewSet
-from library.views import ImgViewSet, ImgCategoryViewSet, McsViewSet, CategoryViewSet, AddressViewSet
+from library.views import ImgViewSet, ImgCategoryViewSet, ImgMcsViewSet, CategoryViewSet, AddressViewSet, FaceViewSet
 from project.views import ProjectViewSet, ProductViewSet, ToolingViewSet, OutsourcingViewSet, PurchaseViewSet, \
     DeliveryViewSet, ResumeViewSet, IssueViewSet
 from tags.views import TagViewSet
 from user_info.views import UserViewSet, CompanyViewSet, SupplyDemandSet, ProfileViewSet
 from utils.views import AdViewSet
+from django.urls import path
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
+
 
 router = DefaultRouter()
 
 router.register(r'imgcategory', ImgCategoryViewSet)
 router.register(r'img', ImgViewSet)
+router.register(r'face', FaceViewSet)
 router.register(r'article', ArticleViewSet)
 # router.register(r'category', CategoryViewSet)
 router.register(r'tag', TagViewSet)
@@ -44,8 +49,6 @@ router.register(r'comment', CommentViewSet)
 router.register(r'user', UserViewSet)
 router.register(r'profile', ProfileViewSet)
 router.register(r'company', CompanyViewSet)
-router.register(r'face', FaceViewSet)  # 新增
-router.register(r'faces', FaceAlbumViewSet)  # 新增
 router.register(r'project', ProjectViewSet)  # 新增
 router.register(r'product', ProductViewSet)  # 新增
 router.register(r'tooling', ToolingViewSet)  # 新增
@@ -54,11 +57,12 @@ router.register(r'purchase', PurchaseViewSet)  # 新增
 router.register(r'delivery', DeliveryViewSet)  # 新增
 router.register(r'resume', ResumeViewSet)  # 新增
 router.register(r'issue', IssueViewSet)  # 新增
-router.register(r'mcs', McsViewSet)  # 新增
+router.register(r'mcs', ImgMcsViewSet)  # 新增
 router.register(r'ad', AdViewSet)  # 新增
 router.register(r'supplydemand', SupplyDemandSet)  # 新增
 router.register(r'category', CategoryViewSet)  # 新增
 router.register(r'address', AddressViewSet)  # 新增
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -69,8 +73,14 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # there is no api for original design
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Optional UI:
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    # path("__debug__/", include("debug_toolbar.urls")),  # django-debug-toolbar 调试接口
 
 ]
+
 # 把媒体文件的路由注册了
 if settings.DEBUG:
   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

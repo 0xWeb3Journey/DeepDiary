@@ -1,32 +1,21 @@
-from datetime import datetime, timedelta
+from io import BytesIO
 
-from celery.result import AsyncResult
-from django.db.models import Count, Max
+import cv2
+import numpy as np
+from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from taggit.models import Tag
 
-from deep_diary.config import wallet_info
-from face.models import FaceAlbum
-from face.task import get_all_fts
-from library.filters import ImgFilter, ImgSearchFilter, CategoryFilter, AddressFilter
-from library.models import Img, Category, Mcs, Address
-from library.pagination import GalleryPageNumberPagination, AddressNumberPagination
+from library.filters import ImgFilter, CategoryFilter, AddressFilter
+from library.models import Img, Category, Address, Stat, Evaluate, Date, ImgMcs, Face
+from library.pagination import GalleryPageNumberPagination, AddressNumberPagination, FacePageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
-    CategorySerializer, AddressSerializer, CategoryDetailSerializer
-from library.task import set_img_info, set_img_mcs, set_all_img_mcs, set_img_tags, set_all_img_tags, \
-    set_img_colors, set_img_categories, set_all_img_categories, set_all_img_info, add_all_img_face_to_category, \
-    add_all_img_colors_to_category, add_all_img_addr_to_category, add_img_addr_to_category, add_img_colors_to_category, \
-    add_img_face_to_category, img_process
-from library.task import send_email
-
-from mycelery.library.tasks import send_sms
-from mycelery.main import app
-from utils.mcs_storage import upload_file_pay, approve_usdc
-
+    CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
+from library.task import set_img_info, set_all_img_info, add_img_addr_to_category, add_img_colors_to_category, \
+    add_img_face_to_category, img_process, ImgProces
 #
 # class CategoryViewSet(viewsets.ModelViewSet):
 #     queryset = Category.objects.all()
@@ -102,47 +91,30 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         print(f"INFO:Img start perform_create, {self.request.user}")
+        print(f"INFO:Img file, {self.request.FILES}")
+        file = self.request.FILES.get("src")
+        f_path = file.temporary_file_path()
+        print(f_path)
+
         instance = serializer.save(user=self.request.user)
+        stat = Stat.objects.create(img=instance)  # bind the one to one field image info
+        addr = Address.objects.create(img=instance)
+        eval = Evaluate.objects.create(img=instance)
+        date = Date.objects.create(img=instance)
+        instance.refresh_from_db()  # refresh from the DB
+
         # print(f'INFO: Img start perform_create........{instance.src}')
-        # # img_process.delay(instance)
-        # set_img_info(instance)
+        # img_process.delay(instance)
+        # img_process(instance)
+        set_img_info(instance, f_path)
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
-        print(f'图片更新：{self.request.data}')
+        data = self.request.data
+        print(f'图片更新：{data}')
         instance = self.get_object()  # 获取详情的实例对象
-        # instance = serializer.save()  # ProcessedImageField, 也就是ImageField的实例对象
-        # print(f'INFO: start perform_update........data is: {serializer.validated_data}')
+        serializer.save()  # 保存更新的实例对象
 
-        # print(f"INFO: instance.src: {instance.src}")
-        # print(f"INFO: instance.src.name: {instance.src.name}")
-        # print(f"INFO: instance.src__name: {os.path.basename(instance.src.name)}")
-        # print(f"INFO: instance.src__filetype: {os.path.splitext(instance.src.name)[-1]}")  # 获取带点文件后缀
-        # print(f"INFO: instance.src__filetype: {instance.src.name.split('.')[-1]}")  # 获取不带点文件后缀
-
-        # print(f"INFO: instance.src.path: {instance.src.path}")
-        # print(f"INFO: instance.src.url: {instance.src.url}")
-        # print(f"INFO: instance.src.size: {instance.src.size}")
-        # print(f"INFO: instance.src.width: {instance.src.width}")
-        # print(f"INFO: instance.src.height: {instance.src.height}")
-        # print(f"INFO: instance.src.storage: {instance.src.storage}")
-        # print(f"INFO: instance.src.tell: {instance.src.tell}")
-        # print(f"INFO: instance.src.field: {instance.src.field}")
-        # print(f"INFO: instance.src.file: {instance.src.file}")
-        # print(f"INFO: instance.src.file.name: {instance.src.file.name}")
-        # print(f"INFO: instance.src.fileno: {instance.src.fileno}")
-        # print(f"INFO: instance.src.flush: {instance.src.flush}")
-        # print(f"INFO: instance.src.isatty: {instance.src.isatty}")
-
-        # print(type(instance))
-        # print(type(instance.tags))  # 获取这个实例的类型
-        # print('----image attr----')
-        # print(dir(instance.src))  # 获取这个实例的属性
-        # print('----image.path attr----')
-        # print(dir(instance.src.path))
-        # print('----image.storage attr----')
-        # print(dir(instance.src.storage))
-
-        if 'tags' in self.request.data:
+        if 'tags' in data:
             # print(*self.request.data['tags'].split(','))
             instance.tags.set(self.request.data['tags'].split(','))
 
@@ -176,41 +148,14 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
     def test(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        print('------------------test------------------')
         instance = self.get_object()  # 获取详情的实例对象
-        # set_img_info(instance)
+        # stat = Stat.objects.create(img=instance)  # bind the one to one field image info
 
-        # serializer = ImgDetailSerializer(img, many=False, context={'request': request})  # 不报错
-        # serializer = ImgSerializer(img, many=False)  # 报错
-        # serializer = self.get_serializer(img)
-        # return Response(serializer.data)
-
-        # filter_class = self.filter_class
-        # print(filter_class)
-        # data = {
-        #     'categories': {
-        #         'person': '人物',
-        #         'organization': '机构',
-        #         'location': '地点',
-        #     },
-        #     "data": {
-        #         "nodes": [
-        #             {"id": "1", "label": "bluejoe", "image": "https://bluejoe2008.github.io/bluejoe3.png",
-        #              "categories": ["person"]},
-        #             {"id": "2", "label": "CNIC", "image": "https://bluejoe2008.github.io/cas.jpg",
-        #              "categories": ["organization"]},
-        #             {"id": "3", "label": "beijing", "image": "https://bluejoe2008.github.io/beijing.jpg",
-        #              "categories": ["location"]}
-        #         ],
-        #         "edges": [
-        #             {"from": "1", "to": "2", "label": "work for"},
-        #             {"from": "1", "to": "3", "label": "live in"},
-
-        #             {"from": "2", "to": "3", "label": "test"}
-        #         ]
-        #     }
-        # }
-        # return Response(data)
-        return Response({"msg": "success"})
+        process = ImgProces(instance=instance)
+        faces = process.face_get()
+        print('------------------test finished------------------')
+        return Response({"msg": faces})
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
     def upload_finished(self, request, pk=None):
@@ -223,8 +168,8 @@ class ImgViewSet(viewsets.ModelViewSet):
         return Response(data)
 
 
-class McsViewSet(viewsets.ModelViewSet):
-    queryset = Mcs.objects.all().order_by('-id')
+class ImgMcsViewSet(viewsets.ModelViewSet):
+    queryset = ImgMcs.objects.all().order_by('-id')
     serializer_class = McsSerializer
     # permission_classes = (AllowAny,)
     pagination_class = GalleryPageNumberPagination  # could disp the filter button in the web
@@ -246,9 +191,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
             'fc_nums': Img.objects.annotate(fc_nums=Count('faces')).values_list('fc_nums',
                                                                                 flat=True).distinct().order_by(
                 'fc_nums'),
-            'fc_name': FaceAlbum.objects.annotate(value=Count('img')).filter(value__gte=1).values('name',
-                                                                                                  'value').distinct().order_by(
-                '-value'),
+            # 'fc_name': FaceAlbum.objects.annotate(value=Count('img')).filter(value__gte=1).values('name',
+            #                                                                                       'value').distinct().order_by(
+            #     '-value'),
 
             # 'tags': Img.objects.values_list('tags__name', flat=True).distinct().order_by('tags__name'),
             'tags': Tag.objects.annotate(value=Count('imgs')).filter(value__gt=0).order_by('-value').values('name',
@@ -299,3 +244,43 @@ class AddressViewSet(viewsets.ModelViewSet):
     filter_class = AddressFilter  # 过滤类
     filter_backends = [DjangoFilterBackend, filters.SearchFilter,
                        filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+
+
+class FaceViewSet(viewsets.ModelViewSet):
+    queryset = Face.objects.all()
+    pagination_class = FacePageNumberPagination  # 增加了这句代码，就无法显示filter,不过效果还是有的
+
+    # serializer_class = FaceBriefSerializer
+    # permission_classes = (AllowAny,)
+    # pagination_class = FacePageNumberPagination  # 增加了这句代码，就无法显示filter,不过效果还是有的
+    #
+    # filter_backends = [DjangoFilterBackend, filters.SearchFilter,
+    #                    filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+    # filterset_fields = ['profile__id', 'img__id']  # 外键需要增加2个下划线
+    # # filterset_fields = ['img', 'name', 'is_confirmed', 'face_score']
+    # search_fields = ['profile__id', 'img__id']
+    # ordering_fields = ['img__id']  # 这里的字段，需要总上面定义字段中选择
+
+    # def perform_create(self, serializer):
+    # print(f"INFO:{self.request.user}")
+    # serializer.save(user=self.request.user)
+    #     pass
+    #
+    def perform_update(self, serializer):  # 应该在调用的模型中添加
+        print(f'人脸更新：validated_data =  {serializer.validated_data}')
+        print(f'人脸更新：validated_data =  {self.request.data.get("name", None)}')
+        print(f'当前访问人脸的用户是 =  {self.request.user}')
+
+        fc = self.get_object()
+        process = ImgProces()
+        faces = process.face_rename(fc, self.request.data.get('name', None))
+        # change_face_name.delay(fc, serializer)  # 如果执行了改名，则返回真，人脸改名后，确认状态自动为True
+        # if not change_face_name(fc, serializer):  # 如果执行了改名，则返回真，人脸改名后，确认状态自动为True
+        #     change_confirm_state(fc, serializer)  # 人名已经是识别出来的名字，进行确认后，同样要计算人脸特征
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            print(self.action)
+            return FaceBriefSerializer
+        else:
+            return FaceSerializer

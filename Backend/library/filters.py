@@ -50,7 +50,7 @@ class CategoryFilter(FilterSet):
     c_img = django_filters.CharFilter('img', method='filter_img_colors')
     c_fore = django_filters.CharFilter('img', method='filter_fore_colors')
     c_back = django_filters.CharFilter('img', method='filter_back_colors')
-    c_name = django_filters.CharFilter('name', method='filter_c_name')
+    # c_name = django_filters.CharFilter('name', method='filter_c_name')
     imgs = django_filters.CharFilter('img', method='filter_imgs')
 
     # fc_name = django_filters.CharFilter('faces', method='filter_fc_name')
@@ -152,11 +152,11 @@ class ImgFilter(FilterSet):
             'address__location': ['icontains'],
             'address__longitude': ['gte', 'lte', 'range'],
             'address__latitude': ['gte', 'lte', 'range'],
-            # face
-
-            # 'faces': ['exact', 'gte', 'lte'],  #
-            'faces__name': ['exact', 'icontains'],  #
-            'faces__id': ['gte', 'lte', 'contains'],  #
+            # # face
+            #
+            # # 'faces': ['exact', 'gte', 'lte'],  #
+            # 'faces__name': ['exact', 'icontains'],  #
+            # 'faces__id': ['gte', 'lte', 'contains'],  #
             # date
             'dates__year': ['exact', 'gte', 'lte', 'contains'],  #
             'dates__month': ['exact', 'gte', 'lte', 'contains'],  #
@@ -179,7 +179,7 @@ class ImgFilter(FilterSet):
             "wid": ['exact', 'gte', 'lte'],
             "height": ['exact', 'gte', 'lte'],
             "aspect_ratio": ['exact', 'gte', 'lte'],  # need to change to float type
-            "is_publish": ['exact'],
+            # "is_publish": ['exact'],
         }
 
         filter_overrides = {

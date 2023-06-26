@@ -142,7 +142,7 @@ class TeamSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['name', 'position', 'avatar', 'profile_url']
+        fields = ['name', 'avatar', 'profile_url']
 
 
 class ProjectDetailSerializer(ProjectSerializer):

@@ -1,20 +1,17 @@
 # library/serializers.py
-
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 # from face.models import Face
 # from face.serializers import FaceSerializer
 from rest_framework.fields import SerializerMethodField
-
-from face.serializers import FaceSerializer, facesField, FaceSimpleSerializer, FaceAlbumSerializer
-from library.models import Img, Category, Mcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg, \
-    ImgCategory, Address, Evaluate, Date
+from library.models import Img, Category, ImgMcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg, \
+    ImgCategory, Address, Evaluate, Date, Kps, FaceLandmarks2D, Face, FaceLandmarks3D
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
 from tags.serializers import TagSerializerField
 
 
 class AddressSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Address
         fields = ['img', 'is_located', 'country', 'province', 'city', 'district', 'location']
@@ -27,14 +24,12 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 class EvaluateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Evaluate
         fields = '__all__'
 
 
 class DateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Date
         fields = '__all__'
@@ -85,7 +80,7 @@ class ColorSerializer(serializers.ModelSerializer):
 
 class McsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Mcs
+        model = ImgMcs
         fields = ['nft_url']
 
     # def to_representation(self, value):
@@ -101,7 +96,7 @@ class McsSerializer(serializers.ModelSerializer):
 
 class McsDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Mcs
+        model = ImgMcs
         fields = '__all__'
 
 
@@ -111,6 +106,7 @@ class ImgSerializer(serializers.ModelSerializer):
     tags = TagSerializerField(read_only=True)
     thumb = serializers.ImageField(read_only=True)
     img_url = serializers.HyperlinkedIdentityField(view_name='img-detail')
+
     # mcs = McsSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     # categories = CategorySerializer(read_only=True, many=True)
 
@@ -144,8 +140,8 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     # 子级属性：一对多
     # face = FaceSerializer(many=True, read_only=True)  # 这里的名字，必须是Face 定义Img 外键时候的'related_name'
     # names = facesField(many=True, read_only=True)  # 获取子集模型字段的方法一，指定序列化器
-    faces = FaceSimpleSerializer(many=True, read_only=True)
-    persons = FaceAlbumSerializer(many=True, read_only=True)
+    # faces = FaceSimpleSerializer(many=True, read_only=True)
+    # persons = FaceAlbumSerializer(many=True, read_only=True)
     # imgcategories = ImgCategorySerializer(many=True, read_only=True)
     # categories = CategorySerializer(read_only=True, many=True)
     names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
@@ -156,9 +152,10 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     address = AddressSerializer(read_only=True)  # this name should be the same as model related name
 
     def get_names(self, obj):
+        print('type(obj)')
         query_set = obj.faces.all()
         # print('getting the faces now....')
-        return [obj.name for obj in query_set]
+        return [obj.profile.name for obj in query_set if obj.profile.name]
 
     class Meta:
         model = Img
@@ -181,6 +178,7 @@ class CategorySerializer(serializers.ModelSerializer):
     # imgs = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
     value = serializers.SerializerMethodField()  # method 2: through method
 
+    @extend_schema_field(int)  # 提供额外的类型信息
     def get_value(self, ins):
         if ins.type == 'group':
             value = ins.img.count()  # return the img counts
@@ -223,3 +221,84 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
         rst['code'] = 200
         rst['msg'] = 'category detail info'
         return rst
+
+
+# --------------------------------------------------face serializer
+class FaceLandmarks3DSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FaceLandmarks3D
+        fields = '__all__'
+
+
+class FaceLandmarks2DSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FaceLandmarks2D
+        fields = '__all__'
+
+
+class KpsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Kps
+        fields = '__all__'
+
+
+class FaceBriefSerializer(serializers.ModelSerializer):
+    face_url = serializers.HyperlinkedIdentityField(view_name='face-detail')
+
+    class Meta:
+        model = Face
+        fields = ['id', 'face_url', 'embedding', 'src']
+
+
+class FaceSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        landmarks3d_data = validated_data.pop('landmarks3d', [])
+        landmarks2d_data = validated_data.pop('landmarks2d', [])
+        kps_data = validated_data.pop('kps', [])
+
+        face = Face.objects.create(**validated_data)
+
+        for landmark3d_data in landmarks3d_data:
+            FaceLandmarks3D.objects.create(face=face, **landmark3d_data)
+
+        for landmark2d_data in landmarks2d_data:
+            FaceLandmarks2D.objects.create(face=face, **landmark2d_data)
+
+        for kp_data in kps_data:
+            Kps.objects.create(face=face, **kp_data)
+
+        return face
+
+    class Meta:
+        model = Face
+        fields = '__all__'
+
+
+class FaceDetailSerializer(serializers.ModelSerializer):
+    landmarks3d = FaceLandmarks3DSerializer(many=True, read_only=True)
+    landmarks2d = FaceLandmarks2DSerializer(many=True, read_only=True)
+    kps = KpsSerializer(many=True, read_only=True)
+
+    def create(self, validated_data):
+        landmarks3d_data = validated_data.pop('landmarks3d', [])
+        landmarks2d_data = validated_data.pop('landmarks2d', [])
+        kps_data = validated_data.pop('kps', [])
+
+        face = Face.objects.create(**validated_data)
+
+        for landmark3d_data in landmarks3d_data:
+            FaceLandmarks3D.objects.create(face=face, **landmark3d_data)
+
+        for landmark2d_data in landmarks2d_data:
+            FaceLandmarks2D.objects.create(face=face, **landmark2d_data)
+
+        for kp_data in kps_data:
+            Kps.objects.create(face=face, **kp_data)
+
+        return face
+
+    class Meta:
+        model = Face
+        fields = '__all__'
+        # exclude = ['kps', 'landmarks2d', 'landmarks3d']

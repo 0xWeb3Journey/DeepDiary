@@ -50,7 +50,7 @@ auth = HTTPBasicAuth(API_KEY, API_SECRET)
 #     return tagging_response.json()
 
 
-def imagga_post(img_path, endpoint, query=None): # using the loca img
+def imagga_post(img_path, endpoint, query=None):  # using the loca img
 
     if query is None:
         query = {}
@@ -64,19 +64,25 @@ def imagga_post(img_path, endpoint, query=None): # using the loca img
     return response.json()
 
 
-def imagga_get(image_url, endpoint, query_add=None, upload_id=False): # query must include the 'image_url'
+def imagga_get(image_url, endpoint, query_add=None, upload_id=False):  # query must include the 'image_url'
     if query_add is None:
         query_add = {}
-    query = {
-        'image_upload_id' if upload_id else 'image_url': image_url,
-    }
-    query = query.update(query_add)
+    # query = {
+    #     'image_upload_id' if upload_id else 'image_url': image_url,
+    # }
+    # query = query.update(query_add)
 
     response = requests.get(
-        '%s/%s' % (ENDPOINT, endpoint),
+        '%s/%s?image_url=%s' % (ENDPOINT, endpoint, image_url),
+        # '%s/%s' % (ENDPOINT, endpoint),
         auth=(api_key, api_secret),
-        files={'image': open(image_url, 'rb')},
-        params=query)
+        params=query_add)
+
+    # response = requests.get(
+    #     'https://api.imagga.com/v2/tags?image_url=%s' % image_url,
+    #     auth=(api_key, api_secret),
+    #     params=query
+    # )
 
     return response.json()
 

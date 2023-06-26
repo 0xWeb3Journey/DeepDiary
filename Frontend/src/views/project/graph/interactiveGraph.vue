@@ -97,7 +97,7 @@
       //   igraph.LocalGraph.fromGsonString(JSON.stringify(this.str))
       // )
       app.loadGson(
-        'http://localhost:8000/api/faces/test/',
+        'https://localhost:8000/api/faces/test/',
         {
           onGetNodeDescription: function (node) {
             console.log(node)

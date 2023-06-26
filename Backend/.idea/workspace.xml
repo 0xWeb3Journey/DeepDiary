@@ -1,8 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/deep-diary_models.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/deep-diary_simple_models.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tags.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/diaryai.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/iat.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/iat_pcm_16k.pcm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/tts.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/voice.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utils/weather.pcm" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/anayze.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/chat_num_count.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/chat_time.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/chat_time_distribute.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/heart.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/message_type_count.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/stopword.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/textlist.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/time_slot.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/wechat/word-heart.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/colors.txt" beforeDir="false" afterPath="$PROJECT_DIR$/colors.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/deep_diary/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_train_list.txt" beforeDir="false" />
@@ -1478,6 +1506,38 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/detect.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/recognition.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/aiui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/signals.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/task.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/face/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/filters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/imagga.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/imagga.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/pagination.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/signals.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/pagination.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/graph/explorer.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/graph/explorer.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/graph/finder.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/graph/finder.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/graph/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/graph/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/graph/interactiveGraph.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/graph/interactiveGraph.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1502,6 +1562,9 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedIndex" value="1" />
   </component>
@@ -1513,33 +1576,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
-  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;last_opened_file_path&quot;: &quot;D:/BlueDoc/DeepDiary/Backend/env/Lib/site-packages/cv2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  }
+}</component>
   <component name="ReaderModeSettings">
     <option name="enabled" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\BlueDoc\DeepDiary\Backend" />
+      <recent name="D:\BlueDoc\DeepDiary\Backend\utils" />
+      <recent name="D:\BlueDoc\DeepDiary\Backend\wechat" />
       <recent name="D:\BlueDoc\DeepDiary\Backend\face" />
       <recent name="D:\BlueDoc\deep_diary\utils" />
-      <recent name="D:\BlueDoc\deep_diary\face" />
-      <recent name="D:\BlueDoc\deep_diary\vue-element-admin" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\BlueDoc\DeepDiary\Backend\utils" />
       <recent name="D:\BlueDoc\deep_diary\mmdetection\checkpoints" />
       <recent name="D:\BlueDoc\deep_diary\media\face_info\allison" />
       <recent name="D:\BlueDoc\deep_diary\media\face\unknown" />
       <recent name="D:\BlueDoc\deep_diary\media\face_info\unknown" />
-      <recent name="D:\BlueDoc\deep_diary\tags" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.tests (1)">
+  <component name="RunManager" selected="Python tests.Python tests in tests.py">
     <configuration name="detect" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="deep_diary" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -1562,28 +1624,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Backend" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../Study/python" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../../Study/python/main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="mcs_storage" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="diaryai" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -1595,7 +1636,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="D:\BlueDoc\DeepDiary\Backend\utils\mcs_storage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/diaryai.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1604,28 +1645,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="tests (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Backend" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="D:\BlueDoc\DeepDiary\Backend\env\Scripts\python.exe" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/library" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/library/tests.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="tests (2)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="iat" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -1637,7 +1657,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/tests.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/iat.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1646,7 +1666,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="views" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="tests" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -1658,7 +1678,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/face/views.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/face/tests.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1667,21 +1687,56 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="voice" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Backend" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utils" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/voice.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests in tests.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="Backend" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/library" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/library/tests.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.detect" />
-      <item itemvalue="Python.main" />
-      <item itemvalue="Python.mcs_storage" />
-      <item itemvalue="Python.tests (1)" />
-      <item itemvalue="Python.tests (2)" />
-      <item itemvalue="Python.views" />
+      <item itemvalue="Python.diaryai" />
+      <item itemvalue="Python.iat" />
+      <item itemvalue="Python.tests" />
+      <item itemvalue="Python.voice" />
+      <item itemvalue="Python tests.Python tests in tests.py" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.tests (1)" />
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python.tests (2)" />
-        <item itemvalue="Python.views" />
-        <item itemvalue="Python.mcs_storage" />
+        <item itemvalue="Python tests.Python tests in tests.py" />
+        <item itemvalue="Python.tests" />
+        <item itemvalue="Python.diaryai" />
+        <item itemvalue="Python.iat" />
+        <item itemvalue="Python.voice" />
       </list>
     </recent_temporary>
   </component>
@@ -1706,7 +1761,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
@@ -1714,11 +1768,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/face/detect.py</url>
-          <line>108</line>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/mmdetection/demo/create_result_gif.py</url>
           <line>159</line>
@@ -1730,19 +1779,29 @@
           <option name="timeStamp" value="13" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/utils/tests.py</url>
-          <line>25</line>
-          <option name="timeStamp" value="25" />
+          <url>file://$PROJECT_DIR$/wechat/anayze.py</url>
+          <line>338</line>
+          <option name="timeStamp" value="50" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/library/tests.py</url>
-          <line>42</line>
-          <option name="timeStamp" value="48" />
+          <url>file://$PROJECT_DIR$/wechat/main.py</url>
+          <line>193</line>
+          <option name="timeStamp" value="61" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/library/tests.py</url>
-          <line>17</line>
-          <option name="timeStamp" value="49" />
+          <url>file://$PROJECT_DIR$/wechat/main.py</url>
+          <line>223</line>
+          <option name="timeStamp" value="63" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/wechat/main.py</url>
+          <line>384</line>
+          <option name="timeStamp" value="72" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/wechat/main.py</url>
+          <line>76</line>
+          <option name="timeStamp" value="75" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

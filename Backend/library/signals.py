@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from pyexiv2 import Image as exivImg
 
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
-from library.models import Img, Mcs
+from library.models import Img, ImgMcs
 
 
 # Create your models here.

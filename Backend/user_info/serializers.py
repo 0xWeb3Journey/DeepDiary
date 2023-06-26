@@ -2,10 +2,10 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from face.serializers import FaceAlbumSerializer, FaceAlbumDetailSerializer
+from library.serializers import FaceBriefSerializer
 from project.serializers import ProjectSerializer
 from tags.serializers import TagSerializerField
-from user_info.models import Profile, Company, POSITION_OPTION, ROLES_OPTION, SupplyDemand
+from user_info.models import Profile, Company, ROLES_OPTION, SupplyDemand
 from utils.serializers import DisplayChoiceField
 
 
@@ -55,19 +55,17 @@ class UserDetailSerializer(serializers.ModelSerializer):
     # 本级属性
     # profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail', lookup_field='username')
     profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
-    # position = DisplayChoiceField(choices=POSITION_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
     # read_only=True, 允许表单roles为空
     roles = DisplayChoiceField(choices=ROLES_OPTION, read_only=True)  # 获取choice 属性值方式一：指定复写后的choice类,
     # supplydemand = SupplyDemandSerializer(many=True, read_only=True)
     supplys = SupplyDemandSerializer(many=True, read_only=True)
     demands = SupplyDemandSerializer(many=True, read_only=True)
-    # facealbum = FaceAlbumSerializer(read_only=True)
     relation = TagSerializerField(read_only=True)
 
     class Meta:
         model = Profile
         fields = ['username', 'password', 'relation', 'tel', 'avatar', 'introduction', 'roles', 'profile_url',
-                  'facealbum', 'supplys', 'demands']  # , 'supplydemand', 'facealbum'
+                  'supplys', 'demands']  # , 'supplydemand'
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -104,13 +102,11 @@ class ProfileSerializer(serializers.ModelSerializer):
     """于文章列表中引用的嵌套序列化器"""
     # 本级属性
     profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
-    # position = DisplayChoiceField(choices=POSITION_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
     roles = DisplayChoiceField(choices=ROLES_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
-    facealbum = FaceAlbumSerializer(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['username', 'avatar', 'introduction', 'roles', 'profile_url', 'facealbum']
+        fields = ['name', 'avatar', 'introduction', 'roles', 'profile_url']
         # fields = '__all__'
 
 
@@ -121,6 +117,7 @@ class ProfileDetailSerializer(ProfileSerializer):  # 直接继承ImgSerializer�
     # company = serializers.CharField(source="company.name", read_only=True)
     # 子级属性：一对多
     # project = ProjectSerializer(many=True, read_only=True)  # 这里的名字，必须和外键'related_name' 名字一样
+    faces = FaceBriefSerializer(many=True, read_only=True)
     supplydemand = SupplyDemandSerializer(many=True, read_only=True)
 
 

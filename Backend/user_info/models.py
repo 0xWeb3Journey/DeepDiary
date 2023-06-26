@@ -16,12 +16,12 @@ SEX_OPTION = (
     (2, "女"),
 )
 ROLES_OPTION = (
-    ("['admin']", "admin"),
-    ("editor", "editor"),
-    ("any", "any"),
-    ("custom", "custom"),
-    ("employee", "employee"),
-    ("supplier", "supplier"),
+    ("admin", "Admin"),
+    ("editor", "Editor"),
+    ("user", "User"),
+    ("customer", "Customer"),
+    ("employee", "Employee"),
+    ("supplier", "Supplier"),
 )
 STATE_OPTION = (
     (0, "正常"),
@@ -57,8 +57,21 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
     return user_fold
 
 
+def user_upload_img(instance, filename):  # dir struct MEDIA/user/subfolder/file
+    sub_folder = "user_info_img"
+    user_fold = os.path.join(instance.user.username, sub_folder, filename)
+    return user_fold
+
+
+def user_upload_file(instance, filename):  # dir struct MEDIA/user/subfolder/file
+    sub_folder = "user_info_file"
+    user_fold = os.path.join(instance.user.username, sub_folder, filename)
+    return user_fold
+
+
 # 公司 model
 class Company(models.Model):
+    employees = models.ManyToManyField('Profile', through='Experience')
     name = models.CharField(max_length=30, blank=True, verbose_name="公司名称", help_text="公司名称")
     addr = models.CharField(max_length=50, blank=True, verbose_name="公司地址", help_text="公司地址")
     desc = models.TextField(blank=True, verbose_name="公司描述", help_text="公司描述")
@@ -75,40 +88,29 @@ class Company(models.Model):
         get_latest_by = 'id'
 
 
-# 用户扩展信息
-# class Profile(models.Model):
-#     # 与 User 模型构成一对一的关系
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name="用户",
-#                                 help_text="关联用户表")
-
 class Profile(AbstractUser):  # 直接继承django默认用户信息
+    #  many to many field
+    # imgs = models.ManyToManyField('Img', through='Face', related_name='profiles')
+    # companies = models.ManyToManyField('Company', through='Experience')
+    # events = models.ManyToManyField('Event', through='Participation')  # will be used in diary
 
     name = models.CharField(max_length=30, null=True, blank=True, verbose_name="真实姓名", help_text="真实姓名")
     tel = models.CharField(max_length=20, blank=True, verbose_name="电话号码", help_text="用户手机号码")
-    position = models.SmallIntegerField(choices=POSITION_OPTION, null=True, blank=True, default=9, verbose_name="岗位",
-                                        help_text="请选择该员工岗位")
-    company = models.ForeignKey(
-        Company,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name='profile'
-    )
-
     avatar = models.ImageField(upload_to=user_directory_path,
                                verbose_name="头像",
                                help_text='请上传头像',
                                null=True, blank=True,
                                default='sys_img/logo_lg.png',
                                )
+    embedding = models.BinaryField(null=True, blank=True, verbose_name='人脸特征',
+                                   help_text='已识别的人脸特征向量')
     relation = TaggableManager(blank=True, verbose_name="relationship",
                                help_text="relationship to the user")
     introduction = models.TextField(max_length=500, blank=True, verbose_name="自我简介", help_text="个人魅力简述")
     # roles = models.SmallIntegerField(choices=ROLES_OPTION, blank=True, default=0, verbose_name="角色",
     #                                  help_text="用户角色/权限")
-    roles = models.CharField(max_length=10, choices=ROLES_OPTION, blank=True, default='admin', verbose_name="角色",
+    roles = models.CharField(max_length=10, choices=ROLES_OPTION, blank=True, default='user', verbose_name="角色",
                              help_text="用户角色/权限")
-
     gender = models.SmallIntegerField(choices=SEX_OPTION, default=0, blank=True, verbose_name="性别",
                                       help_text="0:保密，1：男, 2： 女")
     birthday = models.DateField(default=datetime.now, blank=True, verbose_name="用户生日", help_text="用户生日")
@@ -136,7 +138,7 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
 
     def __str__(self):
-        return self.username
+        return f'{self.id}_{self.name}'
         # return f'{self.get_position_display()}_{self.username}'
         # return f'{self.company.name}_{self.position}_{self.name}'
 
@@ -173,13 +175,14 @@ class SupplyDemand(models.Model):
     def __str__(self):
         return self.desc
 
-class Supply(models.Model):
+
+class Resource(models.Model):
     profile = models.ForeignKey(
         Profile,
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        related_name='supplys'
+        related_name='resources'
     )
     desc = models.TextField(blank=True, verbose_name="Detail of SupplyDemand", help_text="Detail of SupplyDemand")
     tags = TaggableManager(blank=True, verbose_name="Tags",
@@ -200,9 +203,12 @@ class Demand(models.Model):
         on_delete=models.CASCADE,
         related_name='demands'
     )
-    desc = models.TextField(blank=True, verbose_name="Detail of SupplyDemand", help_text="Detail of SupplyDemand")
+    name = models.CharField(blank=True, max_length=30, verbose_name="title of demand",
+                            help_text="title of demand")
+    desc = models.TextField(blank=True, verbose_name="Detail of Demand", help_text="description of Demand")
     tags = TaggableManager(blank=True, verbose_name="Tags",
-                           help_text="keyword of Detail of SupplyDemand，seperated by ','")
+                           help_text="keyword of Detail of SupplyDemand，separated by ','")
+
     # 数据库更新日期
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
@@ -210,17 +216,43 @@ class Demand(models.Model):
     def __str__(self):
         return self.desc
 
-# # 信号接收函数，每当新建 User 实例时自动调用
-# @receiver(post_save, sender=User)
-# def create_user_profile(sender, instance, created, **kwargs):
-#     if created:
-#         Profile.objects.create(user=instance)
-#
-#
-# # 信号接收函数，每当更新 User 实例时自动调用
-# @receiver(post_save, sender=User)
-# def save_user_profile(sender, instance, **kwargs):
-#     instance.profile.save()
-#     print('------save_user_profile------')
-#     print(instance)
-#     print(sender)
+
+class Experience(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='experiences')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='experiences')
+
+    position = models.CharField(blank=True, verbose_name="job position",
+                                help_text="descript what position you are in charge for", max_length=100)
+    start_date = models.DateField(null=True, blank=True, verbose_name="start_date",
+                                  help_text="when is this experience started")
+    end_date = models.DateField(null=True, blank=True, verbose_name="end_date",
+                                help_text="when is this experience end_date")
+    name = models.CharField(max_length=30, verbose_name="name", help_text="the title of this experience")
+    desc = models.CharField(max_length=300, verbose_name="description", help_text="the detail of this experience")
+    achievement = models.CharField(max_length=100, verbose_name="achievement", help_text="fill the achievement you got")
+    # 数据库更新日期
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
+
+    def __str__(self):
+        return f"{self.profile.name} worked at {self.company.name}"
+
+
+class Image(models.Model):
+    experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='images')
+    demand = models.ForeignKey(Demand, on_delete=models.CASCADE, related_name='images')
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to=user_upload_img, verbose_name="图片",
+                              help_text='请上传图片',
+                              null=True, blank=True,
+                              default='sys_img/logo_lg.png')
+
+
+class File(models.Model):
+    experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='files')
+    demand = models.ForeignKey(Demand, on_delete=models.CASCADE, related_name='files')
+    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to=user_upload_file, verbose_name="文件",
+                            help_text='请上传文件',
+                            null=True, blank=True,
+                            default='sys_img/logo_lg.png')
