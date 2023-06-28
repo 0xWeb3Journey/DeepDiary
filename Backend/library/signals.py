@@ -7,6 +7,7 @@ from pyexiv2 import Image as exivImg
 
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
 from library.models import Img, ImgMcs
+from library.task import ImgProces
 
 
 # Create your models here.
@@ -16,11 +17,9 @@ from library.models import Img, ImgMcs
 @receiver(post_save, sender=Img)
 def create_img_info(sender, instance, created, **kwargs):
     if created:
-        # print('create mcs instance')
-        # Mcs.objects.create(img=instance)
-    #     save_img_info(instance)
-        pass
-    pass
+        print('Image instance have been created, deal with post_save signal')
+        # img_process = ImgProces(instance=instance)
+        # img_process.face_get()
 
 
 # 信号接收函数，每当更新 Img 实例时自动调用

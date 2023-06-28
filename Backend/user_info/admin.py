@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 # Register your models here.
 # 定义一个行内 admin
-from user_info.models import Profile, Company, SupplyDemand, Demand, Resource, Experience, Image, File
+from user_info.models import Profile, Company, Demand, Resource, Experience, Image, File
 
 # # 第一种方式：行内admin，就是 将 Profile 关联到 User 中
 # class ProfileInline(admin.StackedInline):
@@ -25,5 +25,5 @@ from user_info.models import Profile, Company, SupplyDemand, Demand, Resource, E
 
 
 # 第二种方式，直接注册
-admin.site.register([Company, Profile, SupplyDemand, Resource, Demand, Experience, Image, File])
+admin.site.register([Company, Profile, Resource, Demand, Experience, Image, File])
 # admin.site.register()

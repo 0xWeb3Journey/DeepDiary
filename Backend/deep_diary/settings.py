@@ -9,16 +9,22 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import json
 import os
 import coreschema
 from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-from deep_diary.config import mysql_account, oss
+# from deep_diary.config import mysql_account, oss
 import django_oss_storage
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+with open(os.path.join(BASE_DIR, 'deep_diary', 'config.json')) as f:
+    cfg = json.load(f)
+
+with open(os.path.join(BASE_DIR, 'deep_diary', 'calibration.json')) as f:
+    calib = json.load(f)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -27,7 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-0&&*)ta)v&qxbb!7yiz(pnz+%q2me614u21n3qoi!u1qozb56h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True if cfg['debug'] == 'True' else False
 
 # 允许所有的IP访问网络服务
 ALLOWED_HOSTS = ['*']
@@ -42,27 +48,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    #
+    # 'article',
     'library',
-    'article',
     'user_info',
     'comment',
     'tags',
-    'face',
     'project',
     'utils',
 
     'rest_framework',
     'django_filters',  # 过滤api接口数据
     'taggit',  # 实现标签系统
-    'mdeditor',  # markdown实现富文本编辑
     'imagekit',  # 实现缩略图处理
-    'ckeditor',  # 实现富文本编辑器
-    'ckeditor_uploader',  # 带图片上传的ckeditor
     'mptt',  # 实现多级评论
     'coreschema',  # 解决跨域问题
     'django_oss_storage',
-    'sslserver',
+    'sslserver',  # 实现https
     'django_extensions',  # 生成数据库ER图
     # 'notifications',  # 实现消息通知
     # 'password_reset',  # 实现密码重置
@@ -111,13 +113,17 @@ WSGI_APPLICATION = 'deep_diary.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+# 获取要使用的数据库配置
+database = cfg['database']
+db_config = cfg[database]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': mysql_account['DatabaseName'],  # mysql 下的数据库名
-        'USER': mysql_account['USER'],
-        'PASSWORD': mysql_account['PASSWORD'],
-        'HOST': mysql_account['HOST'],
+        'NAME': db_config['DatabaseName'],  # mysql 下的数据库名
+        'USER': db_config['USER'],
+        'PASSWORD': db_config['PASSWORD'],
+        'HOST': db_config['HOST'],
         'PORT': '3306',
     },
     # 'OPTIONS': {
@@ -161,10 +167,10 @@ USE_L10N = True
 USE_TZ = True
 
 # 配置OSS信息
-OSS_ACCESS_KEY_ID = oss['OSS_ACCESS_KEY_ID']
-OSS_ACCESS_KEY_SECRET = oss['OSS_ACCESS_KEY_SECRET']
-OSS_ENDPOINT = oss['OSS_ENDPOINT']
-OSS_BUCKET_NAME = oss['OSS_BUCKET_NAME']
+OSS_ACCESS_KEY_ID = cfg['oss']['OSS_ACCESS_KEY_ID']
+OSS_ACCESS_KEY_SECRET = cfg['oss']['OSS_ACCESS_KEY_SECRET']
+OSS_ENDPOINT = cfg['oss']['OSS_ENDPOINT']
+OSS_BUCKET_NAME = cfg['oss']['OSS_BUCKET_NAME']
 OSS_BUCKET_ACL = "public-read"  # private, public-read, public-read-write
 OSS_PREFIX = 'oss://'
 
@@ -177,14 +183,15 @@ STATICFILES_STORAGE = 'django_oss_storage.backends.OssStaticStorage'
 # Staticfiles storage settings
 STATIC_PREFIX = 'static/'
 STATIC_URL = '/static/'  # 静态文件收集目录,使用本地静态资源文件
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # 指定需要收集的静态文件的位置
 # 即前端打包文件所在位置
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend/dist/')
 ]
 # 静态文件收集目录
-# STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 # File storage settings: ImageField and FileField
 # MEDIA_PREFIX = 'media/'

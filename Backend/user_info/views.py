@@ -3,19 +3,17 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework_jwt.utils import jwt_decode_handler
-from user_info.models import Profile, Company, SupplyDemand
-from user_info.serializers import UserRegisterSerializer, ProfileDetailSerializer, ProfileSerializer, CompanySerializer, \
-    UserSerializer, UserDetailSerializer, SupplyDemandSerializer
 
+from user_info.models import Profile, Company
+from user_info.serializers import UserRegisterSerializer, ProfileDetailSerializer, ProfileSerializer, CompanySerializer, \
+    UserDetailSerializer
 # class UserRegisterViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()
 #     serializer_class = UserRegisterSerializer
 #     lookup_field = 'username'  # 要和序列化器中对应起来
 from utils.pagination import GeneralPageNumberPagination
-from utils.permissions import IsOwnerOrReadOnly, IsSelfOrReadOnly, IsRegister, get_user_info
+from utils.permissions import get_user_info
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -23,13 +21,14 @@ class UserViewSet(viewsets.ModelViewSet):
     # lookup_field = 'username'  # 要和序列化器中对应起来
     serializer_class = UserRegisterSerializer
     pagination_class = GeneralPageNumberPagination
+
     # permission_classes = [IsRegister]
 
     def get_serializer_class(self):
         if self.action == 'list':
             return UserRegisterSerializer
         else:
-            return UserDetailSerializer   # UserDetailSerializer
+            return UserDetailSerializer  # UserDetailSerializer
 
     @action(detail=False, methods=['get', 'post'])  # detail=False, 接口外面调用，如果是True，在详情中调用
     def info(self, request, username=None):
@@ -50,7 +49,7 @@ class UserViewSet(viewsets.ModelViewSet):
             # serializer = UserRegisterSerializer(queryset, many=False, context={'request': request})  # 这里不加context 就会报错
             rst_data = serializer.data['data']
             # print(f'INFO rst_data: {rst_data}')
-            role=[]
+            role = []
             # print(rst_data['roles'])
             role.append(rst_data['roles'])
             # print(role)
@@ -95,6 +94,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     pagination_class = GeneralPageNumberPagination
+
     def get_serializer_class(self):
         if self.action == 'list':
             return ProfileSerializer
@@ -105,10 +105,3 @@ class ProfileViewSet(viewsets.ModelViewSet):
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-
-
-class SupplyDemandSet(viewsets.ModelViewSet):
-    queryset = SupplyDemand.objects.all()
-    # lookup_field = 'username'  # 要和序列化器中对应起来
-    serializer_class = SupplyDemandSerializer
-    pagination_class = GeneralPageNumberPagination

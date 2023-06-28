@@ -24,7 +24,6 @@ import urllib3
 import datetime
 
 # img_src = 'https://calibration-ipfs.filswan.com/ipfs/QmSAwRTQkB6pmvhrLQU2j1yhYGLPGPQQeaTgAiajyFdMyE'
-from deep_diary.config import wallet_info
 from deep_diary.settings import FACE_ROOT
 from library.serializers import McsSerializer
 

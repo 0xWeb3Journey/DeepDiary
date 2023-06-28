@@ -1,0 +1,7 @@
+{
+  "hour_slot": [0, 5, 8, 18, 21, 24],
+  "face": {
+    "det_threshold": 0.5,
+    "reco_threshold": 0.4
+  }
+}

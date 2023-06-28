@@ -1,3 +1,4 @@
+import bisect
 import pickle
 import random
 import string
@@ -14,7 +15,7 @@ from django.db import transaction, IntegrityError
 from insightface.app import FaceAnalysis
 from sklearn.metrics.pairwise import cosine_similarity
 
-from deep_diary.config import wallet_info
+from deep_diary.settings import cfg, calib
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
 from library.imagga import imagga_get
 from library.models import Img, Category, ImgCategory, Face, \
@@ -70,7 +71,8 @@ def set_img_date(date, date_str):  # 1. date instance, 2 '%Y:%m:%d %H:%M:%S'
     date.month = str(tt.month).rjust(2, '0')
     date.day = str(tt.day).rjust(2, '0')
     date.is_weekend = False if tt.weekday() < 5 else True
-    date.earthly_branches = (np.digitize(tt.hour, np.array([0, 5, 8, 18, 21, 24])) - 1).item(),
+    date.earthly_branches = bisect.bisect_right(calib['hour_slot'], tt.hour) - 1
+    print(date.earthly_branches, type(date.earthly_branches))
     return date
 
 
@@ -85,7 +87,7 @@ def resolve_date(date_str):  # 1. date instance, 2 '%Y:%m:%d %H:%M:%S'
         'month': str(tt.month).rjust(2, '0'),
         'day': str(tt.day).rjust(2, '0'),
         'is_weekend': False if tt.weekday() < 5 else True,
-        'earthly_branches': (np.digitize(tt.hour, np.array([0, 5, 8, 18, 21, 24])) - 1).item(),
+        'earthly_branches': bisect.bisect_right(calib['hour_slot'], tt.hour) - 1,
     }
     return date
 
@@ -192,7 +194,7 @@ def set_img_info(instance, f_path=None):
 def set_img_mcs(img):  # img = self.get_object()  # 获取详情的实例对象
     if not hasattr(img, 'mcs'):  # 判断是否又对应的mcs存储
 
-        data = upload_file_pay(wallet_info, img.src.path)
+        data = upload_file_pay(cfg['wallet_info'], img.src.path)
         # 调用序列化器进行反序列化验证和转换
         data.update(id=img.id)
         print(data)
@@ -768,7 +770,7 @@ class ImgProces:
         print(similarity_scores, max_similarity_index, max_similarity_score)
 
         # 如果top1相似度>0.4，则更新profile和face_score
-        if max_similarity_score > 0.4:
+        if max_similarity_score > calib['face']['reco_threshold']:
             profile = Profile.objects.all()[int(max_similarity_index)]
             face_score = max_similarity_score
 
@@ -781,7 +783,7 @@ class ImgProces:
 
     def face_get(self, save_type='instance'):  # 'instance', serializers
         #  判断当前实例是否已经执行过人脸识别，如果是，直接打印相关信息并返回
-        if self.instance.faces.all().exists():
+        if self.instance.stats.is_face:
             print('face already exist')
             return
         self.face_init()
@@ -848,6 +850,9 @@ class ImgProces:
                                     np.round(face.landmark_3d_68).astype(np.int16)],
                 }
                 self.save_face_serializers(data)
+        stats = self.instance.stats
+        stats.is_face = True
+        stats.save()
         return faces
 
     @staticmethod

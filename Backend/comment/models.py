@@ -2,18 +2,11 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth.models import User
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
-
-from article.models import Article
 from user_info.models import Profile
 
 
 class Comment(MPTTModel):
     # class Comment(models.Model):
-    article = models.ForeignKey(
-        Article,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
     user = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,

@@ -2,8 +2,7 @@ import json
 import math
 import requests
 
-#  Location Process
-from deep_diary.config import Amap_api_key
+from deep_diary.settings import cfg
 
 
 def GPS_format(data):
@@ -62,7 +61,7 @@ def GPS_get_address(long_lati):
     :return:
     """
     addr = []  # 5级地址，依次从小到大
-    api_key = Amap_api_key  # 高德账户API密钥
+    api_key = cfg['Amap_api_key']  # 高德账户API密钥
     url_get_position = 'https://restapi.amap.com/v3/geocode/regeo?key={}&location={}'
     resp = requests.get(
         url_get_position.format(api_key, long_lati))

@@ -155,27 +155,6 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
         get_latest_by = 'id'
 
 
-class SupplyDemand(models.Model):
-    profile = models.ForeignKey(
-        Profile,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name='supplydemand'
-    )
-    is_demand = models.BooleanField(default=False, blank=True, verbose_name="is_demand",
-                                    help_text='False means suppy, True mean demand')
-    desc = models.TextField(blank=True, verbose_name="Detail of SupplyDemand", help_text="Detail of SupplyDemand")
-    tags = TaggableManager(blank=True, verbose_name="Tags",
-                           help_text="keyword of Detail of SupplyDemand，seperated by ','")
-    # 数据库更新日期
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
-
-    def __str__(self):
-        return self.desc
-
-
 class Resource(models.Model):
     profile = models.ForeignKey(
         Profile,
