@@ -1,9 +1,9 @@
 # .gitignore
 *.mp4
 *.jpg
-media
-deep_diary/config.py
-frontend
+media/
+**/*.json
+frontend/
 env
 **/__pycache__/
 **/__pycache__
