@@ -61,9 +61,9 @@ class CategoryFilter(FilterSet):
         fields = {
             # color
             'name': ['exact', 'icontains'],
-            'type': ['exact', 'icontains'],
-            'value': ['exact', 'icontains'],
-            'img': ['exact', 'icontains'],
+            # 'type': ['exact', 'icontains'],
+            # 'value': ['exact', 'icontains'],
+            'imgs': ['exact', 'icontains'],
         }
 
     # 自定义方法
@@ -141,8 +141,8 @@ class ImgFilter(FilterSet):
             'colors__background__closest_palette_color_parent': ['exact'],
             # category
             'categories__name': ['exact'],  #
-            'categories__type': ['exact'],  #
-            'categories__value': ['exact'],  #
+            # 'categories__type': ['exact'],  #
+            # 'categories__value': ['exact'],  #
             # address
             'address__is_located': ['exact'],
             'address__country': ['exact', 'contains'],

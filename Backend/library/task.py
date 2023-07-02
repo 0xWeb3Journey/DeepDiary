@@ -1,4 +1,5 @@
 import bisect
+import json
 import pickle
 import random
 import string
@@ -8,8 +9,9 @@ from io import BytesIO
 import cv2
 import numpy as np
 import pyexiv2
-from PIL import Image
+from PIL import Image, ExifTags
 from celery import shared_task
+from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import transaction, IntegrityError
 from insightface.app import FaceAnalysis
@@ -19,7 +21,7 @@ from deep_diary.settings import cfg, calib
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
 from library.imagga import imagga_get
 from library.models import Img, Category, ImgCategory, Face, \
-    FaceLandmarks3D, FaceLandmarks2D, Kps
+    FaceLandmarks3D, FaceLandmarks2D, Kps, Stat, Address, Evaluate, Date
 from library.serializers import McsDetailSerializer, ColorSerializer, ColorBackgroundSerializer, \
     ColorForegroundSerializer, ColorImgSerializer, FaceSerializer
 from user_info.models import Profile
@@ -61,544 +63,6 @@ color_palette = {
 }
 
 
-def set_img_date(date, date_str):  # 1. date instance, 2 '%Y:%m:%d %H:%M:%S'
-    if not date_str:
-        date_str = '1970:01:01 00:00:00'
-    tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
-    date.capture_date = tt.strftime("%Y-%m-%d")
-    date.capture_time = tt.strftime("%H:%M:%S")
-    date.year = str(tt.year).rjust(2, '0')
-    date.month = str(tt.month).rjust(2, '0')
-    date.day = str(tt.day).rjust(2, '0')
-    date.is_weekend = False if tt.weekday() < 5 else True
-    date.earthly_branches = bisect.bisect_right(calib['hour_slot'], tt.hour) - 1
-    print(date.earthly_branches, type(date.earthly_branches))
-    return date
-
-
-def resolve_date(date_str):  # 1. date instance, 2 '%Y:%m:%d %H:%M:%S'
-    if not date_str:
-        date_str = '1970:01:01 00:00:00'
-    tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
-    date = {
-        'capture_date': tt.strftime("%Y-%m-%d"),
-        'capture_time': tt.strftime("%H:%M:%S"),
-        'year': str(tt.year).rjust(2, '0'),
-        'month': str(tt.month).rjust(2, '0'),
-        'day': str(tt.day).rjust(2, '0'),
-        'is_weekend': False if tt.weekday() < 5 else True,
-        'earthly_branches': bisect.bisect_right(calib['hour_slot'], tt.hour) - 1,
-    }
-    return date
-
-
-# @shared_task
-def set_img_info(instance, f_path=None):
-    # if f_path is None:
-    #     print(f'the f_path is not available')
-    #     return
-    if instance.stats.is_get_info:  # already fetch the info
-        print('this image already got the basic info like date, address and other exif info')
-        return
-    print(f'INFO: **************img instance have been created, saving img info now...')
-    addr = instance.address
-    eval = instance.evaluates
-    date = instance.dates
-    stat = instance.stats
-    lm_tags = []
-    img_read = pyexiv2.Image(f_path)  # 登记图片路径
-    # img_read = pyexiv2.Image(r'd:\test images\IMG_20210928_195317.jpg')  # 登记图片路径
-    exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
-    iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
-    xmp = img_read.read_xmp()  # 读取元数据，这会返回一个字典
-    if exif:
-        print(f'INFO: exif is true ')
-        # deal with timing
-        date_str = exif['Exif.Photo.DateTimeOriginal']
-        date = set_img_date(date, date_str)  # return the date instance
-
-        # deal with address
-        addr.longitude_ref = exif.get('Exif.GPSInfo.GPSLongitudeRef')
-        if addr.longitude_ref:  # if have longitude info
-            addr.longitude = GPS_format(
-                exif.get('Exif.GPSInfo.GPSLongitude'))  # exif.get('Exif.GPSInfo.GPSLongitude')
-            addr.latitude_ref = exif.get('Exif.GPSInfo.GPSLatitudeRef')
-            addr.latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
-
-        addr.altitude_ref = exif.get('Exif.GPSInfo.GPSAltitudeRef')  # 有些照片无高度信息
-        if addr.altitude_ref:  # if have the altitude info
-            addr.altitude_ref = float(addr.altitude_ref)
-            addr.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
-            alt = addr.altitude.split('/')
-            addr.altitude = float(alt[0]) / float(alt[1])
-        addr.is_located = False
-        if addr.longitude and addr.latitude:
-            # 是否包含经纬度数据
-            addr.is_located = True
-            long_lati = GPS_to_coordinate(addr.longitude, addr.latitude)
-            # TODO: need update the lnglat after transform the GPS info
-            addr.longitude = round(long_lati[0], 6)  # only have Only 6 digits of precision for AMAP
-            addr.latitude = round(long_lati[1], 6)
-            # print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
-            long_lati = f'{long_lati[0]},{long_lati[1]}'  # change to string
-
-            addr.location, addr.district, addr.city, addr.province, addr.country = GPS_get_address(
-                long_lati)
-
-        instance.camera_brand = exif.get('Exif.Image.Make')
-        instance.camera_model = exif.get('Exif.Image.Model')
-
-    if iptc:
-        print(f'INFO: iptc is true ')
-        instance.title = iptc.get('iptc.Application2.ObjectName')
-        instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
-        lm_tags = iptc.get('Iptc.Application2.Keywords')
-
-    if xmp:
-        print(f'INFO: xmp is true ')
-        instance.label = xmp.get('Xmp.xmp.Label')  # color mark
-        eval.rating = int(xmp.get('Xmp.xmp.Rating', 0))
-        # if eval.rating:
-        #     eval.rating = int(xmp.get('Xmp.xmp.Rating'))
-
-    instance.wid = instance.src.width
-    instance.height = instance.src.height
-    instance.aspect_ratio = instance.height / instance.wid
-    instance.is_exist = True
-    instance.save()  # save the image instance, already saved during save the author
-
-    if lm_tags:
-        print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
-        print(f'INFO: the instance id is {instance.id}')
-        # instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
-        instance.tags.add(*lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
-
-    stat.is_publish = True
-    stat.is_get_info = True
-
-    #  mask this since already bind the img instance in view--》create
-    # addr.img = instance
-    # eval.img = instance
-    # date.img = instance
-    # stat.img = instance
-    addr.save()
-    eval.save()
-    date.save()
-    stat.save()
-    print(
-        f'--------------------{instance.id} :img infos have been store to the database---------------------------')
-
-
-# @app.task
-# @shared_task
-def set_img_mcs(img):  # img = self.get_object()  # 获取详情的实例对象
-    if not hasattr(img, 'mcs'):  # 判断是否又对应的mcs存储
-
-        data = upload_file_pay(cfg['wallet_info'], img.src.path)
-        # 调用序列化器进行反序列化验证和转换
-        data.update(id=img.id)
-        print(data)
-        serializer = McsDetailSerializer(data=data)
-        # 当验证失败时,可以直接通过声明 raise_exception=True 让django直接跑出异常,那么验证出错之后，直接就再这里报错，程序中断了就
-
-        result = serializer.is_valid(raise_exception=True)
-        print(serializer.errors)  # 查看错误信息
-
-        # 获取通过验证后的数据
-        print(serializer.validated_data)  # form -- clean_data
-        # 保存数据
-        mcs_obj = serializer.save()
-
-        msg = 'success to make a copy into mac, the file_upload_id is %d' % mcs_obj.file_upload_id
-
-    else:
-        msg = 'there is already have mac info related to this img: file id is %d' % img.mcs.file_upload_id
-
-    print(msg)
-
-
-# @shared_task
-def set_img_tags(img_obj):
-    if img_obj.stat.is_auto_tag:  # already fetch the info
-        print('this image already auto tagged')
-        return
-    # img_path = img_obj.src.path  # oss have no path attribute
-    img_path = img_obj.src.url
-    # img_path = 'https://imagga.com/static/images/tagging/wind-farm-538576_640.jpg'
-    endpoint = 'tags'
-    tagging_query = {
-        'verbose': False,
-        'language': 'en',
-        'threshold': 25,
-    }
-
-    # response = imagga_post(img_path, endpoint, tagging_query)  # for local image
-    response = imagga_get(img_path, endpoint, query_add=tagging_query)  # for web image
-
-    # with open("tags.txt", 'wb') as f:  # store the result object, which will helpful for debugging
-    #     pickle.dump(response, f)
-    #
-    # with open("tags.txt", 'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
-    #     response = pickle.load(f)
-    print(response)
-
-    if 'result' in response:
-        tags = response['result']['tags']
-        tag_list = []
-
-        for tag in tags:
-            tag_list.append(tag['tag']['en'])
-
-        # img_obj.tags.set(tag_list)
-        img_obj.tags.add(*tag_list)
-
-        img_obj.stat.is_auto_tag = True
-        img_obj.stat.save()
-
-        print(f'--------------------{img_obj.id} :tags have been store to the database---------------------------')
-
-
-# @shared_task
-def set_img_colors(img_obj):
-    if img_obj.stat.is_get_color:  # already fetch the info
-        print('this image already got the color')
-        return
-    # this is through post method to get the tags. mainly is used for local img
-    # img_path = img_obj.src.path  # local image
-    img_path = img_obj.src.url  # web image
-    endpoint = 'colors'
-    # color_query = {                 #  if it is necessary, we could add the query info here
-    #     'verbose': False,
-    #     'language': False,
-    #     'threshold': 25.0,
-    # # }
-
-    # response = imagga_post(img_path, endpoint)
-    response = imagga_get(img_path, endpoint)
-
-    with open("colors.txt", 'wb') as f:  # store the result object, which will helpful for debugging
-        pickle.dump(response, f)
-
-    # with open("colors.txt", 'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
-    #     response = pickle.load(f)
-
-    print(response)
-
-    if response['status']['type'] != 'success':
-        return []
-
-    if 'result' in response:
-        colors = response['result'][endpoint]
-        background_colors = colors['background_colors']
-        foreground_colors = colors['foreground_colors']
-        image_colors = colors['image_colors']
-
-        # print(colors)
-
-        # 调用序列化器进行反序列化验证和转换
-        colors.update(img=img_obj.id)  # bind the one to one field image info
-        if not hasattr(img_obj, 'colors'):  # if img_obj have no attribute of colors, then create it
-            print('no colors object existed')
-            serializer = ColorSerializer(data=colors)
-        else:  # if img_obj already have attribute of colors, then updated it
-            print('colors object already existed')
-            serializer = ColorSerializer(img_obj.colors, data=colors)
-        result = serializer.is_valid(raise_exception=True)
-        color_obj = serializer.save()
-
-        # print(type(color_obj))
-        # print(color_obj.background.all().exists())
-        # print(color_obj.foreground.all().exists())
-        # print(color_obj.image.all().exists())
-
-        if not color_obj.background.all().exists():
-            for bk in background_colors:
-                bk.update(color=color_obj.pk)
-                serializer = ColorBackgroundSerializer(data=bk)
-                result = serializer.is_valid(raise_exception=True)
-                back_color_obj = serializer.save()
-        # else:
-        # for bk in background_colors:
-        #     bk.update(color=color_obj.pk)
-        #     serializer = ColorBackgroundSerializer(color_obj.background, data=bk)
-        #     result = serializer.is_valid(raise_exception=True)
-        #     back_color_obj = serializer.save()
-
-        if not color_obj.foreground.all().exists():
-            for fore in foreground_colors:
-                fore.update(color=color_obj.pk)
-                serializer = ColorForegroundSerializer(data=fore)
-                result = serializer.is_valid(raise_exception=True)
-                fore_color_obj = serializer.save()
-        # else:
-        #     for fore in foreground_colors:
-        #         fore.update(color=color_obj.pk)
-        #         serializer = ColorForegroundSerializer(color_obj.foreground, data=fore)
-        #         result = serializer.is_valid(raise_exception=True)
-        #         fore_color_obj = serializer.save()
-
-        if not color_obj.image.all().exists():
-            for img in image_colors:
-                img.update(color=color_obj.pk)
-                serializer = ColorImgSerializer(data=img)
-                result = serializer.is_valid(raise_exception=True)
-                img_color_obj = serializer.save()
-        # else:
-        #     for img in image_colors:
-        #         img.update(color=color_obj.pk)
-        #         serializer = ColorImgSerializer(color_obj.image, data=img)
-        #         result = serializer.is_valid(raise_exception=True)
-        #         img_color_obj = serializer.save()
-
-        img_obj.stat.is_get_color = True
-        img_obj.stat.save()
-        print(f'--------------------{img_obj.id} :colors have been store to the database---------------------------')
-
-
-# @shared_task
-def set_img_categories(img_obj):
-    if img_obj.stat.is_get_cate:  # already fetch the info
-        print('this image already got the categories')
-        return
-    # img_path = img_obj.src.path  # local image
-    img_path = img_obj.src.url  # web image
-    endpoint = 'categories/personal_photos'
-
-    # response = imagga_post(img_path, endpoint)
-    response = imagga_get(img_path, endpoint)
-    # with open("categories.txt", 'wb') as f:  # store the result object, which will helpful for debugging
-    #     pickle.dump(response, f)
-
-    # with open("categories.txt",
-    #           'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
-    #     response = pickle.load(f)
-    print(response)
-
-    if 'result' in response:
-        categories = response['result']['categories']
-        categories_list = []
-        img_cate_list = []
-        data = {}
-
-        for item in categories:
-            # obj = Category(name=item['name']['en'], confidence=item['confidence'])
-            checkd_obj = Category.objects.filter(name=item['name']['en'])
-            if checkd_obj.exists():
-                # print(f'--------------------categories have already existed---------------------------')
-                # return
-                obj = checkd_obj.first()
-            else:
-                obj = Category.objects.create(name=item['name']['en'])
-
-            if ImgCategory.objects.filter(img=img_obj, category=obj).exists():
-                print(f'--------------------ImgCategory have already existed---------------------------')
-                continue
-            item = ImgCategory(img=img_obj, category=obj, confidence=item['confidence'])
-            img_cate_list.append(item)
-            categories_list.append(obj)
-
-        ImgCategory.objects.bulk_create(img_cate_list)
-
-        # img_obj.categories.add(*categories_list, through_defaults=confidence_list)
-        img_obj.stat.is_get_cate = True
-        img_obj.stat.save()
-        print(
-            f'--------------------{img_obj.id} :categories have been store to the database---------------------------')
-
-
-# @shared_task
-def add_img_face_to_category(img_obj):
-    if not hasattr(img_obj, 'faces'):
-        print(f"\033[1;32m ----------{img_obj.id} INFO: there is no faces info in this img--------- \033[0m")
-        return
-    # check whether has the unknown face, unknown means unnamed
-    fc_unknown_obj = img_obj.faces.filter(name__startswith='unknown')
-    if fc_unknown_obj.exists():
-        print(f'\033[1;32m ----------{img_obj.id} INFO: there is unknown face in this img---------- \033[0m')
-        return
-    names = img_obj.faces.order_by('name').values_list('name', flat=True)
-    name_cnt = names.count()
-    name_str = 'no face'  # default
-    if name_cnt <= 1:
-        # print(
-        #     f'----------------{img_obj.id} :return-->this is the single or no face-----------------------')
-        return
-    elif 1 < name_cnt <= 6:  # if faces biger then 1, small then 6
-        # print(
-        # f'----------------{img_obj.id} :found the face group-----------------------')
-        name_str = ','.join(names)
-    elif name_cnt > 6:  # if faces biger then 5, then break
-        # print(
-        #     f'----------------{img_obj.id} :too many faces in the img-----------------------')
-        name_str = 'group face'
-
-    rst = Category.objects.filter(type='group', name=name_str)
-
-    if rst.exists():
-        rst = rst.first()
-        # rst.img.add(*img_set)
-        print(f"\033[1;32m --------{img_obj.id} :img group have been added to the database------------ \033[0m")
-    else:
-        rst = Category.objects.create(name=name_str, type='group', numeric_value=name_cnt, avatar=img_obj.src)
-        print(f"\033[1;32m --------{img_obj.id} :img group have been created to the database---------- \033[0m")
-        # rst.img.set(img_set)
-    rst.img.add(img_obj)
-
-
-# @shared_task
-def add_img_addr_to_category(img_obj):
-    if not hasattr(img_obj, 'address'):
-        print(f'\033[1;32m ----------{img_obj.id} INFO: there is no address info in this img--------- \033[0m')
-        return
-    city = img_obj.address.city
-    if city is None:
-        # print(f'----------------{img_obj.id} :there is no address info in this img---------------------')
-        city = 'No GPS'
-
-    rst, created = Category.objects.get_or_create(name=city, type='address')
-
-    rst.img.add(img_obj)
-    if created:
-        print(f'\033[1;32m --------{img_obj.id} :img address have been created to the database-------- \033[0m')
-    else:
-        print(f'\033[1;32m --------{img_obj.id} :img address have been added to the database---------- \033[0m')
-
-
-# @shared_task
-def add_img_colors_to_category(img_obj):
-    if not hasattr(img_obj, 'colors'):
-        print(f'----------{img_obj.id} INFO: there is no color info in this img---------')
-        return
-        # Color fetch here later
-        # set_img_colors(img_obj)
-        # img_obj.refresh_from_db()  # refresh the result from the database since the color is checked
-
-    img_colors = img_obj.colors.image.all()
-    fore_colors = img_obj.colors.foreground.all()
-    back_colors = img_obj.colors.background.all()
-    for color in img_colors:
-        cate_obj = Category.objects.filter(name=color.closest_palette_color_parent,
-                                           type='img_color')  # checking whether exist this palette
-        if cate_obj.exists():
-            cate_obj = cate_obj.first()
-            print(f'\033[1;32m --------{img_obj.id} :img colors have been added to the category database---- \033[0m')
-        else:
-            cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='img_color',
-                                               value=color_palette[color.closest_palette_color_parent])
-            print(f'\033[1;32m --------{img_obj.id} :img colors have been created to the category database---- \033[0m')
-        cate_obj.img.add(img_obj)
-
-    for color in fore_colors:
-        cate_obj = Category.objects.filter(name=color.closest_palette_color_parent,
-                                           type='fore_color')  # checking whether exist this palette
-        if cate_obj.exists():
-            cate_obj = cate_obj.first()
-            print(f'\033[1;32m --------{img_obj.id} :fore colors have been added to the category database---- \033[0m')
-        else:
-            cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='fore_color',
-                                               value=color_palette[color.closest_palette_color_parent])
-            print(
-                f'\033[1;32m --------{img_obj.id} :fore colors have been created to the category database---- \033[0m')
-        cate_obj.img.add(img_obj)
-
-    for color in back_colors:
-        cate_obj = Category.objects.filter(name=color.closest_palette_color_parent,
-                                           type='back_color')  # checking whether exist this palette
-        if cate_obj.exists():
-            cate_obj = cate_obj.first()
-            print(f'\033[1;32m --------{img_obj.id} :back colors have been added to the category database---- \033[0m')
-        else:
-            cate_obj = Category.objects.create(name=color.closest_palette_color_parent, type='back_color',
-                                               value=color_palette[color.closest_palette_color_parent])
-            print(
-                f'\033[1;32m --------{img_obj.id} :back colors have been created to the category database---- \033[0m')
-        cate_obj.img.add(img_obj)
-
-
-@shared_task
-def img_process(instance):
-    set_img_info(instance)  # if this add the delay function, this function will be processed by celery
-    set_img_tags(instance)  # if this add the delay function, this function will be processed by celery
-    set_img_colors(instance)  # if this add the delay function, this function will be processed by celery
-    set_img_categories(instance)  # if this add the delay function, this function will be processed by celery
-    # set_img_mcs(instance)
-    # save_insight_faces(instance)  # 保存insightface识别结果
-
-    # instance.refresh_from_db()
-    #
-    # add_img_face_to_category(instance)
-    # add_img_addr_to_category(instance)
-    # add_img_colors_to_category(instance)
-
-
-# @shared_task
-def set_all_img_mcs():
-    print('-----------------start upload all the imgs to mcs-----------------')
-    imgs = Img.objects.filter(mcs__isnull=True)
-    for (img_idx, img) in enumerate(imgs):
-        print(f'--------------------INFO: This is img{img_idx}: {img.id} ---------------------')
-        set_img_mcs(img)
-    print('------------all the imgs have been uploaded to mcs----------------')
-
-    print('-----------------start upload all the faces to mcs-----------------')
-    # fcs = Face.objects.filter(mcs__isnull=True)
-    # for (fc_idx, fc) in enumerate(fcs):
-    #     print(f'--------------------NFO: This is face{fc_idx}: {fc.name}---------------------')
-    #     set_face_mcs(fc)
-    print('------------all the faces have been uploaded to mcs----------------')
-
-    print('----end----')
-
-
-# @shared_task
-def set_all_img_tags():
-    imgs = Img.objects.all()
-    for img in imgs:
-        set_img_tags(img)
-
-
-# @shared_task
-def set_all_img_colors():
-    imgs = Img.objects.all()
-    for img in imgs:
-        set_img_colors(img)
-
-
-# @shared_task
-def set_all_img_categories():
-    imgs = Img.objects.all()
-    for img in imgs:
-        set_img_categories(img)
-
-
-# @shared_task
-def set_all_img_info():
-    imgs = Img.objects.all()
-    for img in imgs:
-        set_img_info(img)
-
-
-@shared_task
-def add_all_img_face_to_category():
-    imgs = Img.objects.all()
-    for img in imgs:
-        add_img_face_to_category(img)
-
-
-@shared_task
-def add_all_img_addr_to_category():
-    imgs = Img.objects.all()
-    for img in imgs:
-        add_img_addr_to_category(img)
-
-
-@shared_task
-def add_all_img_colors_to_category():
-    imgs = Img.objects.all()
-    for img in imgs:
-        add_img_colors_to_category(img)
-
-
 class ImgProces:
     def __init__(self, path=None, instance=None, procedure=None):
         """
@@ -610,67 +74,26 @@ class ImgProces:
         if procedure is None:
             procedure = ['face', 'object', 'caption', 'key point', 'extraction', 'auto tag', 'color', 'classification',
                          'base_info']
+
+        self.instance = instance
         self.path = path
-        if instance:
-            self.instance = instance
-            self.path = instance.src.name
         self.procedure = procedure
 
-    #     # img_path = img_obj.src.path  # local image
-    #     img_path = img.src.url  # web image
-    #
-    #     # req_img = cv.imread(img_path)  # 自己用openCV进行读取, not useful for url image
-
-    def read(self, image_path):
+    @staticmethod
+    def read(instance=None):
         """
-        image_path： 图片路径， 可以是本地的，也可以是云存储的, 相对于 media 文件夹的路径
+        instance： 图片对象
         image_content: 二进制文件流
         """
         # 读取图片
-        image_file = self.instance.src.open()  # 方式一：读取本地或网络图片
-        # image_file = default_storage.open(image_path)  # 方式二：读取本地或网络图片
+        # image_file = self.instance.src.open()  # 方式一：读取本地或网络图片
+        if not instance:
+            print('instance is None')
+            return None
+        image_file = default_storage.open(instance.src.name)  # 方式二：读取本地或网络图片
         image_content = image_file.read()
         image_file.close()
         return image_content
-
-    def exif_info_get(self, f_path=None):
-        # 获取图片的exif信息,并分别保存成5个字典，
-        #     img = instance
-        #     addr = instance.address
-        #     eval = instance.evaluates
-        #     date = instance.dates
-        #     stat = instance.stats
-        if f_path is None:
-            print(f'the f_path is not available')
-            return
-        if self.instance.stats.is_get_info:  # already fetch the info
-            print('this image already got the basic info like date, address and other exif info')
-            return
-        print(f'INFO: **************img instance have been created, saving img info now...')
-
-        lm_tags = []
-        img_read = pyexiv2.Image(f_path)  # 登记图片路径
-        exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
-        iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
-        xmp = img_read.read_xmp()  # 读取元数据，这会返回一个字典
-
-
-        img = {
-            ...,
-        }
-        addr = {
-            ...,
-        }
-        eval = {
-            ...,
-        }
-        date = {
-            ...,
-        }
-        stat = {
-            ...,
-        }
-        pass
 
     def save_exif_info(self):
         pass
@@ -723,7 +146,8 @@ class ImgProces:
         self.app = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
         self.app.prepare(ctx_id=0, det_size=(640, 640))
 
-    def face_crop(self, image, bbox):
+    @staticmethod
+    def face_crop(image, bbox):
         """
         image: 已经打开的图片数组
         bbox: 人脸框, 格式为[x左上, y左上, wid, height]
@@ -750,24 +174,30 @@ class ImgProces:
 
         return file
 
-    def face_recognition(self, embedding):  # 'instance', serializers
+    @staticmethod
+    def face_recognition(embedding):  # 'instance', serializers
         profile = None
         face_score = 0
         # 1. 提取出Profile模型中所有embedding，记作embeddings，并进行转换
         embeddings = Profile.objects.values_list('embedding', flat=True)
         embeddings = [np.frombuffer(embedding, dtype=np.float16) for embedding in embeddings if embedding]
 
+        # 判断embedding是否为空
+        if len(embeddings) == 0:
+            print('embeddings is empty')
+            return None, 0
+
         # 转换为矩阵形式进行相似度计算
         embeddings_matrix = np.stack(embeddings)
-        print(embeddings_matrix.shape)
-        print(embedding.reshape(1, -1).shape)
+        # print(embeddings_matrix.shape)
+        # print(embedding.reshape(1, -1).shape)
         similarity_scores = cosine_similarity(embedding.reshape(1, -1), embeddings_matrix)
 
         # 找到最大相似度对应的索引
         max_similarity_index = np.argmax(similarity_scores)
         max_similarity_score = similarity_scores[0, max_similarity_index]
 
-        print(similarity_scores, max_similarity_index, max_similarity_score)
+        # print(similarity_scores, max_similarity_index, max_similarity_score)
 
         # 如果top1相似度>0.4，则更新profile和face_score
         if max_similarity_score > calib['face']['reco_threshold']:
@@ -781,13 +211,507 @@ class ImgProces:
 
         return profile, face_score
 
-    def face_get(self, save_type='instance'):  # 'instance', serializers
-        #  判断当前实例是否已经执行过人脸识别，如果是，直接打印相关信息并返回
-        if self.instance.stats.is_face:
-            print('face already exist')
+    @staticmethod
+    def resolve_date(date_str):  # 1. date instance, 2 '%Y:%m:%d %H:%M:%S'
+        if not date_str:
+            date_str = '1970:01:01 00:00:00'
+        tt = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
+        date = {
+            'capture_date': tt.strftime("%Y-%m-%d"),
+            'capture_time': tt.strftime("%H:%M:%S"),
+            'year': str(tt.year).rjust(2, '0'),
+            'month': str(tt.month).rjust(2, '0'),
+            'day': str(tt.day).rjust(2, '0'),
+            'is_weekend': False if tt.weekday() < 5 else True,
+            'earthly_branches': bisect.bisect_right(calib['hour_slot'], tt.hour) - 1,
+        }
+        return date
+
+    @staticmethod
+    def profile_category_init():
+        # 0. judge whether the profile category have initialized or not
+        if Category.objects.filter(name='family').exists():
             return
+        # 1. create the root node profile category: [‘家人'，同学'，‘同事’，‘社会朋友’，‘其它公司’]
+        root_profile = ['family', 'schoolmate', 'colleague', 'Social friend', 'companies']
+        family = ['direct relative', 'relative', 'other']
+        schoolmate = ['primary', 'middle', 'high', 'university', 'postgraduate', 'other']
+
+        for name in root_profile:
+            name_obj, created = Category.objects.get_or_create(name=name)
+            if created:
+                dict_name = {
+                    'parent': None,
+                    'level': 0,
+                    'is_leaf': False,
+                    'is_root': True,
+                    'description': f'this is root_profile: {name}',
+                }
+                name_obj.__dict__.update(dict_name)
+                name_obj.save()
+        # 2. create the leaf node profile family: ['direct relative', 'relative', 'other']
+        family_instance = Category.objects.get(name='family')
+        for name in family:
+            name_obj, created = Category.objects.get_or_create(name=name, parent=Category.objects.get(name='family'))
+            if created:
+                dict_name = {
+                    'parent': family_instance,
+                    'level': 1,
+                    'is_leaf': True,
+                    'is_root': False,
+                    'description': f'this is family: {name}',
+                }
+                name_obj.__dict__.update(dict_name)
+                name_obj.save()
+        # 3. create the leaf node profile schoolmate: ['primary', 'middle', 'high', 'university', 'postgraduate',
+        # 'other']
+        schoolmate_instance = Category.objects.get(name='schoolmate')
+        for name in schoolmate:
+            name_obj, created = Category.objects.get_or_create(name=name,
+                                                               parent=Category.objects.get(name='schoolmate'))
+            if created:
+                dict_name = {
+                    'parent': schoolmate_instance,
+                    'level': 1,
+                    'is_leaf': True,
+                    'is_root': False,
+                    'description': f'this is schoolmate: {name}',
+                }
+                name_obj.__dict__.update(dict_name)
+                name_obj.save()
+
+    @staticmethod
+    def category_init():
+        # 0. judge whether the profile category have initialized or not
+        if Category.objects.filter(name='date').exists():
+            return
+        # 1. create the root node profile category: [‘家人'，同学'，‘同事’，‘社会朋友’，‘其它公司’]
+        root = ['date', 'Holiday', 'location', 'profile', 'event', 'img_color', 'fore_color', 'back_color', 'scene',
+                'layout', 'rate', 'group', 'group_num']
+
+        for name in root:
+            name_obj, created = Category.objects.get_or_create(name=name)
+            if created:
+                dict_name = {
+                    'parent': None,
+                    'level': 0,
+                    'is_leaf': False,
+                    'is_root': True,
+                    'description': f'this is category root: {name}',
+                }
+                name_obj.__dict__.update(dict_name)
+                name_obj.save()
+
+    def __is_need_process__(self, instance=None, force=False, field=None):
+        """
+        判断是否需要处理
+        :param instance: 实例对象
+        :param force: 是否强制处理
+        :param field: 字段名
+        :return: instance: 使用默认实例还是外来实例
+        :return: process: 是否需要处理
+        """
+        process = False
+        instance = self.instance if instance is None else instance
+        print(f'INFO: img-->{instance} is processing')
+        if not hasattr(instance, 'stats'):
+            stats, created = Stat.objects.get_or_create(img=instance)  # bind the one to one field image info
+        else:
+            stats = instance.stats
+        if field is not None and hasattr(stats, field):
+            value = getattr(stats, field)
+            if value is False or force:
+                process = True
+        if not process:
+            print(
+                f'INFO: {field} is True in the Img.stats, that is mean you have already processed this before. however, if you want process this again, you could set the force=True and then try again')
+        return instance, stats, process
+
+    def __is_OK_add_to_category__(self, instance=None, field=None):
+        """
+        判断是否可以正常加入分类模型
+        :param instance: 实例对象
+        :param field: 字段名
+        """
+        process = True
+        instance = self.instance if instance is None else instance
+        if not hasattr(instance, field):
+            print(f'\033[1;32m ----------{instance.id} INFO: there is no {field} category info in this img--------- '
+                  f'\033[0m')
+            process = False
+        return instance, process
+
+    #  --------------------process for the single image--------------------
+    def get_mcs(self, instance=None, force=False):  # img = self.get_object()  # 获取详情的实例对象
+
+        # 1. 判断是否需要处理
+        field = 'is_store_mcs'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+
+        # 2. processing the image
+        data = upload_file_pay(cfg['wallet_info'], instance.src.path)
+        # 调用序列化器进行反序列化验证和转换
+        data.update(id=instance.id)
+        print(data)
+        serializer = McsDetailSerializer(data=data)
+        # 当验证失败时,可以直接通过声明 raise_exception=True 让django直接跑出异常,那么验证出错之后，直接就再这里报错，程序中断了就
+
+        result = serializer.is_valid(raise_exception=True)
+        print(serializer.errors)  # 查看错误信息
+
+        # 获取通过验证后的数据
+        print(serializer.validated_data)  # form -- clean_data
+        # 保存数据
+        mcs_obj = serializer.save()
+
+        # 3. update the stats
+        stats.is_store_mcs = True
+        stats.save()
+        print('success to make a copy into mac, the file_upload_id is %d' % mcs_obj.file_upload_id)
+
+    def get_tags(self, instance=None, force=False):
+        # 1. 判断是否需要处理
+        field = 'is_auto_tag'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+
+        # 2. processing the image
+
+        # img_path = instance.src.path  # oss have no path attribute
+        img_path = instance.src.url
+        # img_path = 'https://imagga.com/static/images/tagging/wind-farm-538576_640.jpg'
+        endpoint = 'tags'
+        tagging_query = {
+            'verbose': False,
+            'language': 'en',
+            'threshold': 25,
+        }
+
+        # response = imagga_post(img_path, endpoint, tagging_query)  # for local image
+        response = imagga_get(img_path, endpoint, query_add=tagging_query)  # for web image
+
+        # with open("tags.txt", 'wb') as f:  # store the result object, which will helpful for debugging
+        #     pickle.dump(response, f)
+        #
+        # with open("tags.txt", 'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
+        #     response = pickle.load(f)
+        # print(response)
+
+        if 'result' in response:
+            tags = response['result']['tags']
+            tag_list = []
+
+            for tag in tags:
+                tag_list.append(tag['tag']['en'])
+
+            # instance.tags.set(tag_list)
+            instance.tags.add(*tag_list)
+
+            # 3. update the stats
+            instance.stats.is_auto_tag = True
+            instance.stats.save()
+
+            print(f'--------------------{instance.pk} :tags have been store to the database---------------------------')
+
+    # @shared_task
+    def get_colors(self, instance=None, force=False):
+        # 1. 判断是否需要处理
+        field = 'is_get_color'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+
+        # 2. processing the image
+        # this is through post method to get the tags. mainly is used for local img
+        # img_path = instance.src.path  # local image
+        img_path = instance.src.url  # web image
+        endpoint = 'colors'
+        # color_query = {                 #  if it is necessary, we could add the query info here
+        #     'verbose': False,
+        #     'language': False,
+        #     'threshold': 25.0,
+        # # }
+
+        # response = imagga_post(img_path, endpoint)
+        response = imagga_get(img_path, endpoint)
+
+        # with open("colors.txt", 'wb') as f:  # store the result object, which will helpful for debugging
+        #     pickle.dump(response, f)
+
+        # with open("colors.txt", 'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
+        #     response = pickle.load(f)
+
+        # print(response)
+
+        if response['status']['type'] != 'success':
+            return []
+
+        if 'result' in response:
+            colors = response['result'][endpoint]
+            background_colors = colors['background_colors']
+            foreground_colors = colors['foreground_colors']
+            image_colors = colors['image_colors']
+
+            # print(colors)
+
+            # 调用序列化器进行反序列化验证和转换
+            colors.update(img=instance.id)  # bind the one to one field image info
+            if not hasattr(instance, 'colors'):  # if instance have no attribute of colors, then create it
+                print('no colors object existed')
+                serializer = ColorSerializer(data=colors)
+            else:  # if instance already have attribute of colors, then updated it
+                print('colors object already existed')
+                serializer = ColorSerializer(instance.colors, data=colors)
+            result = serializer.is_valid(raise_exception=True)
+            color_obj = serializer.save()
+
+            # print(type(color_obj))
+            # print(color_obj.background.all().exists())
+            # print(color_obj.foreground.all().exists())
+            # print(color_obj.image.all().exists())
+
+            if not color_obj.background.all().exists():
+                for bk in background_colors:
+                    bk.update(color=color_obj.pk)
+                    serializer = ColorBackgroundSerializer(data=bk)
+                    result = serializer.is_valid(raise_exception=True)
+                    back_color_obj = serializer.save()
+            # else:
+            # for bk in background_colors:
+            #     bk.update(color=color_obj.pk)
+            #     serializer = ColorBackgroundSerializer(color_obj.background, data=bk)
+            #     result = serializer.is_valid(raise_exception=True)
+            #     back_color_obj = serializer.save()
+
+            if not color_obj.foreground.all().exists():
+                for fore in foreground_colors:
+                    fore.update(color=color_obj.pk)
+                    serializer = ColorForegroundSerializer(data=fore)
+                    result = serializer.is_valid(raise_exception=True)
+                    fore_color_obj = serializer.save()
+            # else:
+            #     for fore in foreground_colors:
+            #         fore.update(color=color_obj.pk)
+            #         serializer = ColorForegroundSerializer(color_obj.foreground, data=fore)
+            #         result = serializer.is_valid(raise_exception=True)
+            #         fore_color_obj = serializer.save()
+
+            if not color_obj.image.all().exists():
+                for img in image_colors:
+                    img.update(color=color_obj.pk)
+                    serializer = ColorImgSerializer(data=img)
+                    result = serializer.is_valid(raise_exception=True)
+                    img_color_obj = serializer.save()
+            # else:
+            #     for img in image_colors:
+            #         img.update(color=color_obj.pk)
+            #         serializer = ColorImgSerializer(color_obj.image, data=img)
+            #         result = serializer.is_valid(raise_exception=True)
+            #         img_color_obj = serializer.save()
+
+            # 3. update the stats
+            instance.stats.is_get_color = True
+            instance.stats.save()
+            print(
+                f'--------------------{instance.id} :colors have been store to the database---------------------------')
+
+    # @shared_task
+    def get_categories(self, instance=None, force=False):
+        # 1. 判断是否需要处理
+        field = 'is_get_cate'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+
+        # 2. processing the image
+        # img_path = instance.src.path  # local image
+        img_path = instance.src.url  # web image
+        endpoint = 'categories/personal_photos'
+
+        # response = imagga_post(img_path, endpoint)
+        response = imagga_get(img_path, endpoint)
+        # with open("categories.txt", 'wb') as f:  # store the result object, which will helpful for debugging
+        #     pickle.dump(response, f)
+
+        # with open("categories.txt",
+        #           'rb') as f:  # during the debug, we could using the local stored object. since the api numbers is limited
+        #     response = pickle.load(f)
+        # print(response)
+
+        if 'result' in response:
+            categories = response['result']['categories']
+            categories_list = []
+            img_cate_list = []
+            data = {}
+
+            for item in categories:
+                # obj = Category(name=item['name']['en'], confidence=item['confidence'])
+                checkd_obj = Category.objects.filter(name=item['name']['en'])
+                if checkd_obj.exists():
+                    # print(f'--------------------categories have already existed---------------------------')
+                    # return
+                    obj = checkd_obj.first()
+                else:
+                    obj = Category.objects.create(name=item['name']['en'])
+
+                if ImgCategory.objects.filter(img=instance, category=obj).exists():
+                    print(f'--------------------ImgCategory have already existed---------------------------')
+                    continue
+                item = ImgCategory(img=instance, category=obj, confidence=item['confidence'])
+                img_cate_list.append(item)
+                categories_list.append(obj)
+
+            ImgCategory.objects.bulk_create(img_cate_list)
+
+            # instance.categories.add(*categories_list, through_defaults=confidence_list)
+            # 3. update the stats
+            instance.stats.is_get_cate = True
+            instance.stats.save()
+            print(
+                f'--------------------{instance.id} :categories have been store to the database---------------------------')
+
+    def get_exif_info(self, instance=None, force=False):
+        # 1. 判断是否需要处理
+        field = 'is_get_info'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+
+        # 2. processing the image
+        print(f'INFO: **************img instance have been created, saving img info now...')
+        # stat, created = Stat.objects.get_or_create(img=instance)  # bind the one to one field image info
+        addr, created = Address.objects.get_or_create(img=instance)
+        eval, created = Evaluate.objects.get_or_create(img=instance)
+        date, created = Date.objects.get_or_create(img=instance)
+        # instance.refresh_from_db()  # refresh from the DB
+        lm_tags = []
+        # 2.1 get the exif info by pyexiv2
+        # img_read = pyexiv2.Image(self.path) if self.path else pyexiv2.ImageData(self.read())  # 登记图片路径
+        img_read = pyexiv2.ImageData(self.read(instance))  # 登记图片路径
+
+        # 2.2 get the exif info by PIL
+        # image_pil = Image.open(BytesIO(self.read()))
+        # exif_data = image_pil._getexif()
+        # if exif_data is None:
+        #     print("No EXIF data found.")
+        #     return
+        # print("Image EXIF information:")
+        # for tag_id, value in exif_data.items():
+        #     tag_name = ExifTags.TAGS.get(tag_id, tag_id)
+        #     print(f"{tag_name}: {value}")
+
+        exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
+        iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
+        xmp = img_read.read_xmp()  # 读取元数据，这会返回一个字典
+        # print(f'INFO: exif is {json.dumps(exif, indent=4)}')
+        # print(f'INFO: iptc is {json.dumps(iptc, indent=4)}')
+        # print(f'INFO: xmp is {json.dumps(xmp, indent=4)}')
+        #
+        # print(f'INFO: instance.src.url is {instance.src.url}')
+        # print(f'INFO: instance.src.name is {instance.src.name}')
+        # print(f'INFO: instance.src.size is {instance.src.size}')
+
+        if exif:
+            print(f'INFO: exif is true ')
+            # deal with timing
+            date_str = exif['Exif.Photo.DateTimeOriginal']
+
+            # date = set_img_date(date, date_str)  # return the date instance
+            date_dict = self.resolve_date(date_str)  # return the date instance
+            date.__dict__.update(date_dict)
+
+            # deal with address
+            addr.longitude_ref = exif.get('Exif.GPSInfo.GPSLongitudeRef')
+            if addr.longitude_ref:  # if have longitude info
+                addr.longitude = GPS_format(
+                    exif.get('Exif.GPSInfo.GPSLongitude'))  # exif.get('Exif.GPSInfo.GPSLongitude')
+                addr.latitude_ref = exif.get('Exif.GPSInfo.GPSLatitudeRef')
+                addr.latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
+
+            addr.altitude_ref = exif.get('Exif.GPSInfo.GPSAltitudeRef')  # 有些照片无高度信息
+            if addr.altitude_ref:  # if have the altitude info
+                addr.altitude_ref = float(addr.altitude_ref)
+                addr.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
+                alt = addr.altitude.split('/')
+                addr.altitude = float(alt[0]) / float(alt[1])
+            addr.is_located = False
+            if addr.longitude and addr.latitude:
+                # 是否包含经纬度数据
+                addr.is_located = True
+                long_lati = GPS_to_coordinate(addr.longitude, addr.latitude)
+                # TODO: need update the lnglat after transform the GPS info
+                addr.longitude = round(long_lati[0], 6)  # only have Only 6 digits of precision for AMAP
+                addr.latitude = round(long_lati[1], 6)
+                # print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
+                long_lati = f'{long_lati[0]},{long_lati[1]}'  # change to string
+
+                addr.location, addr.district, addr.city, addr.province, addr.country = GPS_get_address(
+                    long_lati)
+
+            instance.wid = int(exif.get('Exif.Image.ImageWidth'))
+            instance.height = int(exif.get('Exif.Image.ImageLength'))
+            instance.aspect_ratio = instance.height / instance.wid
+            instance.camera_brand = exif.get('Exif.Image.Make')
+            instance.camera_model = exif.get('Exif.Image.Model')
+
+        if iptc:
+            print(f'INFO: iptc is true ')
+            instance.title = iptc.get('iptc.Application2.ObjectName')
+            instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
+            lm_tags = iptc.get('Iptc.Application2.Keywords')
+
+        if xmp:
+            print(f'INFO: xmp is true ')
+            instance.label = xmp.get('Xmp.xmp.Label')  # color mark
+            eval.rating = int(xmp.get('Xmp.xmp.Rating', 0))
+            # if eval.rating:
+            #     eval.rating = int(xmp.get('Xmp.xmp.Rating'))
+
+        # 使用阿里云后端，这个无法直接访问
+        # instance.wid = instance.src.width
+        # instance.height = instance.src.height
+        # instance.aspect_ratio = instance.height / instance.wid
+        instance.is_exist = True
+        instance.save()  # save the image instance, already saved during save the author
+
+        if lm_tags:
+            print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
+            print(f'INFO: the instance id is {instance.id}')
+            # instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+            instance.tags.add(*lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+
+        # 3. update the stats
+        stats.is_publish = True
+        stats.is_get_info = True
+
+        addr.save()
+        eval.save()
+        date.save()
+        stats.save()
+        print(
+            f'--------------------{instance.id} :img infos have been store to the database---------------------------')
+
+    def get_faces(self, instance=None, force=False, save_type='instance'):  # 'instance', serializers
+        #  判断当前实例是否已经执行过人脸识别，如果是，直接打印相关信息并返回
+        # 1. 判断是否需要处理
+        field = 'is_face'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+        # 1.1 delete the old faces and relations to Profile
+        if stats.is_face:
+            print(f'INFO: the instance {instance.id} has been processed')
+            # 清除Img与Profile之间的多对多关系
+            instance.profiles.clear()
+            # 清除Img与Profile之间的多对多关系
+            instance.faces.all().delete()
+
+        # 2. processing the image
         self.face_init()
-        image_content = self.read(self.path)
+        image_content = self.read(instance)
         image_content_obj = BytesIO(image_content)
 
         np_array = np.frombuffer(image_content_obj.getvalue(), np.uint8)
@@ -850,10 +774,479 @@ class ImgProces:
                                     np.round(face.landmark_3d_68).astype(np.int16)],
                 }
                 self.save_face_serializers(data)
-        stats = self.instance.stats
+        stats = instance.stats
+        # 3. update the stats
         stats.is_face = True
         stats.save()
         return faces
+
+    # ----------------------process for single img for several functions----------------------
+    @shared_task
+    def get_img(self, instance=None, func_list=None, force=False):
+        """
+        :param instance: the instance of the image
+        :param func_list: the list of the function
+        :param force: if force is True, then the function will be executed
+        the function list could be as follows:
+        func_list = ['get_mcs', 'get_tags', 'get_colors', 'get_categories', 'get_exif_info', 'get_faces']
+        get_mcs(self, instance=None, force=False)
+        get_tags(self, instance=None, force=False)
+        get_colors(self, instance=None, force=False)
+        get_categories(self, instance=None, force=False)
+        get_exif_info(self, instance=None, force=False)
+        get_faces(self, instance=None, force=False)
+        :return:
+        """
+        print(f'-------------INFO: start loop the  funcs, dealing with img --->{instance.id}---------------')
+        if func_list is None:
+            func_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories', 'get_faces']
+        # 1. get the instance
+        instance = self.instance if instance is None else instance
+        # 2. loop the function list
+        for func_name in func_list:
+            print(f'-------------INFO: This is func: {func_name} , dealing with img --->{instance.id}---------------')
+            func = getattr(self, func_name)
+            func(instance=instance, force=force)
+
+    #  ----------------------process for all the imgs for several functions----------------------
+    @shared_task
+    def get_all_img(self, func_list=None, force=False):
+        """
+        :param func_list: the list of the function
+        :param force: if force is True, then the function will be executed
+        the function list could be as follows:
+        func_list = ['get_mcs', 'get_tags', 'get_colors', 'get_categories', 'get_exif_info', 'get_faces']
+        get_mcs(self, instance=None, force=False)
+        get_tags(self, instance=None, force=False)
+        get_colors(self, instance=None, force=False)
+        get_categories(self, instance=None, force=False)
+        get_exif_info(self, instance=None, force=False)
+        get_faces(self, instance=None, force=False)
+        :return:
+        """
+        if func_list is None:
+            return
+        # 1. get all the imgs
+        imgs = Img.objects.all()
+        # 2. Go through each img
+        for (img_idx, img) in enumerate(imgs):
+            print(f'--------------------INFO: This is img{img_idx}: {img.id} ---------------------')
+
+            self.get_img(self, instance=img, func_list=func_list, force=force)
+
+    # ----------------------add the single image to category----------------------
+    def add_date_to_category(self, instance=None):
+        # 1. get the instance and check is it OK to add to category
+        instance, process = self.__is_OK_add_to_category__(instance=instance, field='dates')
+        if not process:
+            return
+        # 2. get the date
+        dates = instance.dates
+        date_root_obj, created = Category.objects.get_or_create(name='date')
+        # deal with something if this is the first time to create the root
+        if created:
+            dict_root = {
+                'parent': None,
+                'level': 0,
+                'is_leaf': False,
+                'is_root': True,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': 'this is date category',
+            }
+            date_root_obj.__dict__.update(dict_root)
+            date_root_obj.save()
+
+        # 3. check whether the dates.year is existed or not, if not, create it
+        year_obj, created = Category.objects.get_or_create(name=dates.year, parent=date_root_obj)
+        # 4. deal with something if this is the first time to create the year
+        if created:
+            dict_year = {
+                'level': 1,
+                'is_leaf': False,
+                'is_root': False,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': f'this is year category: {dates.year}',
+            }
+            year_obj.__dict__.update(dict_year)
+            year_obj.save()
+        # 5. add the instance to the year
+        year_obj.imgs.add(instance)
+
+        # 6. check whether the dates.month is existed or not, if not, create it
+        month_obj, created = Category.objects.get_or_create(name=f'{dates.year}-{dates.month}', parent=year_obj)
+        # 7. deal with something if this is the first time to create the month
+        if created:
+            dict_month = {
+                # 'parent': Category.objects.get(name=dates.year),
+                'level': 2,
+                'is_leaf': False,
+                'is_root': False,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': f'this is month category: {dates.month}',
+            }
+            month_obj.__dict__.update(dict_month)
+            month_obj.save()
+        # 8. add the instance to the month
+        month_obj.imgs.add(instance)
+
+        # 9. check whether the dates.day is existed or not, if not, create it
+        day_obj, created = Category.objects.get_or_create(name=f'{dates.year}-{dates.month}-{dates.day}',
+                                                          parent=month_obj)
+        # 10. deal with something if this is the first time to create the day
+        if created:
+            dict_day = {
+                # 'parent': Category.objects.get(name=dates.month),
+                'level': 3,
+                'is_leaf': True,
+                'is_root': False,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': f'this is day category: {dates.day}',
+            }
+            day_obj.__dict__.update(dict_day)
+            day_obj.save()
+        # 11. add the instance to the day
+        day_obj.imgs.add(instance)
+
+    def add_location_to_category(self, instance=None):
+        # 1. get the instance and check if it is OK to add to the category
+        instance, process = self.__is_OK_add_to_category__(instance=instance, field='address')
+        if not process:
+            return
+
+        country_obj = None
+        province_obj = None
+        city_obj = None
+
+        # 2. get the location
+        location = instance.address
+
+        # check the location root is existed or not
+        location_root_obj, created = Category.objects.get_or_create(name='location')
+        # deal with something if this is the first time to create the root
+        if created:
+            dict_root = {
+                'parent': None,
+                'level': 0,
+                'is_leaf': False,
+                'is_root': True,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': 'this is location category',
+            }
+            location_root_obj.__dict__.update(dict_root)
+            location_root_obj.save()
+
+        # 3. check whether the location.country is existed or not, if not, create it
+        if location.country:
+            country_name = location.country.strip()
+            if country_name:
+                country_obj, created = Category.objects.get_or_create(name=country_name, parent=location_root_obj)
+                # 4. deal with something if this is the first time to create the country
+                if created:
+                    dict_country = {
+                        'level': 1,
+                        'is_leaf': False,
+                        'is_root': False,
+                        'owner': instance.user,
+                        'avatar': instance.src,
+                        'description': f'this is country category: {country_name}',
+                    }
+                    country_obj.__dict__.update(dict_country)
+                    country_obj.save()
+                # 5. add the instance to the country
+                country_obj.imgs.add(instance)
+
+        # 6. check whether the location.province is existed or not, if not, create it
+        if location.province:
+            province_name = location.province.strip()
+            if province_name:
+                province_obj, created = Category.objects.get_or_create(name=province_name, parent=country_obj)
+                # 7. deal with something if this is the first time to create the province
+                if created:
+                    dict_province = {
+                        'level': 2,
+                        'is_leaf': False,
+                        'is_root': False,
+                        'owner': instance.user,
+                        'avatar': instance.src,
+                        'description': f'this is province category: {province_name}',
+                    }
+                    province_obj.__dict__.update(dict_province)
+                    province_obj.save()
+                # 8. add the instance to the province
+                province_obj.imgs.add(instance)
+
+        # 9. check whether the location.city is existed or not, if not, create it
+        if location.city:
+            city_name = location.city.strip()
+            if city_name:
+                city_obj, created = Category.objects.get_or_create(name=city_name, parent=province_obj)
+                # 10. deal with something if this is the first time to create the city
+                if created:
+                    dict_city = {
+                        'level': 3,
+                        'is_leaf': False,
+                        'is_root': False,
+                        'owner': instance.user,
+                        'avatar': instance.src,
+                        'description': f'this is city category: {city_name}',
+                    }
+                    city_obj.__dict__.update(dict_city)
+                    city_obj.save()
+                # 11. add the instance to the city
+                city_obj.imgs.add(instance)
+
+        # 12. check whether the location.district is existed or not, if not, create it
+        if location.district:
+            district_name = location.district.strip()
+            if district_name:
+                district_obj, created = Category.objects.get_or_create(name=district_name, parent=city_obj)
+                # 13. deal with something if this is the first time to create the district
+                if created:
+                    dict_district = {
+                        'level': 4,
+                        'is_leaf': True,
+                        'is_root': False,
+                        'owner': instance.user,
+                        'avatar': instance.src,
+                        'description': f'this is district category: {district_name}',
+                    }
+                    district_obj.__dict__.update(dict_district)
+                    city_obj.save()
+                # 14. add the instance to the district
+                district_obj.imgs.add(instance)
+
+        # 15. check whether the location.street is existed or not, if not, create it
+        # seems no necessary yet
+
+    def add_profile_to_category(self, instance=None):
+        # 1. get the instance and check is it OK to add to category
+        instance, process = self.__is_OK_add_to_category__(instance=instance, field='profiles')
+        if not process:
+            return
+        # 2. get the profiles
+        profiles = instance.profiles.all()
+        # check the profile root is existed or not
+        profile_root_obj, created = Category.objects.get_or_create(name='profile')
+        # deal with something if this is the first time to create the root
+        if created:
+            dict_root = {
+                'parent': None,
+                'level': 0,
+                'is_leaf': False,
+                'is_root': True,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': 'this is profile category',
+            }
+            profile_root_obj.__dict__.update(dict_root)
+            profile_root_obj.save()
+
+        # 3. check whether the profile.name is existed or not, if not, create it
+        for profile in profiles:
+            name_obj, created = Category.objects.get_or_create(name=profile.name)
+            # 4. deal with something if this is the first time to create the name
+            if created:
+                dict_name = {
+                    'parent': None,
+                    'level': 2,
+                    'is_leaf': True,
+                    'is_root': False,
+                    'owner': instance.user,
+                    'avatar': instance.src,
+                    'description': f'this is profile name: {profile.name}',
+                }
+                name_obj.__dict__.update(dict_name)
+                name_obj.save()
+            # 5. add the instance to the name
+            name_obj.imgs.add(instance)
+
+    def add_group_to_category(self, instance=None):
+        # 1. get the instance and check is it OK to add to category
+        instance, process = self.__is_OK_add_to_category__(instance=instance, field='profiles')
+        if not process:
+            return
+        # check the group root is existed or not
+        group_root_obj, created = Category.objects.get_or_create(name='group')
+        # deal with something if this is the first time to create the root
+        if created:
+            dict_root = {
+                'parent': None,
+                'level': 0,
+                'is_leaf': False,
+                'is_root': True,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': 'this is group category',
+            }
+            group_root_obj.__dict__.update(dict_root)
+            group_root_obj.save()
+
+        # 2. get the profiles in this instance
+        names = instance.profiles.order_by('name').values_list('name', flat=True)
+        name_cnt = names.count()
+        name_str = 'no face'  # default
+        if name_cnt <= 1:
+            # print(
+            #     f'----------------{instance.id} :return-->this is the single or no face-----------------------')
+            return
+        elif name_cnt <= 5:  # if faces biger then 1, small then 6
+            # print(
+            # f'----------------{instance.id} :found the face group-----------------------')
+            name_str = ','.join(names)
+        elif name_cnt:  # if faces biger then 5, then break
+            # print(
+            #     f'----------------{instance.id} :too many faces in the img-----------------------')
+            name_str = 'group face'
+
+        # 3. check whether the group name is existed or not, if not, create it
+        group_obj, created = Category.objects.get_or_create(name=name_str, parent=group_root_obj)
+        # 4. deal with something if this is the first time to create the group
+        if created:
+            dict_group = {
+                'level': 1,
+                'is_leaf': True,
+                'is_root': False,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': f'this is a group face: {name_str}',
+            }
+            group_obj.__dict__.update(dict_group)  # update the group_obj
+            group_obj.save()
+        # 5. add the instance to the group
+        group_obj.imgs.add(instance)
+
+    def add_colors_to_category(self, instance=None):
+        # 1. get the instance and check is it OK to add to category
+        instance, process = self.__is_OK_add_to_category__(instance=instance, field='colors')
+        if not process:
+            return
+        # 2. get the colors
+        img_colors = instance.colors.image.all()
+        fore_colors = instance.colors.foreground.all()
+        back_colors = instance.colors.background.all()
+        # check the group root is existed or not
+        img_color_root_obj, created = Category.objects.get_or_create(name='img_color')
+        if created:
+            dict_root = {
+                'level': 0,
+                'is_leaf': False,
+                'is_root': True,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': 'this is img color category',
+            }
+            img_color_root_obj.__dict__.update(dict_root)
+            img_color_root_obj.save()
+        fore_color_root_obj, created = Category.objects.get_or_create(name='fore_color')
+        if created:
+            dict_root = {
+                'level': 0,
+                'is_leaf': False,
+                'is_root': True,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': 'this is fore color category',
+            }
+            fore_color_root_obj.__dict__.update(dict_root)
+            fore_color_root_obj.save()
+        back_color_root_obj, created = Category.objects.get_or_create(name='back_color')
+        if created:
+            dict_root = {
+                'level': 0,
+                'is_leaf': False,
+                'is_root': True,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': 'this is back color category',
+            }
+            back_color_root_obj.__dict__.update(dict_root)
+            back_color_root_obj.save()
+        # 3. check whether the color is existed or not, if not, create it
+        for color in img_colors:
+            cate_obj, created = Category.objects.get_or_create(name=color_palette[color.closest_palette_color_parent],
+                                                               parent=img_color_root_obj)
+            if created:
+                dict_cate = {
+                    'level': 1,
+                    'is_leaf': True,
+                    'is_root': False,
+                    'owner': instance.user,
+                    'avatar': instance.src,
+                    'description': f'this is img color: {color_palette[color.closest_palette_color_parent]}',
+                }
+                cate_obj.__dict__.update(dict_cate)
+                cate_obj.save()
+            # 4. add the instance to the color
+            cate_obj.imgs.add(instance)
+        for color in fore_colors:
+            cate_obj, created = Category.objects.get_or_create(name=color_palette[color.closest_palette_color_parent],
+                                                               parent=fore_color_root_obj)
+            if created:
+                dict_cate = {
+                    'level': 1,
+                    'is_leaf': True,
+                    'is_root': False,
+                    'owner': instance.user,
+                    'avatar': instance.src,
+                    'description': f'this is foreground color: {color_palette[color.closest_palette_color_parent]}',
+                }
+                cate_obj.__dict__.update(dict_cate)
+                cate_obj.save()
+            # 4. add the instance to the color
+            cate_obj.imgs.add(instance)
+        for color in back_colors:
+            cate_obj, created = Category.objects.get_or_create(name=color_palette[color.closest_palette_color_parent],
+                                                               parent=back_color_root_obj)
+            if created:
+                dict_cate = {
+                    'level': 1,
+                    'is_leaf': True,
+                    'is_root': False,
+                    'owner': instance.user,
+                    'avatar': instance.src,
+                    'description': f'this is background color: {color_palette[color.closest_palette_color_parent]}',
+                }
+                cate_obj.__dict__.update(dict_cate)
+                cate_obj.save()
+            # 4. add the instance to the color
+            cate_obj.imgs.add(instance)
+
+    # ----------------------add the single img to category for several types----------------------
+    @shared_task
+    def add_img_to_category(self, instance=None, func_list=None):
+        """
+                :param instance: the instance of the image
+                :param func_list: the list of what need to add to the category
+                the function list could be as follows:
+                func_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category', 'add_colors_to_category']
+                :return:
+                """
+        # 1. get the instance
+        instance = self.instance if instance is None else instance
+        # 2. loop the function list
+        for func_name in func_list:
+            print(f'--------------------INFO: This is func: {func_name} ---------------------')
+            func = getattr(self, func_name)
+            func(instance=instance)
+
+    # ----------------------add the all images to category for several types----------------------
+    @shared_task
+    def add_all_img_to_category(self, func_list=None, force=False):
+        if func_list is None:
+            return
+        # 1. get all the imgs
+        imgs = Img.objects.all()
+        # 2. Go through each img
+        for (img_idx, img) in enumerate(imgs):
+            print(f'--------------------INFO: This is img{img_idx}: {img.id} ---------------------')
+            self.add_img_to_category(self, instance=img, func_list=func_list)
+
+    # ----------------------some functions----------------------
 
     @staticmethod
     def face_rename(fc_instance, name=None):  # 'instance', serializers
@@ -892,7 +1285,7 @@ class ImgProces:
                     username = f'{name}{random_suffix}'
 
                 profile = Profile.objects.create_user(username=username, password='deep-diary', is_active=0, name=name,
-                                                      embedding=fc_instance.embedding)
+                                                      embedding=fc_instance.embedding, avatar=fc_instance.src)
 
                 fc_instance.profile = profile
                 fc_instance.save()
@@ -901,3 +1294,10 @@ class ImgProces:
             except IntegrityError:
                 print('ERROR: Failed to create a new profile. IntegrityError occurred.')
         return profile, fc_instance
+
+    def add_parent_category(self, instance=None):
+        """
+        :param instance: the instance of the image
+        :return:
+        """
+        pass

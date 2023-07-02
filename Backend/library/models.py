@@ -8,6 +8,8 @@ from django.db import models
 from django.utils import timezone
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill, ResizeToFit
+from mptt.fields import TreeForeignKey
+from mptt.models import MPTTModel
 from taggit.managers import TaggableManager
 
 from project.models import Issue
@@ -83,13 +85,13 @@ class Img(models.Model):
     #                             null=True, blank=True,
     #                             default='sys_img/logo_lg.png'
     #                             )
-    # thumb = ImageSpecField(source='src',
-    #                        # processors=[ResizeToFill(400, 400)],
-    #                        processors=[ResizeToFit(width=500, height=500)],
-    #                        # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
-    #                        format='JPEG',
-    #                        options={'quality': 80},
-    #                        )
+    thumb = ImageSpecField(source='src',
+                           # processors=[ResizeToFill(400, 400)],
+                           processors=[ResizeToFit(width=500, height=500)],
+                           # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
+                           format='JPEG',
+                           options={'quality': 80},
+                           )
 
     name = models.CharField(default='unnamed', max_length=40, null=True, blank=True, unique=True,
                             verbose_name="图片名", help_text='')  # unique=False, 方便调试
@@ -143,8 +145,8 @@ class Stat(models.Model):
         on_delete=models.CASCADE,
         primary_key=True,
     )
-    is_publish = models.BooleanField(blank=True, default=False, verbose_name="是否公开", help_text='是否公开')
-    is_path_exist = models.BooleanField(blank=True, default=False, verbose_name="路径是否存在",
+    is_publish = models.BooleanField(blank=True, default=True, verbose_name="是否公开", help_text='是否公开')
+    is_path_exist = models.BooleanField(blank=True, default=True, verbose_name="路径是否存在",
                                         help_text='路径是否存在')
     is_deleted = models.BooleanField(blank=True, default=False, verbose_name="是否删除", help_text='是否删除')
     is_get_info = models.BooleanField(blank=True, default=False, verbose_name="是否提取了图片元数据",
@@ -163,21 +165,36 @@ class Stat(models.Model):
                                     help_text='是否完成目标识别')
 
 
-class Category(models.Model):
+class Category(MPTTModel):
     """图片分类"""
-    img = models.ManyToManyField(to=Img,
-                                 through='ImgCategory',
-                                 through_fields=('category', 'img'),  # category need comes first
-                                 blank=True,
-                                 help_text='对图片按应用进行分类',
-                                 default=None,
-                                 related_name='categories')
+    imgs = models.ManyToManyField(to=Img,
+                                  through='ImgCategory',
+                                  through_fields=('category', 'img'),  # category need comes first
+                                  blank=True,
+                                  help_text='对图片按应用进行分类',
+                                  default=None,
+                                  related_name='categories')
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True, related_name='categories')
     name = models.CharField(max_length=50, null=True, blank=True, verbose_name="图片类别",
                             help_text='图片按应用进行划分')
-    type = models.CharField(max_length=20, default='category', blank=True, verbose_name="分类类型",
-                            help_text='分类类型')
-    value = models.CharField(max_length=50, null=True, blank=True, verbose_name="类型值", help_text='类型值')
-    numeric_value = models.IntegerField(null=True, blank=True, verbose_name="数值类型值", help_text='数值类型值')
+    level = models.PositiveIntegerField(default=0, editable=False)
+
+    # TODO: add a condition field to descript the category, which could be a=1&b=2&c=3, or a=1|b=2|c=3,
+    #  then the condition could be used to filter the imgs and defined by the user
+    logic = models.TextField(blank=True, null=True, verbose_name="分类逻辑", help_text='用于用户定义逻辑')
+    description = models.TextField(blank=True, null=True, verbose_name="分类描述", help_text='用于用户定义描述')
+
+    is_leaf = models.BooleanField(default=False, verbose_name="是否叶子节点", help_text='是否叶子节点')
+    is_root = models.BooleanField(default=False, verbose_name="是否根节点", help_text='是否根节点')
+    # is_active = models.BooleanField(default=True, verbose_name="是否有效", help_text='是否有效')
+    is_delete = models.BooleanField(default=False, verbose_name="是否删除", help_text='是否删除')
+
+    # type = models.CharField(max_length=20, default='category', blank=True, verbose_name="分类类型",
+    #                         help_text='分类类型')
+    # value = models.CharField(max_length=50, null=True, blank=True, verbose_name="类型值", help_text='类型值')
+    # numeric_value = models.IntegerField(null=True, blank=True, verbose_name="数值类型值", help_text='数值类型值')
+
     avatar = models.ImageField(upload_to=user_directory_path,
                                verbose_name="分类相册封面",
                                help_text='分类相册封面',
@@ -192,20 +209,24 @@ class Category(models.Model):
                                   format='JPEG',
                                   options={'quality': 80},
                                   )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     class Meta:
         ordering = ['-id']
 
     def __str__(self):
-        return self.name
+        return f'{self.pk}_{self.name}'
 
 
 class ImgCategory(models.Model):
     img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='imgcategories')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='imgcategories')
     confidence = models.FloatField(default=0, null=True, blank=True, verbose_name="categories_percentage",
-                                   help_text='categories_percentage')
+                                   help_text='categories_percentage')  # seems no necessary to use
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
+    def __str__(self):
+        return f'{self.img.id}_{self.category}'
 
 
 class ImgMcs(models.Model):
@@ -367,7 +388,8 @@ class Color(models.Model):
                                           help_text='a floating point number that shows what part of the image '
                                                     'is taken by the main object (as a percent from 0 to 100)')
     color_percent_threshold = models.FloatField(default=0, null=True, blank=True, verbose_name="object_percentage",
-                                                help_text='colors with `percentage` value lower than this number won’t be included in the response')
+                                                help_text='colors with `percentage` value lower than this number '
+                                                          'won’t be included in the response')
 
     def __str__(self):
         return self.img.name

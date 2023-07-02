@@ -14,8 +14,8 @@ from library.models import Img, Category, Address, Stat, Evaluate, Date, ImgMcs,
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination, FacePageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
-from library.task import set_img_info, set_all_img_info, add_img_addr_to_category, add_img_colors_to_category, \
-    add_img_face_to_category, img_process, ImgProces
+from library.serializers_out import CategoryBriefSerializer
+from library.task import ImgProces
 #
 # class CategoryViewSet(viewsets.ModelViewSet):
 #     queryset = Category.objects.all()
@@ -94,19 +94,21 @@ class ImgViewSet(viewsets.ModelViewSet):
         print(f"INFO:Img file, {self.request.FILES}")
         file = self.request.FILES.get("src")
         f_path = file.temporary_file_path()
-        print(f_path)
+        print(f"INFO:temporary_file_path, {f_path}")
 
         instance = serializer.save(user=self.request.user)
-        stat = Stat.objects.create(img=instance)  # bind the one to one field image info
-        addr = Address.objects.create(img=instance)
-        eval = Evaluate.objects.create(img=instance)
-        date = Date.objects.create(img=instance)
-        instance.refresh_from_db()  # refresh from the DB
 
-        # print(f'INFO: Img start perform_create........{instance.src}')
-        # img_process.delay(instance)
-        # img_process(instance)
-        set_img_info(instance, f_path)
+        # get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
+        #             'get_faces']  # get_exif_info 必须第一个，因为是这个函数创建了stat实例
+        # # get_list = ['get_exif_info', 'get_faces']
+        # add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+        #             'add_colors_to_category']
+        # # add_list = ['add_colors_to_category']
+        #
+        # img_process = ImgProces(instance=instance)
+        # img_process.get_img(img_process, instance=instance, func_list=get_list, force=True)
+        #
+        # img_process.add_img_to_category(img_process, instance=instance, func_list=add_list)
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
         data = self.request.data
@@ -132,30 +134,49 @@ class ImgViewSet(viewsets.ModelViewSet):
     #             .annotate(faces_num=Count('faces')).filter(faces_num=faces_num)  # annotate the faces_num here
     #
     #     return self.queryset
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def init(self, request, pk=None):
+        print('------------------init the system------------------')
+        img_process = ImgProces()
+        img_process.category_init()
+        return Response({"msg": "init success"})
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def get_batch_image_info(self, request, pk=None):
-        set_all_img_info()
-        return Response({"msg": "success"})
+    def batch_img_process(self, request, pk=None):
+        print('------------------batch_img_test------------------')
+
+        get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
+                    'get_faces']  # get_exif_info 必须第一个，因为是这个函数创建了stat实例
+        # get_list = ['get_exif_info', 'get_faces']
+        add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+                    'add_colors_to_category']
+        # add_list = ['add_colors_to_category']
+
+        img_process = ImgProces()
+        img_process.get_all_img(img_process, func_list=get_list, force=True)
+
+        img_process.add_all_img_to_category(img_process,  func_list=add_list)
+        return Response({"msg": "batch_img_test success"})
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def add_img_to_category(self, request, pk=None):
+    def img_process(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        print('------------------img_test------------------')
         instance = self.get_object()  # 获取详情的实例对象
-        add_img_face_to_category.delay(instance)
-        add_img_addr_to_category.delay(instance)
-        add_img_colors_to_category.delay(instance)
-        return Response({"msg": "success"})
 
-    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def test(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
-        print('------------------test------------------')
-        instance = self.get_object()  # 获取详情的实例对象
-        # stat = Stat.objects.create(img=instance)  # bind the one to one field image info
+        get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
+                    'get_faces']  # get_exif_info 必须第一个，因为是这个函数创建了stat实例
+        # get_list = ['get_exif_info', 'get_faces']
+        add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+                    'add_colors_to_category']
+        # add_list = ['add_colors_to_category']
 
-        process = ImgProces(instance=instance)
-        faces = process.face_get()
-        print('------------------test finished------------------')
-        return Response({"msg": faces})
+        img_process = ImgProces(instance=instance)
+        img_process.get_img(img_process, instance=instance, func_list=get_list, force=True)
+
+        img_process.add_img_to_category(img_process, instance=instance, func_list=add_list)
+
+        print('------------------img_test finished------------------')
+        return Response({"msg": 'img_test finished'})
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
     def upload_finished(self, request, pk=None):
@@ -176,8 +197,8 @@ class ImgMcsViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all().annotate(img_nums=Count('img')).order_by('-img_nums')  # ordered by the image num
-    serializer_class = CategorySerializer
+    queryset = Category.objects.all().annotate(img_nums=Count('imgs')).order_by('-img_nums')  # ordered by the
+    # queryset = Category.objects.filter(is_root=True).annotate(img_nums=Count('imgs')).order_by('-img_nums')
     # permission_classes = (AllowAny,)
     pagination_class = GeneralPageNumberPagination  # could disp the filter button in the web
     # 第一种方法
@@ -191,7 +212,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             'fc_nums': Img.objects.annotate(fc_nums=Count('faces')).values_list('fc_nums',
                                                                                 flat=True).distinct().order_by(
                 'fc_nums'),
-            # 'fc_name': FaceAlbum.objects.annotate(value=Count('img')).filter(value__gte=1).values('name',
+            # 'fc_name': FaceAlbum.objects.annotate(value=Count('imgs')).filter(value__gte=1).values('name',
             #                                                                                       'value').distinct().order_by(
             #     '-value'),
 
@@ -199,19 +220,18 @@ class CategoryViewSet(viewsets.ModelViewSet):
             'tags': Tag.objects.annotate(value=Count('imgs')).filter(value__gt=0).order_by('-value').values('name',
                                                                                                             'value'),
 
-            # 'c_img': Img.objects.filter(categories__type='img_color').values('categories__name', 'categories__value').distinct().order_by('categories__name'),
-            'c_img': Category.objects.filter(type='img_color').values('name', 'value').distinct().order_by('name'),
-            'c_back': Category.objects.filter(type='back_color').values('name', 'value').distinct().order_by('name'),
-            'c_fore': Category.objects.filter(type='fore_color').values('name', 'value').distinct().order_by('name'),
-            'category': Category.objects.filter(type='category').annotate(img_nums=Count('img')).values('name',
-                                                                                                        'img_nums').distinct().order_by(
-                '-img_nums'),
-            'group': Category.objects.filter(type='group').annotate(img_nums=Count('img')).values('name',
-                                                                                                  'img_nums').distinct().order_by(
-                '-img_nums'),
-            'city': Category.objects.filter(type='address').annotate(img_nums=Count('img')).values('name',
-                                                                                                   'img_nums').distinct().order_by(
-                '-img_nums'),
+            # 'c_img': Category.objects.filter(type='img_color').values('name', 'value').distinct().order_by('name'),
+            # 'c_back': Category.objects.filter(type='back_color').values('name', 'value').distinct().order_by('name'),
+            # 'c_fore': Category.objects.filter(type='fore_color').values('name', 'value').distinct().order_by('name'),
+            # 'category': Category.objects.filter(type='category').annotate(img_nums=Count('imgs')).values('name',
+            #                                                                                              'img_nums').distinct().order_by(
+            #     '-img_nums'),
+            # 'group': Category.objects.filter(type='group').annotate(img_nums=Count('imgs')).values('name',
+            #                                                                                        'img_nums').distinct().order_by(
+            #     '-img_nums'),
+            # 'city': Category.objects.filter(type='address').annotate(img_nums=Count('imgs')).values('name',
+            #                                                                                         'img_nums').distinct().order_by(
+            #     '-img_nums'),
 
             'layout': ['Square', 'Wide', 'Tall'],
             'size': ['Small', 'Medium', 'Large', 'Extra large', 'At least'],
@@ -230,9 +250,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return CategorySerializer
+            return CategoryBriefSerializer
         else:
-            return CategoryDetailSerializer
+            return CategorySerializer
 
 
 class AddressViewSet(viewsets.ModelViewSet):

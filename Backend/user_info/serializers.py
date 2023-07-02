@@ -1,11 +1,8 @@
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
 from rest_framework import serializers
-
-from library.serializers import FaceBriefSerializer
-from project.serializers import ProjectSerializer
+from library.serializers_out import FaceBriefSerializer
 from tags.serializers import TagSerializerField
-from user_info.models import Profile, Company, ROLES_OPTION
+from user_info.models import Profile, Company, ROLES_OPTION, Demand, Resource, Experience
 from utils.serializers import DisplayChoiceField
 
 
@@ -86,29 +83,35 @@ class UserDetailSerializer(serializers.ModelSerializer):
         return rst
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    """于文章列表中引用的嵌套序列化器"""
+class DemandSerializer(serializers.ModelSerializer):
     # 本级属性
-    profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
-    roles = DisplayChoiceField(choices=ROLES_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
+    # demand_url = serializers.HyperlinkedIdentityField(view_name='demand-detail')
 
     class Meta:
-        model = Profile
-        fields = ['name', 'avatar', 'introduction', 'roles', 'profile_url']
-        # fields = '__all__'
+        model = Demand
+        # fields = ['name', 'addr', 'desc', 'company_url']
+        fields = '__all__'
+        # exclude = ['created_at', 'updated_at']
 
 
-class ProfileDetailSerializer(ProfileSerializer):  # 直接继承ImgSerializer也是可以的
-
-    # 父级属性
-    # company_url = serializers.HyperlinkedIdentityField(view_name='company-detail')  # 详情链接不用用于父级，因为这里的序号还是本级的序号
-    # company = serializers.CharField(source="company.name", read_only=True)
-    # 子级属性：一对多
-    # project = ProjectSerializer(many=True, read_only=True)  # 这里的名字，必须和外键'related_name' 名字一样
-    faces = FaceBriefSerializer(many=True, read_only=True)
+class ResourceSerializer(serializers.ModelSerializer):
+    # 本级属性
+    # resource_url = serializers.HyperlinkedIdentityField(view_name='resource-detail')
 
     class Meta:
-        model = Profile
+        model = Resource
+        # fields = ['name', 'addr', 'desc', 'company_url']
+        fields = '__all__'
+        # exclude = ['created_at', 'updated_at']
+
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    # 本级属性
+    # experience_url = serializers.HyperlinkedIdentityField(view_name='experience-detail')
+
+    class Meta:
+        model = Experience
+        # fields = ['name', 'addr', 'desc', 'company_url']
         fields = '__all__'
         # exclude = ['created_at', 'updated_at']
 
@@ -118,9 +121,6 @@ class CompanySerializer(serializers.ModelSerializer):
     # 本级属性
     company_url = serializers.HyperlinkedIdentityField(view_name='company-detail')
 
-    # 子级属性：一对多
-    profile = ProfileSerializer(many=True, read_only=True)  # 这里的名字，必须和外键'related_name' 名字一样
-
     class Meta:
         model = Company
         # fields = ['name', 'addr', 'desc', 'company_url']
@@ -128,3 +128,18 @@ class CompanySerializer(serializers.ModelSerializer):
         exclude = ['created_at', 'updated_at']
 
 
+class ProfileSerializer(serializers.ModelSerializer):
+    """于文章列表中引用的嵌套序列化器"""
+    # 本级属性
+    profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
+    roles = DisplayChoiceField(choices=ROLES_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
+    faces = FaceBriefSerializer(many=True, read_only=True)
+    demands = DemandSerializer(many=True, read_only=True)
+    resources = ResourceSerializer(many=True, read_only=True)
+    experiences = ExperienceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'name', 'avatar', 'introduction', 'roles', 'profile_url', 'faces', 'demands', 'resources',
+                  'experiences']
+        # fields = '__all__'

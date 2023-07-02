@@ -3,8 +3,6 @@
 from rest_framework import serializers
 
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
-from library.models import Img
-from library.serializers import ImgSerializer
 from project.models import Project, Product, Tooling, Outsourcing, Purchase, Delivery, Resume, Issue, \
     LINE_DIFFICULT_OPTION, TOOLING_TYPE_OPTION, STAGE_OPTION, ISSUE_TYPE_OPTION
 from user_info.models import Profile
@@ -29,7 +27,7 @@ class IssueDetailSerializer(IssueSerializer):  # 直接继承ImgSerializer也是
     project = serializers.CharField(source="project.__str__", read_only=True)
     principal = serializers.CharField(source="principal.__str__", read_only=True)
     # 子级属性：一对多
-    img = ImgSerializer(many=True, read_only=True)  # 这里的名字，必须是Img 定义Issue 外键时候的'related_name'
+    # img = ImgSerializer(many=True, read_only=True)  # 这里的名字，必须是Img 定义Issue 外键时候的'related_name'
 
     class Meta:
         model = Issue

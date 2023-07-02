@@ -1,4 +1,6 @@
 # user_info/views.py
+import json
+
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from rest_framework import viewsets
@@ -6,8 +8,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from user_info.models import Profile, Company
-from user_info.serializers import UserRegisterSerializer, ProfileDetailSerializer, ProfileSerializer, CompanySerializer, \
+from user_info.serializers import UserRegisterSerializer, ProfileSerializer, CompanySerializer, \
     UserDetailSerializer
+from user_info.serializers_out import ProfileBriefSerializer
 # class UserRegisterViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()
 #     serializer_class = UserRegisterSerializer
@@ -35,31 +38,33 @@ class UserViewSet(viewsets.ModelViewSet):
 
         # print(f'INFO self: {dir(self.request)}')  # 在这个类中定义函数，都可以通过self获取相关数据，
         # print(f'INFO request: {dir(request)}')  # 跟上面结果一致
-        print(f'INFO request.query_params: {request.query_params}')  # 头部参数信息
-        print(f'INFO request.auth: {request.auth}')  # 如果是用token 验证方式，这里对应的就是token值
-        print(f'INFO request.authenticators: {request.authenticators}')
-        print(f'INFO request.data: {request.data}')  # 请求body信息
-        print(f'INFO request.user: {request.user}')  # 如果是用token验证方式，通过这个就可以获取对应的用户名
+        # print(f'INFO request.query_params: {request.query_params}')  # 头部参数信息
+        # print(f'INFO request.auth: {request.auth}')  # 如果是用token 验证方式，这里对应的就是token值
+        # print(f'INFO request.authenticators: {request.authenticators}')
+        # print(f'INFO request.data: {request.data}')  # 请求body信息
+        # print(f'INFO request.user: {request.user}')  # 如果是用token验证方式，通过这个就可以获取对应的用户名
         # user_obj = User.objects.filter(username=request.user).first()  # 通过Bearer Token 方式获取用户信息
         user_obj = get_user_info(request)
 
         if user_obj:
-            print(f'INFO get username based on token: {user_obj.username}')
+            print(f'INFO: success login: the user name is: {user_obj.username}')
             serializer = UserDetailSerializer(user_obj, many=False, context={'request': request})  # 这里不加context 就会报错
             # serializer = UserRegisterSerializer(queryset, many=False, context={'request': request})  # 这里不加context 就会报错
             rst_data = serializer.data['data']
-            # print(f'INFO rst_data: {rst_data}')
-            role = []
-            # print(rst_data['roles'])
-            role.append(rst_data['roles'])
-            # print(role)
-            rst_data['roles'] = role
-            # print(rst_data['roles'])
+            # # print(f'INFO rst_data: {rst_data}')
+            # role = []
+            # # print(rst_data['roles'])
+            # role.append(rst_data['roles'])
+            # # print(role)
+            # rst_data['roles'] = role
+            # # print(rst_data['roles'])
+            # TODO need to debug later
+            rst_data['roles'] = ['admin']
             data = {
 
                 "data": rst_data,
                 "code": 200,
-                "message": "请求成功"
+                "message": "用户信息获取成功"
             }
         else:
             data = {
@@ -67,6 +72,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 "code": 400,
                 "message": "the user is not existed"
             }
+        # print(f'INFO: success to get the info:\n {json.dumps(data, indent=4)}')
+        print(f'INFO: success to get the info:\n')
         return Response(data)
 
     @action(detail=False)  # 在列表中才能使用这个自定义动作
@@ -97,9 +104,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return ProfileSerializer
+            return ProfileBriefSerializer
         else:
-            return ProfileDetailSerializer
+            return ProfileSerializer
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
