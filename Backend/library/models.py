@@ -4,6 +4,7 @@ from datetime import datetime
 from PIL import Image
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Count, Value, F, Subquery, OuterRef
 # Create your models here.
 from django.utils import timezone
 from imagekit.models import ImageSpecField
@@ -12,6 +13,7 @@ from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 from taggit.managers import TaggableManager
 
+from deep_diary.settings import calib
 from project.models import Issue
 
 # Create your models here.
@@ -86,9 +88,9 @@ class Img(models.Model):
     #                             default='sys_img/logo_lg.png'
     #                             )
     thumb = ImageSpecField(source='src',
-                           # processors=[ResizeToFill(400, 400)],
+                           # processors=[ResizeToFill(300, 300)],
                            processors=[ResizeToFit(width=500, height=500)],
-                           # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
+                           # processors=[Thumbnail(width=300, height=300, anchor=None, crop=None, upscale=None)],
                            format='JPEG',
                            options={'quality': 80},
                            )
@@ -131,6 +133,18 @@ class Img(models.Model):
         # ret = [{"id": item.id, "name": item.name, "face": f'{item.face.path}'} for item in queryset]   # 不报错
         ret = [{"id": item.id, "name": item.name, "face": item.face.path} for item in queryset]  # 可能报错
         return ret
+
+    @staticmethod
+    def get_attr_nums(name):
+        # img = Category.objects.filter(name=name).first()
+        # if not img:
+        #     # if there is no record in the database, then return []
+        #     return []
+        rst = Img.objects.annotate(value=Count(name)).values_list('value', flat=True).distinct().order_by(
+            '-value'),
+        # 这里如果不加rst[0]，则返回有2个中括号[[]]
+        return rst[0]
+
 
     class Meta:
         ordering = ('-created_at',)
@@ -176,7 +190,7 @@ class Category(MPTTModel):
                                   related_name='categories')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True, related_name='categories')
-    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="图片类别",
+    name = models.CharField(max_length=50, null=True, blank=True, unique=True, verbose_name="图片类别",
                             help_text='图片按应用进行划分')
     level = models.PositiveIntegerField(default=0, editable=False)
 
@@ -203,7 +217,7 @@ class Category(MPTTModel):
                                )
 
     avatar_thumb = ImageSpecField(source='avatar',
-                                  processors=[ResizeToFill(400, 400)],
+                                  processors=[ResizeToFill(300, 300)],
                                   # processors=[ResizeToFit(width=400, height=400)],
                                   # processors=[Thumbnail(width=400, height=400, anchor=None, crop=None, upscale=None)],
                                   format='JPEG',
@@ -218,6 +232,39 @@ class Category(MPTTModel):
     def __str__(self):
         return f'{self.pk}_{self.name}'
 
+    @staticmethod
+    def get_cate_children(name, level=0):
+
+        category = Category.objects.filter(name=name).first()
+        if not category:
+            # if there is no record in the database, then return []
+            return []
+
+        if level <= 1:  # represent the first level
+            # rst = children.annotate(value=F('name')).\
+            #     values('name', 'value').distinct().order_by('-value'),
+            rst = category.get_children().annotate(value=Count('imgs')).\
+                values('name', 'value').distinct().order_by('-value'),
+        else:
+            rst = category.get_descendants().filter(level=level).annotate(
+                value=Count('imgs')).values('name',
+                                            'value').distinct().order_by('-value'),
+        # 这里如果不加rst[0]，则返回有2个中括号[[]]
+        print(rst[0])
+        return rst[0]  # or rst[0]
+
+    def get_cate_children_loop(self, name, level=0):
+        rst = None
+        # 打印当前位置名称和级别
+        print(f"{'    ' * level}{self.name}")
+        # 获取子级位置
+        children = Category.objects.get(name=name).get_children()
+        # rst = children.annotate(value=Count('imgs')).values('name', 'value').distinct().order_by('-value'),
+        # 递归查询子级位置
+        for child in children:
+            rst = self.get_cate_children_loop(child, level + 1)
+        return rst
+
 
 class ImgCategory(models.Model):
     img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='imgcategories')
@@ -225,6 +272,7 @@ class ImgCategory(models.Model):
     confidence = models.FloatField(default=0, null=True, blank=True, verbose_name="categories_percentage",
                                    help_text='categories_percentage')  # seems no necessary to use
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
+
     def __str__(self):
         return f'{self.img.id}_{self.category}'
 
@@ -472,7 +520,7 @@ class Face(models.Model):
                             default='sys_img/unknown.jpg',
                             )
     thumb = ImageSpecField(source='src',
-                           processors=[ResizeToFill(400, 400)],
+                           processors=[ResizeToFill(300, 300)],
                            format='JPEG',
                            options={'quality': 80})
     x = models.IntegerField(null=True, blank=True, verbose_name="左上角x坐标", help_text='人脸左上角x坐标')

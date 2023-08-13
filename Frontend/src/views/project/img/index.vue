@@ -10,7 +10,7 @@
       ref="album"
       title="Person"
       type="person"
-      :items="img.persons"
+      :items="img.profiles"
       :total="totalPerson"
       @albumClick="onGetAlbumId"
       @doubleClick="onRouteJump"
@@ -359,7 +359,7 @@
           item
         )
         this.$router.push({
-          name: 'PersonDetail',
+          name: 'ProfileDetail',
           query: {
             // id: item.face_album,  //using faces
             id: item.id, // using persons
@@ -374,7 +374,7 @@
         const { data } = await getImgDetail(this.ImgQueryForm.id)
         console.log(data)
         this.img = data
-        this.totalPerson = this.img.persons.length
+        this.totalPerson = this.img.profiles.length
         // this.center = this.img.address.lnglat
       },
     },

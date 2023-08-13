@@ -27,6 +27,8 @@
         :total="totalCnt"
         @albumClick="onGetAlbumId"
         @doubleClick="onRouteJump"
+        @changeName="onChangeName"
+        @load="onLoad"
       ></Album>
     </div>
     <div v-show="busy" class="loading">{{ msg }}</div>
@@ -441,6 +443,13 @@
         this.albums = []
         this.fetchImg()
         // this.loadMore()
+      },
+      onChangeName(index, item) {
+        console.log('recieve the change name event from the album component')
+        console.log(index, item)
+      },
+      onLoad() {
+        console.log('recieve the load event from the album component')
       },
     },
   }

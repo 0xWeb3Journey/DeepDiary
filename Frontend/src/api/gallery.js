@@ -37,16 +37,16 @@ export function getUploadState(params) {
   })
 }
 
-export function getFaceAlbum(params) {
+export function getProfile(params) {
   return request({
-    url: '/api/faces/',
+    url: '/api/profile/',
     method: 'get',
     params,
   })
 }
-export function getFaceAlbumDetail(params) {
+export function getProfileDetail(params) {
   return request({
-    url: '/api/faces/' + params.id + '/',
+    url: '/api/profile/' + params.id + '/',
     method: 'get',
     params,
   })
@@ -54,7 +54,7 @@ export function getFaceAlbumDetail(params) {
 
 export function changeFaceAlbumName(data) {
   return request({
-    url: '/api/faces/' + data.id + '/',
+    url: '/api/profile/' + data.id + '/',
     method: 'put',
     data,
   })
@@ -62,7 +62,7 @@ export function changeFaceAlbumName(data) {
 
 export function clear_face_album(params) {
   return request({
-    url: '/api/faces/clear_face_album/',
+    url: '/api/profile/clear_face_album/',
     method: 'get',
   })
 }
@@ -86,7 +86,7 @@ export function changeFaceName(data) {
 // export function getFaceGallery(params, id) {
 //   console.log(params)
 //   return request({
-//     url: '/api/faces/' + id + '/',
+//     url: '/api/profile/' + id + '/',
 //     method: 'get',
 //     params,
 //   })
@@ -125,7 +125,7 @@ export function upload(data) {
   })
 }
 
-export function getCategory(params) {
+export function getGroup(params) {
   console.log(params)
   return request({
     url: '/api/category/',
@@ -134,7 +134,7 @@ export function getCategory(params) {
   })
 }
 
-export function getCategoryDetail(id) {
+export function getGroupDetail(id) {
   console.log(id)
   return request({
     url: '/api/category/' + id + '/',

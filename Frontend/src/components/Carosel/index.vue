@@ -9,25 +9,20 @@
       :interval="2000"
       indicator-position="none"
       arrow="always"
-      :height="bannerHeight + 'px'"
+      height="300px"
+      type="card"
       @change="carouselChange"
     >
       <el-carousel-item v-for="item in items" :key="item.id">
         <el-row :gutter="12">
           <el-col
-            :xs="24"
-            :sm="24"
-            :md="24"
-            :lg="24"
-            :xl="24"
-            style="height: 400px; margin-bottom: 20px"
+            style="height: 400px; margin-bottom: 20px display: flex; align-items: center; justify-content: center"
           >
             <img
-              ref="bannerHeight"
-              :src="item.src"
+              ref="banner"
+              :src="item.thumb"
               alt=""
-              style="width: 100%"
-              @load="imgLoad(item.id)"
+              style="max-width: 100%; max-height: 100%; object-fit: contain"
             />
           </el-col>
         </el-row>
@@ -48,7 +43,7 @@
       },
       title: {
         type: String,
-        default: '88888888888888', // model field name
+        default: 'deep-diary', // model field name
         required: false,
       },
     },
@@ -57,34 +52,19 @@
         bannerHeight: '',
       }
     },
-    watch: {},
+    watch: {
+      items(newVal, oldVal) {
+        console.log('Carosel: watch items changed', newVal)
+      },
+    },
     created() {
       // this.fetchAlbum()
     },
-    mounted() {
-      this.imgLoad()
-      window.addEventListener(
-        'resize',
-        () => {
-          this.bannerHeight = this.$refs.bannerHeight[0].height
-          this.imgLoad()
-        },
-        false
-      )
-    },
+    mounted() {},
     methods: {
       carouselChange: function (key1, key2) {
         // const id = this.gallerys[key1].id
         // console.log(key1, key2)
-      },
-      imgLoad(id) {
-        this.$nextTick(() => {
-          this.bannerHeight = this.$refs.bannerHeight[0].height
-          console.log(this.$refs.bannerHeight[0].height, +id)
-          // document.getElementsByClassName拿到的是数组并非某一个对象
-          // var testH = document.getElementById('test-div')
-          // testH.style.height = this.bannerHeight + 'px'
-        })
       },
     },
   }

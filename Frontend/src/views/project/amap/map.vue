@@ -109,78 +109,6 @@
         visible: true,
         points: [
           {
-            img: 434,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '台州市',
-            district: '临海市',
-            lnglat: [121.518013, 28.72691],
-          },
-          {
-            img: 433,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '台州市',
-            district: '临海市',
-            lnglat: [121.494125, 28.763201],
-          },
-          {
-            img: 425,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '宁波市',
-            district: '慈溪市',
-            lnglat: [121.135696, 30.182755],
-          },
-          {
-            img: 424,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '宁波市',
-            district: '慈溪市',
-            lnglat: [121.137001, 30.183302],
-          },
-          {
-            img: 423,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '宁波市',
-            district: '慈溪市',
-            lnglat: [121.137497, 30.183186],
-          },
-          {
-            img: 422,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '宁波市',
-            district: '慈溪市',
-            lnglat: [121.135841, 30.182697],
-          },
-          {
-            img: 421,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '宁波市',
-            district: '慈溪市',
-            lnglat: [121.135918, 30.18256],
-          },
-          {
-            img: 420,
-            is_located: true,
-            country: '中国',
-            province: '浙江省',
-            city: '台州市',
-            district: '临海市',
-            lnglat: [121.518112, 28.726913],
-          },
-          {
             img: 419,
             is_located: true,
             country: '中国',
@@ -204,7 +132,7 @@
 
         placeSearch: null, // poi search instance
         poi: {
-          location: [116.127808, 30.173239],
+          location: [121.127808, 30.173239],
           district: '',
           name: '',
           typecode: '',
@@ -276,6 +204,7 @@
         console.log(str)
         this.lat = e.position.lat
         this.lng = e.position.lng
+        this.poi.location = [e.position.lng, e.position.lat]
       },
       onLocationError(e) {
         var str = []

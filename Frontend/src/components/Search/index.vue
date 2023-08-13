@@ -145,16 +145,16 @@
 
       <!-- category filter -->
       <el-select
-        v-model="checked_category"
+        v-model="imgQuery.categories__name"
         clearable
         filterable
         default-first-option
         placeholder="Auto Category"
         :loading="loading"
-        @change="handleCategoryChange"
+        @change="onSearch"
       >
         <el-option
-          v-for="item in filterList.category"
+          v-for="item in filterList.scene"
           :key="item.name"
           :label="item.name"
           :value="item.name"
@@ -162,7 +162,7 @@
         >
           <span style="float: left; color: #8492a6">{{ item.name }}</span>
           <span style="float: right; color: #8492a6; font-size: 13px">
-            {{ item.img_nums }}
+            {{ item.value }}
           </span>
         </el-option>
       </el-select>
@@ -175,15 +175,20 @@
         default-first-option
         placeholder="Layout"
         :loading="loading"
-        @change="handleLayoutChange"
+        @change="onSearch"
       >
         <el-option
           v-for="item in filterList.layout"
-          :key="item"
-          :label="item"
-          :value="item"
+          :key="item.name"
+          :label="item.name"
+          :value="item.name"
           :disabled="false"
-        ></el-option>
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }}
+          </span>
+        </el-option>
       </el-select>
 
       <!-- image color filter -->
@@ -199,11 +204,11 @@
       >
         <el-option
           v-for="item in filterList.c_img"
-          :key="item.value"
+          :key="item.name"
           :label="item.name"
           :value="item.name"
           :disabled="false"
-          :style="`background-color: ${item.value}`"
+          :style="`background-color: ${item.color}`"
         >
           <span style="float: left; color: #ffffff">{{ item.name }}</span>
           <span style="float: right; color: #ffffff; font-size: 13px">
@@ -224,11 +229,11 @@
       >
         <el-option
           v-for="item in filterList.c_back"
-          :key="item.value"
+          :key="item.name"
           :label="item.name"
           :value="item.name"
           :disabled="false"
-          :style="`background-color: ${item.value}`"
+          :style="`background-color: ${item.name}`"
         >
           <span style="float: left; color: #ffffff">{{ item.name }}</span>
           <span style="float: right; color: #ffffff; font-size: 13px">
@@ -249,11 +254,11 @@
       >
         <el-option
           v-for="item in filterList.c_fore"
-          :key="item.value"
+          :key="item.name"
           :label="item.name"
           :value="item.name"
           :disabled="false"
-          :style="`background-color: ${item.value}`"
+          :style="`background-color: ${item.name}`"
         >
           <span style="float: left; color: #ffffff">{{ item.name }}</span>
           <span style="float: right; color: #ffffff; font-size: 13px">
@@ -333,8 +338,8 @@
 </template>
 
 <script>
-  import { getCategory, getFaceAlbum, getFilterList } from '@/api/gallery'
-  getCategory
+  import { getGroup, getProfile, getFilterList } from '@/api/gallery'
+  getGroup
   export default {
     name: 'ImgSearch',
     components: {},
@@ -1039,6 +1044,7 @@
         checked_dateRange: [],
         checked_tags: [],
         checked_category: '',
+        checked_layout: '',
         checked_fcGroup: '',
         checked_rating: 0,
 
@@ -1092,7 +1098,7 @@
       //       // this.categoryQuery.imgs = newVal
       //       // this.categoryQuery.imgs = this.imgQuery
       //       // this.fetchCategory()
-      //       // this.fetchFaceAlbum()
+      //       // this.fetchProfile()
       //     })
       // },
     },

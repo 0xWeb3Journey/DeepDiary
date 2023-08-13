@@ -307,13 +307,26 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
 }
-# 在Django中使用django-debug-toolbar进行调试
-INTERNAL_IPS = [
-    # 添加您的IP地址，例如 '127.0.0.1'
-    '127.0.0.1'
-]
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+
+
+if DEBUG:
+    # django debug toolbar
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+    # DEBUG_TOOLBAR_CONFIG = {
+    #     'JQUERY_URL': '//cdn.bootcss.com/jquery/2.1.4/jquery.min.js',
+    #     # 或把jquery下载到本地然后取消下面这句的注释, 并把上面那句删除或注释掉
+    #     #'JQUERY_URL': '/static/jquery/2.1.4/jquery.min.js',
+    #     'SHOW_COLLAPSED': True,
+    #     'SHOW_TOOLBAR_CALLBACK': lambda x: True,
+    # }
+    # 在Django中使用django-debug-toolbar进行调试
+    INTERNAL_IPS = [
+        # 添加您的IP地址，例如 '127.0.0.1'
+        '127.0.0.1'
+    ]
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        }
     }
-}

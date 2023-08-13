@@ -1,8 +1,8 @@
 <template>
-  <div class="interactiveGraph-container">
+  <div class="RelFinder-container">
     <!-- <h2>interactiveGraph</h2> -->
     <div style="height: 100%">
-      <div id="graphArea"></div>
+      <div id="RelFinder"></div>
     </div>
   </div>
 </template>
@@ -14,9 +14,9 @@
   import '/public/static/jquery-3.2.1/jquery-ui.js'
   import '/public/static/font-awesome-4.7.0/css/font-awesome.min.css'
   import igraph from '/public/static/interactive-graph-0.1.0/interactive-graph.min.js'
-
+  import { baseURL } from '@/config'
   export default {
-    name: 'Finder',
+    name: 'RelFinder',
     components: {},
     props: {},
     data() {
@@ -76,90 +76,73 @@
       }
     },
     computed: {},
-    watch: {
-      // id(newVal, oldVal) {
-      //   this.$nextTick(() => {
-      //     console.log('gallery have been changed')
-      //     if (this.mcstype === 'img') this.fetchImgMcs()
-      //     if (this.mcstype === 'face') this.fetchFaceMcs()
-      //   })
-      // },
-    },
+    watch: {},
     created() {},
     mounted() {
       igraph.i18n.setLanguage('chs')
-      var app = new igraph.RelFinder(
-        document.getElementById('graphArea'),
+      var url = baseURL + '/api/img/graph/'
+      var appFinder = new igraph.RelFinder(
+        document.getElementById('RelFinder'),
         'LIGHT'
       )
 
       // app.connectService(
       //   igraph.LocalGraph.fromGsonString(JSON.stringify(this.str))
       // )
-      app.loadGson(
-        'https://www.deep-diary.com/api/faces/test/',
+      appFinder.loadGson(
+        // 'https://www.deep-diary.com/api/faces/test/',
+        // 'http://127.0.0.1:8000/api/img/graph/',
+        url,
         {
           onGetNodeDescription: function (node) {
             console.log(node)
-            var description = '<p align=center>'
-            if (node.image !== undefined) {
-              description += "<img src='" + node.image + "' width=200/><br>"
-            }
-            description += '<b>' + node.label + '</b>' + '[' + node.id + ']'
-            description += '</p>'
-            if (node.desc !== undefined) {
-              description += '<p align=left>' + node.desc + '</p>'
-            } else {
-              if (node.title !== undefined)
-                description += '<p align=left>' + node.title + '</p>'
-            }
+            var description = `
+              <div style="max-width: 200px; word-wrap: break-word;">
+                ${
+                  node.image !== undefined
+                    ? `<img src="${node.image}" width="200" /><br>`
+                    : ''
+                }
+                <b>${node.label}</b> [${node.id}]
+                ${
+                  node.caption !== null
+                    ? `<p align="left">the caption is: ${node.caption}</p>`
+                    : ''
+                }
+                ${
+                  node.desc !== null
+                    ? `<p align="left">the description is: ${node.desc}</p>`
+                    : ''
+                }
+                ${
+                  node.tags !== null
+                    ? `<p align="left">the tags is: ${node.tags}</p>`
+                    : ''
+                }
+              </div>
+            `
 
             return description
           },
         },
         function () {
-          app.pickup([
+          appFinder.pickup([
             {
-              label: 'deep-diary',
+              label: 'demo.jpg',
             },
             {
-              label: 'Taizhou',
+              label: '葛昱琛',
             },
           ])
         }
       )
-      // Not allowed to load local resource, but the http url, which si through get method
-
-      // app.loadGson(
-      //   'honglou2_narrow.json',
-      //   {
-      //     onGetNodeDescription: function (node) {
-      //       console.log(node)
-      //       var description = '<p align=center>'
-      //       if (node.image !== undefined) {
-      //         description += "<img src='" + node.image + "' width=150/><br>"
-      //       }
-      //       description += '<b>' + node.label + '</b>' + '[' + node.id + ']'
-      //       description += '</p>'
-      //       if (node.info !== undefined) {
-      //         description += '<p align=left>' + node.info + '</p>'
-      //       } else {
-      //         if (node.title !== undefined)
-      //           description += '<p align=left>' + node.title + '</p>'
-      //       }
-
-      //       return description
-      //     },
-      //   },
-      //   function () {}
-      // )
     },
     methods: {},
   }
 </script>
 
 <style lang="css" scoped>
-  #graphArea {
+  #RelFinder {
     height: 1000px;
     border: 1px solid lightgray;
   }

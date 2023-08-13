@@ -1,32 +1,16 @@
 <template>
   <div class="gallery-container">
-    <vab-upload
-      ref="vabUpload"
-      url="/api/img/"
-      name="src"
-      :limit="50"
-      :size="8"
-    ></vab-upload>
-
-    <!-- FaceGallery -->
-    <el-card v-if="true" class="box-card">
-      <div slot="header" class="clearfix">
-        <span>{{ name }}({{ items.length }} / {{ total }})</span>
-        <el-button-group style="float: right">
-          <el-button
-            type="primary"
-            icon="el-icon-edit"
-            @click="onChangeDsipType"
-          ></el-button>
-          <el-button
-            type="primary"
-            icon="el-icon-upload"
-            @click="handleShow({ key: 'value' })"
-          ></el-button>
-        </el-button-group>
-      </div>
-
-      <!-- 照片墙展示 -->
+    <!-- 照片墙展示 -->
+    <div
+      id="gallery_container"
+      ref="gallery_container"
+      v-infinite-scroll="load"
+      infinite-scroll-disabled="busy"
+      infinite-scroll-distance="50"
+      infinite-scroll-immediate-check="true"
+      :force-use-infinite-wrapper="true"
+      class="gallery_container"
+    >
       <div
         id="gallery"
         ref="gallery"
@@ -39,16 +23,16 @@
           :key="item.id"
           class="gallery infinite-list-item"
           className="gallery-item"
-          :data-src="storageType === 'oss' ? item.img : item.mcs.nft_url"
+          :data-src="item.img"
           :data-sub-html="item.desc"
         >
-          <img
-            className="img-responsive"
-            :src="isDispFace === true ? item.thumb_face : item.thumb"
-          />
+          <img className="img-responsive" :src="item.thumb" />
         </a>
       </div>
-    </el-card>
+      <div v-show="busy" class="loading">
+        <h2>{{ msg }}</h2>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -72,17 +56,12 @@
   import VabUpload from '@/components/VabUpload'
 
   export default {
-    name: 'Gallery',
-    components: { VabUpload },
+    name: 'GalleryContainer',
+    components: {},
     props: {
       items: {
         type: Array,
-        default: () => [],
-        required: true,
-      },
-      name: {
-        type: String,
-        default: '88888888888888', // model field name
+        default: () => Array(40).fill({}), // Initialize with placeholder data,
         required: true,
       },
       total: {
@@ -90,41 +69,45 @@
         default: 50,
         required: true,
       },
-      dispType: {
+
+      title: {
         type: String,
-        default: 'face', // model field name
+        default: 'Album', // model field name
         required: true,
       },
-      storageType: {
-        type: String,
-        default: 'oss', // oss, mcs
-        required: false,
-      },
-      limit: {
-        type: Number,
-        default: 50,
-        required: false,
-      },
-      size: {
-        type: Number,
-        default: 8,
-        required: false,
+      busy: {
+        type: Boolean,
+        default: false, // model field name
+        required: true,
       },
     },
     data() {
       return {
-        isDispFace: this.dispType === 'face' ? true : false,
+        msg: '正在加载...',
       }
     },
     computed: {},
     watch: {
       items(newVal, oldVal) {
+        if (newVal.length === this.total) {
+          this.msg = '已经加载完毕, 资源总数量为：' + this.total
+        } else {
+          this.msg = '正在加载... ' + newVal.length + '/' + this.total
+        }
         this.$nextTick(() => {
           console.log('gallery have been changed')
           window.gallery.refresh()
           // $('#gallery').justifiedGallery('norewind')
           $('#gallery').justifiedGallery()
         })
+      },
+      busy(newVal, oldVal) {
+        console.log('GalleryContainer: busy have been changed', newVal)
+        if (newVal) {
+          this.msg = '正在加载...'
+        } else {
+          this.msg = '已经加载完毕, 资源总数量为：' + this.total
+        }
       },
     },
     created() {},
@@ -180,10 +163,17 @@
         this.$refs['vabUpload'].handleShow(data)
       },
       load() {
-        console.log('loading...')
+        console.log('infinite loading... ', this.busy)
+        // if (this.busy) return
+        this.$emit('load') //自定义事件  传递值“子向父组件传值”load
       },
     },
   }
 </script>
 
-<style lang="css" scoped></style>
+<style lang="css" scoped>
+  .gallery_container {
+    height: 500px; /* Set a fixed height to the container */
+    overflow-y: auto;
+  }
+</style>

@@ -8,9 +8,9 @@
       <el-button
         v-for="item in colors.background"
         :key="item.id"
-        :style="`background-color: ${
-          item.closest_palette_color_html_code
-        };width:${item.percent * 5}px`"
+        :style="`background-color: ${item.html_code};width:${
+          item.percent * 5
+        }px`"
         class="background-color"
       ></el-button>
     </el-button-group>
@@ -20,9 +20,9 @@
       <el-button
         v-for="item in colors.foreground"
         :key="item.id"
-        :style="`background-color: ${
-          item.closest_palette_color_html_code
-        };width:${item.percent * 5}px`"
+        :style="`background-color: ${item.html_code};width:${
+          item.percent * 5
+        }px`"
         class="foreground-color"
       ></el-button>
     </el-button-group>
@@ -32,9 +32,9 @@
       <el-button
         v-for="item in colors.image"
         :key="item.id"
-        :style="`background-color: ${
-          item.closest_palette_color_html_code
-        };width:${item.percent * 5}px`"
+        :style="`background-color: ${item.html_code};width:${
+          item.percent * 5
+        }px`"
         class="image-color"
       ></el-button>
     </el-button-group>
@@ -46,7 +46,7 @@
   // import {
   //   getGallery,
   //   getAlbum,
-  //   getFaceAlbum,
+  //   getProfile,
   //   getFaceGallery,
   //   getMcs,
   //   getImg,

@@ -4,6 +4,7 @@ from datetime import datetime
 from django.contrib.auth.models import User, AbstractUser
 # Create your models here.
 from django.db import models
+from django.db.models import Count
 # 引入内置信号
 from django.db.models.signals import post_save
 # 引入信号接收器的装饰器
@@ -149,6 +150,13 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
                 'introduction': self.introduction,
                 'roles': self.roles,
                 }
+
+    @staticmethod
+    def get_attr_nums(name):
+        # 这里如果不加rst[0]，则返回有2个中括号[[]]
+        rst = Profile.objects.annotate(value=Count(name)).values('name','value').distinct().order_by(
+            '-value'),  # 这里的-是降序，如果不加-则是升序
+        return rst[0]
 
     class Meta:
         ordering = ('-created_at',)

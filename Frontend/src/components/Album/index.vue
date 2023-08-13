@@ -19,12 +19,10 @@
           @back="goBack"
         ></el-page-header>
         <el-button-group style="float: right">
-          <el-button type="primary" icon="el-icon-plus"></el-button>
-          <el-button type="primary" icon="el-icon-edit"></el-button>
           <el-button
             type="primary"
-            icon="el-icon-map-location"
-            @click="clear"
+            icon="el-icon-picture-outline"
+            @click="changeAvatar"
           ></el-button>
           <el-button
             type="primary"
@@ -64,7 +62,7 @@
           <img
             className="img-responsive"
             :class="checkedIndex === index ? 'img-checked' : 'img-unchecked'"
-            :src="album.src"
+            :src="album.thumb"
             :alt="album.name"
           />
           <!-- :title="album.name" -->
@@ -173,7 +171,7 @@
       },
     },
     created() {
-      // this.fetchAlbum()
+      console.log('Album component created')
     },
     mounted() {
       this.justifyInit()
@@ -189,7 +187,7 @@
             margins: 5,
           })
           .on('jg.complete', function () {
-            // console.log('jg.complete event was trigged')
+            console.log('jg.complete event was trigged')
           })
       },
 
@@ -197,9 +195,10 @@
         console.log('单击事件: ', item)
 
         this.checkedIndex = index
-        this.checkedId = item.id
-        if (index < 0) return //reture directly if there is no item in items
 
+        if (index < 0) return //reture directly if there is no item in items
+        if (item === null) return //reture directly if there is no item in items
+        this.checkedId = item.id
         this.$emit('albumClick', index, item) //自定义事件  传递值“子向父组件传值”
       },
 
@@ -209,54 +208,27 @@
         this.$emit('doubleClick', index, item) //自定义事件  传递值“子向父组件传值”
       },
 
-      async changeFaceAlbumName(value, album) {
-        console.log(value, this.albumName)
-        // this.items[index].name = value
-        if (value !== this.albumName) {
-          this.postData.id = album.id //人脸相册id
-          this.postData.name = value
-
-          const { data, msg } = await changeFaceAlbumName(this.postData)
-          console.log(data, msg)
-          this.$message({
-            message: `Success changed ${this.albumName} to ${value}`,
-            type: 'success',
-          })
-
-          this.albumName = value
-        }
-      },
-
-      async changeFaceName(value, album) {
-        console.log(value, this.albumName)
-        // this.items[index].name = value
-        if (value !== this.albumName) {
-          this.postData.id = this.checkedId
-          this.postData.name = value
-          console.log('this.postData.id', this.postData.id)
-          const { data, msg } = await changeFaceName(this.postData)
-          console.log(data, msg)
-          this.$message({
-            message: `Success changed ${this.albumName} to ${value}`,
-            type: 'success',
-          })
-
-          this.albumName = value
-        }
-      },
-
       changeName(value, album) {
-        if (this.type === 'person') {
-          this.changeFaceAlbumName(value, album)
-        }
-        if (this.type === 'img') {
-          this.changeFaceName(value, album)
-        }
+        // if (this.type === 'person') {
+        //   this.changeFaceAlbumName(value, album)
+        // }
+        // if (this.type === 'img') {
+        //   this.changeFaceName(value, album)
+        // }
+        this.$emit('changeName', value, album) //自定义事件  传递值“子向父组件传值”
+      },
+
+      changeAvatar() {
+        this.$emit('changeAvatar', this.checkedId) //自定义事件  传递值“子向父组件传值”
       },
 
       changeFaceMode() {
         this.$store.state.face.isGroupMode = !this.$store.state.face.isGroupMode
         this.checkedIndex = -1 //clear the select one, back to default state
+        console.log(
+          'this.$store.state.face.isGroupMode',
+          this.$store.state.face.isGroupMode
+        )
       },
 
       //回车失去焦点
@@ -264,14 +236,14 @@
         event.target.blur()
       },
 
-      async clear() {
-        const { data, msg } = await clear_face_album(this.postData)
-        console.log(msg)
-        this.$message({
-          message: msg,
-          type: 'success',
-        })
-      },
+      // async clear() {
+      //   const { data, msg } = await clear_face_album(this.postData)
+      //   console.log(msg)
+      //   this.$message({
+      //     message: msg,
+      //     type: 'success',
+      //   })
+      // },
       //upload the img
       handleShow(data) {
         this.$refs['vabUpload'].handleShow(data)

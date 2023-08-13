@@ -3,6 +3,7 @@ import json
 
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
+from django.db.models import Count
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -99,14 +100,56 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.all().annotate(value=Count('faces')).order_by('-value')
     pagination_class = GeneralPageNumberPagination
+
+    def perform_update(self, serializer):
+        print('------------------Profile Perform_update------------------')
+        face_id = self.request.data.get("id", None)
+        print(f'人物更新：validated_data =  {serializer.validated_data}')
+        print(f'人脸ID：face_id =  {face_id}')
+        print(f'当前访问的用户是 =  {self.request.user}')
+        instance = self.get_object()  # 获取详情的实例对象
+        face_ins = instance.faces.filter(id=face_id).first()
+        if face_ins:
+            # instance.avatar = face_ins.src
+            # instance.embedding = face_ins.embedding
+            serializer.validated_data["avatar"] = face_ins.src
+            serializer.validated_data["embedding"] = face_ins.embedding
+        else:
+            print("未找到匹配的face_ins")
+
+        serializer.save()
 
     def get_serializer_class(self):
         if self.action == 'list':
             return ProfileBriefSerializer
         else:
             return ProfileSerializer
+
+    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def change_avatar(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        print('------------------changeAvatar_process------------------')
+        instance = self.get_object()  # 获取详情的实例对象
+        # 从request中获取参数
+        param = request.query_params
+        print(f'INFO:-> param: {param}')
+
+        face_id = param.get("face_id", None)
+        print(f'INFO:-> face_id: {face_id}')
+        face_ins = instance.faces.filter(id=face_id).first()
+        instance.avatar = face_ins.src
+        instance.embedding = face_ins.embedding
+        instance.save()
+        # instance.update(avatar=face_ins.src, embedding=face_ins.embedding)
+        profile = ProfileSerializer(instance, many=False, context={'request': request})
+        rst = {
+            "data": profile.data,
+            "code": 200,
+            "msg": "success change avatar"
+        }
+        print('------------------changeAvatar_process finished------------------')
+        return Response(rst)
 
 
 class CompanyViewSet(viewsets.ModelViewSet):

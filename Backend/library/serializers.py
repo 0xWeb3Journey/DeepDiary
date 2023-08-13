@@ -154,6 +154,17 @@ class FaceSerializer(serializers.ModelSerializer):
         model = Face
         fields = '__all__'
 
+    def to_representation(self, value):
+        rst = {}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        # 对序列化数据做修改，添加新的数据
+        rst['data'] = data
+        rst['code'] = 200
+        rst['msg'] = 'this is the face detail info'
+
+        return rst
+
 
 class FaceDetailSerializer(serializers.ModelSerializer):
     landmarks3d = FaceLandmarks3DSerializer(many=True, read_only=True)
@@ -190,13 +201,14 @@ class ImgSerializer(serializers.ModelSerializer):
     tags = TagSerializerField(read_only=True)
     thumb = serializers.ImageField(read_only=True)
     img_url = serializers.HyperlinkedIdentityField(view_name='img-detail')
+    img = serializers.ImageField(source="src", read_only=True)
 
     # mcs = McsSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     # categories = CategorySerializer(read_only=True, many=True)
 
     class Meta:
         model = Img
-        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name']  # 'faces', 'names','mcs', 'categories'
+        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name', 'img']  # 'faces', 'names','mcs', 'categories'
 
     def to_representation(self, value):
         rst = {}
@@ -257,7 +269,7 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
 class CategorySerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='category-detail')
     src = serializers.ImageField(source="avatar", read_only=True)
-    # imgs = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
+    imgs = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
     value = serializers.SerializerMethodField()  # method 2: through method
 
     @extend_schema_field(int)  # 提供额外的类型信息
@@ -267,19 +279,19 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'value', 'url', 'level', 'src', 'description', 'parent', 'children', 'imgs']
+        fields = ['id', 'name', 'value', 'url', 'level', 'is_leaf', 'is_root',  'src', 'description', 'parent', 'children', 'imgs']
         # fields = '__all__'
         # exclude = ['', '']
 
-    # def to_representation(self, value):
-    #     rst = {}
-    #     # 调用父类获取当前序列化数据，value代表每个对象实例ob
-    #     data = super().to_representation(value)
-    #     # 对序列化数据做修改，添加新的数据
-    #     rst['data'] = data
-    #     rst['code'] = 200
-    #     rst['msg'] = 'category detail info'
-    #     return rst
+    def to_representation(self, value):
+        rst = {}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        # 对序列化数据做修改，添加新的数据
+        rst['data'] = data
+        rst['code'] = 200
+        rst['msg'] = 'category detail info'
+        return rst
 
 
 class CategoryDetailSerializer(serializers.ModelSerializer):

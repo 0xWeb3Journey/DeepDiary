@@ -313,31 +313,39 @@ class ImgProces:
         """
         process = False
         instance = self.instance if instance is None else instance
-        print(f'INFO: img-->{instance} is processing')
         if not hasattr(instance, 'stats'):
             stats, created = Stat.objects.get_or_create(img=instance)  # bind the one to one field image info
         else:
             stats = instance.stats
         if field is not None and hasattr(stats, field):
             value = getattr(stats, field)
-            if value is False or force:
+            if force:
+                print(f'INFO: force stat is {force}')
+                process = True
+            if not value:
+                print(f'INFO: {field} is {value}')
                 process = True
         if not process:
             print(
                 f'INFO: {field} is True in the Img.stats, that is mean you have already processed this before. however, if you want process this again, you could set the force=True and then try again')
+        else:
+            print(f'INFO: img-->{instance} is processing {field}, force stat is {force}')
         return instance, stats, process
 
-    def __is_OK_add_to_category__(self, instance=None, field=None):
+    def __is_OK_add_to_category__(self, instance=None, force=True, field=None):
         """
         判断是否可以正常加入分类模型
         :param instance: 实例对象
         :param field: 字段名
         """
-        process = True
+        process = False
         instance = self.instance if instance is None else instance
-        if not hasattr(instance, field):
-            print(f'\033[1;32m ----------{instance.id} INFO: there is no {field} category info in this img--------- '
-                  f'\033[0m')
+
+        if force:
+            print(f'INFO: force stat is {force}')
+            process = True
+        if not hasattr(instance, field):  # 如果图片没有这个属性，那么就不需要处理
+            print(f'INFO: {field} is not existed in the Img')
             process = False
         return instance, process
 
@@ -548,23 +556,29 @@ class ImgProces:
             data = {}
 
             for item in categories:
-                # obj = Category(name=item['name']['en'], confidence=item['confidence'])
-                checkd_obj = Category.objects.filter(name=item['name']['en'])
-                if checkd_obj.exists():
-                    # print(f'--------------------categories have already existed---------------------------')
-                    # return
-                    obj = checkd_obj.first()
-                else:
-                    obj = Category.objects.create(name=item['name']['en'])
-
-                if ImgCategory.objects.filter(img=instance, category=obj).exists():
-                    print(f'--------------------ImgCategory have already existed---------------------------')
-                    continue
-                item = ImgCategory(img=instance, category=obj, confidence=item['confidence'])
-                img_cate_list.append(item)
-                categories_list.append(obj)
-
-            ImgCategory.objects.bulk_create(img_cate_list)
+                field_list = [
+                    'scene',
+                    item['name']['en'],
+                ]
+                self.__add_levels_to_category__(instance=instance,
+                                                field_list=field_list)
+            #     # obj = Category(name=item['name']['en'], confidence=item['confidence'])
+            #     checkd_obj = Category.objects.filter(name=item['name']['en'])
+            #     if checkd_obj.exists():
+            #         # print(f'--------------------categories have already existed---------------------------')
+            #         # return
+            #         obj = checkd_obj.first()
+            #     else:
+            #         obj = Category.objects.create(name=item['name']['en'])
+            #
+            #     if ImgCategory.objects.filter(img=instance, category=obj).exists():
+            #         print(f'--------------------ImgCategory have already existed---------------------------')
+            #         continue
+            #     item = ImgCategory(img=instance, category=obj, confidence=item['confidence'])
+            #     img_cate_list.append(item)
+            #     categories_list.append(obj)
+            #
+            # ImgCategory.objects.bulk_create(img_cate_list)
 
             # instance.categories.add(*categories_list, through_defaults=confidence_list)
             # 3. update the stats
@@ -729,7 +743,7 @@ class ImgProces:
 
             if save_type == 'instance':
                 fc = {
-                    'img': self.instance,
+                    'img': instance,
                     'profile': profile,
                     'det_score': face.det_score,
                     'face_score': face_score,
@@ -797,7 +811,8 @@ class ImgProces:
         get_faces(self, instance=None, force=False)
         :return:
         """
-        print(f'-------------INFO: start loop the  funcs, dealing with img --->{instance.id}---------------')
+        print(
+            f'-------------INFO: start loop the  funcs, dealing with img --->{instance.id}, func_list is {func_list}---------------')
         if func_list is None:
             func_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories', 'get_faces']
         # 1. get the instance
@@ -805,7 +820,11 @@ class ImgProces:
         # 2. loop the function list
         for func_name in func_list:
             print(f'-------------INFO: This is func: {func_name} , dealing with img --->{instance.id}---------------')
-            func = getattr(self, func_name)
+            func = getattr(self, func_name, None)
+            if func is None:
+                print(
+                    f'-------------INFO: there is no func: {func_name} , dealing with img --->{instance.id}---------------')
+                continue
             func(instance=instance, force=force)
 
     #  ----------------------process for all the imgs for several functions----------------------
@@ -835,6 +854,60 @@ class ImgProces:
             self.get_img(self, instance=img, func_list=func_list, force=force)
 
     # ----------------------add the single image to category----------------------
+
+    # TODO: 按json格式添加分类
+    # def __add_json_to_tree__(self, parent_item, json_data):
+    #     # 递归添加 JSON 数据到树形视图中
+    #     if isinstance(json_data, dict):
+    #         for key, value in json_data.items():
+    #             item = QStandardItem(key)
+    #             parent_item.appendRow(item)
+    #             self.add_json_to_tree(item, value)
+    #     elif isinstance(json_data, list):
+    #         for item in json_data:
+    #             child_item = QStandardItem()
+    #             parent_item.appendRow(child_item)
+    #             self.add_json_to_tree(child_item, item)
+    #     else:
+    #         item = QStandardItem(str(json_data))
+    #         parent_item.appendRow(item)
+
+    def __add_levels_to_category__(self, instance=None, field_list=None, force=True):
+        """
+        add the levels to the category
+        :param instance: the instance of the image
+        :param field_list: the list of the field, the first item is the level 0, then the level 1, level 2, level 3
+        :return: category instance
+        """
+        levels = len(field_list)
+        if not levels:
+            print(f'INFO: there is no field_list')
+            return
+
+        parent_obj = None
+
+        # 2. check the root category is existed or not, if not, create it
+        # parent_obj, created = Category.objects.get_or_create(name=field_list[0], defaults=creation_params)
+        # 3. loop the field_list
+        print(f'INFO: the field_list is {field_list}, will be added to the category')
+        for (idx, field) in enumerate(field_list):
+            # if idx == 0:  # skip the first item
+            #     continue
+            creation_params = {
+                'level': idx,
+                'is_leaf': True if idx == levels - 1 else False,
+                'is_root': True if idx == 0 else False,
+                'owner': instance.user,
+                'avatar': instance.src,
+                'description': f'this is {field} category',
+                'parent': None if idx == 0 else parent_obj,
+            }
+            category_obj, created = Category.objects.get_or_create(name=field, defaults=creation_params)
+            # add the instance to the category
+            category_obj.imgs.add(instance)
+            parent_obj = category_obj
+        return parent_obj
+
     def add_date_to_category(self, instance=None):
         # 1. get the instance and check is it OK to add to category
         instance, process = self.__is_OK_add_to_category__(instance=instance, field='dates')
@@ -842,186 +915,32 @@ class ImgProces:
             return
         # 2. get the date
         dates = instance.dates
-        date_root_obj, created = Category.objects.get_or_create(name='date')
-        # deal with something if this is the first time to create the root
-        if created:
-            dict_root = {
-                'parent': None,
-                'level': 0,
-                'is_leaf': False,
-                'is_root': True,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': 'this is date category',
-            }
-            date_root_obj.__dict__.update(dict_root)
-            date_root_obj.save()
 
-        # 3. check whether the dates.year is existed or not, if not, create it
-        year_obj, created = Category.objects.get_or_create(name=dates.year, parent=date_root_obj)
-        # 4. deal with something if this is the first time to create the year
-        if created:
-            dict_year = {
-                'level': 1,
-                'is_leaf': False,
-                'is_root': False,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': f'this is year category: {dates.year}',
-            }
-            year_obj.__dict__.update(dict_year)
-            year_obj.save()
-        # 5. add the instance to the year
-        year_obj.imgs.add(instance)
-
-        # 6. check whether the dates.month is existed or not, if not, create it
-        month_obj, created = Category.objects.get_or_create(name=f'{dates.year}-{dates.month}', parent=year_obj)
-        # 7. deal with something if this is the first time to create the month
-        if created:
-            dict_month = {
-                # 'parent': Category.objects.get(name=dates.year),
-                'level': 2,
-                'is_leaf': False,
-                'is_root': False,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': f'this is month category: {dates.month}',
-            }
-            month_obj.__dict__.update(dict_month)
-            month_obj.save()
-        # 8. add the instance to the month
-        month_obj.imgs.add(instance)
-
-        # 9. check whether the dates.day is existed or not, if not, create it
-        day_obj, created = Category.objects.get_or_create(name=f'{dates.year}-{dates.month}-{dates.day}',
-                                                          parent=month_obj)
-        # 10. deal with something if this is the first time to create the day
-        if created:
-            dict_day = {
-                # 'parent': Category.objects.get(name=dates.month),
-                'level': 3,
-                'is_leaf': True,
-                'is_root': False,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': f'this is day category: {dates.day}',
-            }
-            day_obj.__dict__.update(dict_day)
-            day_obj.save()
-        # 11. add the instance to the day
-        day_obj.imgs.add(instance)
+        field_list = [
+            'date',
+            dates.year,
+            f'{dates.year:02d}-{dates.month:02d}',
+            f'{dates.year}-{dates.month:02d}-{dates.day:02d}',
+        ]
+        self.__add_levels_to_category__(instance=instance,
+                                        field_list=field_list)
 
     def add_location_to_category(self, instance=None):
         # 1. get the instance and check if it is OK to add to the category
         instance, process = self.__is_OK_add_to_category__(instance=instance, field='address')
         if not process:
             return
-
-        country_obj = None
-        province_obj = None
-        city_obj = None
-
         # 2. get the location
         location = instance.address
-
-        # check the location root is existed or not
-        location_root_obj, created = Category.objects.get_or_create(name='location')
-        # deal with something if this is the first time to create the root
-        if created:
-            dict_root = {
-                'parent': None,
-                'level': 0,
-                'is_leaf': False,
-                'is_root': True,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': 'this is location category',
-            }
-            location_root_obj.__dict__.update(dict_root)
-            location_root_obj.save()
-
-        # 3. check whether the location.country is existed or not, if not, create it
-        if location.country:
-            country_name = location.country.strip()
-            if country_name:
-                country_obj, created = Category.objects.get_or_create(name=country_name, parent=location_root_obj)
-                # 4. deal with something if this is the first time to create the country
-                if created:
-                    dict_country = {
-                        'level': 1,
-                        'is_leaf': False,
-                        'is_root': False,
-                        'owner': instance.user,
-                        'avatar': instance.src,
-                        'description': f'this is country category: {country_name}',
-                    }
-                    country_obj.__dict__.update(dict_country)
-                    country_obj.save()
-                # 5. add the instance to the country
-                country_obj.imgs.add(instance)
-
-        # 6. check whether the location.province is existed or not, if not, create it
-        if location.province:
-            province_name = location.province.strip()
-            if province_name:
-                province_obj, created = Category.objects.get_or_create(name=province_name, parent=country_obj)
-                # 7. deal with something if this is the first time to create the province
-                if created:
-                    dict_province = {
-                        'level': 2,
-                        'is_leaf': False,
-                        'is_root': False,
-                        'owner': instance.user,
-                        'avatar': instance.src,
-                        'description': f'this is province category: {province_name}',
-                    }
-                    province_obj.__dict__.update(dict_province)
-                    province_obj.save()
-                # 8. add the instance to the province
-                province_obj.imgs.add(instance)
-
-        # 9. check whether the location.city is existed or not, if not, create it
-        if location.city:
-            city_name = location.city.strip()
-            if city_name:
-                city_obj, created = Category.objects.get_or_create(name=city_name, parent=province_obj)
-                # 10. deal with something if this is the first time to create the city
-                if created:
-                    dict_city = {
-                        'level': 3,
-                        'is_leaf': False,
-                        'is_root': False,
-                        'owner': instance.user,
-                        'avatar': instance.src,
-                        'description': f'this is city category: {city_name}',
-                    }
-                    city_obj.__dict__.update(dict_city)
-                    city_obj.save()
-                # 11. add the instance to the city
-                city_obj.imgs.add(instance)
-
-        # 12. check whether the location.district is existed or not, if not, create it
-        if location.district:
-            district_name = location.district.strip()
-            if district_name:
-                district_obj, created = Category.objects.get_or_create(name=district_name, parent=city_obj)
-                # 13. deal with something if this is the first time to create the district
-                if created:
-                    dict_district = {
-                        'level': 4,
-                        'is_leaf': True,
-                        'is_root': False,
-                        'owner': instance.user,
-                        'avatar': instance.src,
-                        'description': f'this is district category: {district_name}',
-                    }
-                    district_obj.__dict__.update(dict_district)
-                    city_obj.save()
-                # 14. add the instance to the district
-                district_obj.imgs.add(instance)
-
-        # 15. check whether the location.street is existed or not, if not, create it
-        # seems no necessary yet
+        field_list = [
+            'location',
+            location.country,
+            location.province,
+            location.city,
+            location.district,
+        ]
+        self.__add_levels_to_category__(instance=instance,
+                                        field_list=field_list)
 
     def add_profile_to_category(self, instance=None):
         # 1. get the instance and check is it OK to add to category
@@ -1066,25 +985,11 @@ class ImgProces:
             name_obj.imgs.add(instance)
 
     def add_group_to_category(self, instance=None):
+
         # 1. get the instance and check is it OK to add to category
         instance, process = self.__is_OK_add_to_category__(instance=instance, field='profiles')
         if not process:
             return
-        # check the group root is existed or not
-        group_root_obj, created = Category.objects.get_or_create(name='group')
-        # deal with something if this is the first time to create the root
-        if created:
-            dict_root = {
-                'parent': None,
-                'level': 0,
-                'is_leaf': False,
-                'is_root': True,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': 'this is group category',
-            }
-            group_root_obj.__dict__.update(dict_root)
-            group_root_obj.save()
 
         # 2. get the profiles in this instance
         names = instance.profiles.order_by('name').values_list('name', flat=True)
@@ -1103,118 +1008,59 @@ class ImgProces:
             #     f'----------------{instance.id} :too many faces in the img-----------------------')
             name_str = 'group face'
 
-        # 3. check whether the group name is existed or not, if not, create it
-        group_obj, created = Category.objects.get_or_create(name=name_str, parent=group_root_obj)
-        # 4. deal with something if this is the first time to create the group
-        if created:
-            dict_group = {
-                'level': 1,
-                'is_leaf': True,
-                'is_root': False,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': f'this is a group face: {name_str}',
-            }
-            group_obj.__dict__.update(dict_group)  # update the group_obj
-            group_obj.save()
-        # 5. add the instance to the group
-        group_obj.imgs.add(instance)
+        field_list = [
+            'group',
+            name_str
+        ]
+
+        self.__add_levels_to_category__(instance=instance,
+                                        field_list=field_list)
 
     def add_colors_to_category(self, instance=None):
-        # 1. get the instance and check is it OK to add to category
-        instance, process = self.__is_OK_add_to_category__(instance=instance, field='colors')
-        if not process:
-            return
+
         # 2. get the colors
         img_colors = instance.colors.image.all()
-        fore_colors = instance.colors.foreground.all()
-        back_colors = instance.colors.background.all()
-        # check the group root is existed or not
-        img_color_root_obj, created = Category.objects.get_or_create(name='img_color')
-        if created:
-            dict_root = {
-                'level': 0,
-                'is_leaf': False,
-                'is_root': True,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': 'this is img color category',
-            }
-            img_color_root_obj.__dict__.update(dict_root)
-            img_color_root_obj.save()
-        fore_color_root_obj, created = Category.objects.get_or_create(name='fore_color')
-        if created:
-            dict_root = {
-                'level': 0,
-                'is_leaf': False,
-                'is_root': True,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': 'this is fore color category',
-            }
-            fore_color_root_obj.__dict__.update(dict_root)
-            fore_color_root_obj.save()
-        back_color_root_obj, created = Category.objects.get_or_create(name='back_color')
-        if created:
-            dict_root = {
-                'level': 0,
-                'is_leaf': False,
-                'is_root': True,
-                'owner': instance.user,
-                'avatar': instance.src,
-                'description': 'this is back color category',
-            }
-            back_color_root_obj.__dict__.update(dict_root)
-            back_color_root_obj.save()
-        # 3. check whether the color is existed or not, if not, create it
         for color in img_colors:
-            cate_obj, created = Category.objects.get_or_create(name=color_palette[color.closest_palette_color_parent],
-                                                               parent=img_color_root_obj)
-            if created:
-                dict_cate = {
-                    'level': 1,
-                    'is_leaf': True,
-                    'is_root': False,
-                    'owner': instance.user,
-                    'avatar': instance.src,
-                    'description': f'this is img color: {color_palette[color.closest_palette_color_parent]}',
-                }
-                cate_obj.__dict__.update(dict_cate)
-                cate_obj.save()
-            # 4. add the instance to the color
-            cate_obj.imgs.add(instance)
-        for color in fore_colors:
-            cate_obj, created = Category.objects.get_or_create(name=color_palette[color.closest_palette_color_parent],
-                                                               parent=fore_color_root_obj)
-            if created:
-                dict_cate = {
-                    'level': 1,
-                    'is_leaf': True,
-                    'is_root': False,
-                    'owner': instance.user,
-                    'avatar': instance.src,
-                    'description': f'this is foreground color: {color_palette[color.closest_palette_color_parent]}',
-                }
-                cate_obj.__dict__.update(dict_cate)
-                cate_obj.save()
-            # 4. add the instance to the color
-            cate_obj.imgs.add(instance)
-        for color in back_colors:
-            cate_obj, created = Category.objects.get_or_create(name=color_palette[color.closest_palette_color_parent],
-                                                               parent=back_color_root_obj)
-            if created:
-                dict_cate = {
-                    'level': 1,
-                    'is_leaf': True,
-                    'is_root': False,
-                    'owner': instance.user,
-                    'avatar': instance.src,
-                    'description': f'this is background color: {color_palette[color.closest_palette_color_parent]}',
-                }
-                cate_obj.__dict__.update(dict_cate)
-                cate_obj.save()
-            # 4. add the instance to the color
-            cate_obj.imgs.add(instance)
+            field_list = [
+                'img_color',
+                # color_palette[color.closest_palette_color_parent]
+                color.closest_palette_color_parent
+            ]
+            self.__add_levels_to_category__(instance=instance, field_list=field_list)
+
+    def add_layout_to_category(self, instance=None):
+
+        # 2. get the layout
+        if instance.aspect_ratio == 1:
+            layout = 'Square'
+        elif instance.aspect_ratio < 1:
+            layout = 'Wide'
+        else:
+            layout = 'Tall'
+
+        field_list = [
+            'layout',
+            layout
+        ]
+        self.__add_levels_to_category__(instance=instance, field_list=field_list)
+
+    def add_size_to_category(self, instance=None):
+
+        # 2. get the layout
+        len = max(instance.wid, instance.height)
+        if len < 512:
+            size = 'Small'
+        elif len < 1024:
+            size = 'Medium'
+        elif len < 2048:
+            size = 'Large'
+        else:
+            size = 'Extra large'
+        field_list = [
+            'size',
+            size
+        ]
+        self.__add_levels_to_category__(instance=instance, field_list=field_list)
 
     # ----------------------add the single img to category for several types----------------------
     @shared_task
@@ -1231,6 +1077,9 @@ class ImgProces:
         # 2. loop the function list
         for func_name in func_list:
             print(f'--------------------INFO: This is func: {func_name} ---------------------')
+            # if func_name ==‘’ 或者None, 则跳过
+            if not func_name:
+                continue
             func = getattr(self, func_name)
             func(instance=instance)
 

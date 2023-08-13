@@ -1,6 +1,6 @@
 <template>
   <div class="profile-container">
-    <!-- <el-alert title="profile组件消息提示的文案" type="info"></el-alert> -->
+    <el-alert title="profile组件消息提示的文案" type="info"></el-alert>
 
     <div id="profile" ref="profile">
       <el-descriptions
@@ -173,7 +173,7 @@
   import {
     getGallery,
     getAlbum,
-    getFaceAlbum,
+    getProfile,
     getFaceGallery,
     getprofile,
     getImg,
@@ -206,16 +206,16 @@
           roles: 'admin',
           profile_url: 'http://localhost:8000/api/user/1/',
 
-          supplys: [],
+          resources: [],
 
           demands: [],
 
-          facealbum: {
-            id: 32,
-            album_url: 'http://localhost:8000/api/faces/32/',
-            name: 'blue',
-            src: 'http://localhost:8000/media/face/face_aQVml.jpg',
-          },
+          // facealbum: {
+          //   id: 32,
+          //   album_url: 'http://localhost:8000/api/faces/32/',
+          //   name: 'blue',
+          //   src: 'http://localhost:8000/media/face/face_aQVml.jpg',
+          // },
         },
         profileQueryForm: {
           id: 0,

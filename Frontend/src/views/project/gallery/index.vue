@@ -72,7 +72,7 @@
       //     $window.scrollTop() >=
       //     $(document).height() - $window.height() - 10
       //   ) {
-      //     // console.log('infinite-scroll-gallery: start reload the data')
+      //     console.log('infinite-scroll-gallery: start reload the data')
       //     $window.fetchImg()
       //   }
       // })

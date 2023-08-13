@@ -128,7 +128,7 @@
   import {
     getGallery,
     getAlbum,
-    getFaceAlbum,
+    getProfile,
     getFaceGallery,
     getMcs,
     getImg,

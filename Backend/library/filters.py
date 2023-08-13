@@ -1,12 +1,18 @@
-from django.db.models import Count
+from functools import reduce
+from operator import and_
+
+from django.db.models import Count, Q, Prefetch
 from django_filters import rest_framework
 from django_filters.rest_framework import FilterSet, DjangoFilterBackend
 from rest_framework import filters
 from taggit.managers import TaggableManager
+from taggit.models import Tag
 
-from library.models import Img, Category, Address
+from library.models import Img, Category, Address, Face
 from django.db import models
 import django_filters
+
+from user_info.models import Profile
 
 
 class TagsFilter(django_filters.CharFilter):
@@ -22,10 +28,21 @@ class TagsFilter(django_filters.CharFilter):
         return qs.distinct()
 
 
-class FacesFilter(django_filters.NumberFilter):
+class FaceFilter(FilterSet):
+    class Meta:
+        model = Face  # 模型名
+
+        fields = {
+            'profile__id': ['exact'],  #
+            'profile': ['exact', 'isnull'],  #
+            'det_score': ['gt', 'lt'],
+            'face_score': ['gt', 'lt'],  #
+            'age': ['gt', 'lt'],
+            'gender': ['exact']
+        }
 
     def filter(self, qs, value):
-        # print(f'the value in FacesFilter is {qs}')
+        print(f'the value in FacesFilter is {qs}, value is {value}')
         if value is None:
             qs = qs
         elif value <= 6:
@@ -130,15 +147,44 @@ class ImgFilter(FilterSet):
 
     layout = django_filters.CharFilter('aspect_ratio', method='filter_layout')
 
+    # only for text search
+    search_fields = {
+        # color
+        'colors__image__closest_palette_color_parent': ['exact'],
+
+        # category
+        'categories__name': ['exact'],  #
+        # address
+        'address__country': ['exact', 'contains'],
+        'address__province': ['exact', 'contains'],
+        'address__city': ['exact', 'contains'],
+        'address__district': ['exact', 'contains'],
+        'address__location': ['icontains'],
+        # face
+        'profiles__name': ['exact', 'icontains'],  #
+        # date
+        'dates__year': ['exact', 'contains'],  #
+        'dates__month': ['exact', 'contains'],  #
+        'dates__day': ['exact', 'contains'],  #
+        'dates__capture_date': ['exact', 'contains'],  #
+
+        '$tags__name': ['exact', 'icontains'],  #
+        # img
+        'name': ['exact', 'icontains'],  #
+        'title': ['exact', 'icontains'],  #
+        'caption': ['exact', 'icontains'],  #
+        "type": ['exact'],
+    }
+
     class Meta:
         model = Img  # 模型名
 
         fields = {
             # 'id': ['exact', 'gte', 'lte'],
             # color
-            'colors__image__closest_palette_color_parent': ['exact'],
-            'colors__foreground__closest_palette_color_parent': ['exact'],
-            'colors__background__closest_palette_color_parent': ['exact'],
+            'colors__image__closest_palette_color_parent': ['exact', 'icontains'],
+            'colors__foreground__closest_palette_color_parent': ['exact', 'icontains'],
+            'colors__background__closest_palette_color_parent': ['exact', 'icontains'],
             # category
             'categories__name': ['exact'],  #
             # 'categories__type': ['exact'],  #
@@ -195,56 +241,81 @@ class ImgFilter(FilterSet):
     def filter_tags(self, queryset, name, value):
         if value:
             tags = [tag.strip() for tag in value.split(',')]  # strip()去除首尾空格
-            print(tags)
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
-            for tag in tags:  # through and logical
-                queryset = queryset.filter(tags__name=tag).distinct()
-        else:
-            print(f'value is null: {value}')
-            queryset = queryset.filter(tags__name__isnull=True).distinct()
+
+            # 方法一：通过filter实现
+            for item in tags:
+                queryset = queryset.filter(tags__name=item)
+
+            # Prefetch the related tags for each image---> TaggableManager 不支持这个方法
+            # queryset = queryset.prefetch_related(Prefetch('tags', queryset=Tag.objects.filter(name__in=tags)))
+
+            queryset = queryset.distinct()
+
+            # 方法二：通过Q对象实现, TODO: 有问题，待解决, 可能是TaggableManager的问题
+            # q_tags = Q()
+            # q_tags.connector = 'OR'
+            # for item in tags:
+            #     q_tags.children.append(('tags__name', item))
+            # # q_tags = reduce(and_, (Q(tags__name=item) for item in tags))  # Use reduce to combine Q objects with AND operator
+            # print(q_tags)
+            # queryset = queryset.filter(q_tags).distinct()
+
         return queryset
 
+    # def filter_fc_nums(self, qs, name, value):
+    #     # print(f'filter_fc_nums--> the original qs count is : {qs.count()}')
+    #     # print(qs.values_list('id', flat=True))
+    #     # annotate will be wrong if without this code, the reason is the qs already using the distinct
+    #     qs=Img.objects.filter(id__in=qs.values_list('id', flat=True))
+    #     # print(value)
+    #     if value is None:
+    #         qs = qs
+    #     elif value < 0:
+    #         qs = qs
+    #     # elif value <= 6:
+    #     #     qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct()
+    #         # print(qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).values('id','fc_nums'))
+    #     else:
+    #         qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct().order_by('id')
+    #         # qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums__gte=value).distinct()
+    #     return qs
     def filter_fc_nums(self, qs, name, value):
-        # print(f'filter_fc_nums--> the original qs count is : {qs.count()}')
-        # print(qs.values_list('id', flat=True))
-        # annotate will be wrong if without this code, the reason is the qs already using the distinct
-        qs=Img.objects.filter(id__in=qs.values_list('id', flat=True))
-        # print(value)
-        if value is None:
-            qs = qs
-        elif value < 0:
-            qs = qs
-        # elif value <= 6:
-        #     qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct()
-            # print(qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).values('id','fc_nums'))
-        else:
-            qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct().order_by('id')
-            # qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums__gte=value).distinct()
+        if value is not None and value >= 0:
+            qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct()
         return qs
 
     def filter_fc_name(self, qs, name, value):
-
-        print(name)
-        print(value)
         if value:
-            names = [name.strip() for name in value.split(',')]  # strip()去除首尾空格
-            print(names)
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
-            for item in names:  # through and logical
-                qs = qs.filter(faces__name=item).distinct()
+            names = [name.strip() for name in value.split(',')]
+            # q_names = Q()
+            # q_names.connector = 'AND'
+            # for item in names:
+            #     q_names.children.append(('profiles__name', item))
+
+            # q_names = Q(profiles__name__in=names)
+            # qs = qs.filter(q_names).distinct()
+            # print(q_names)
+
+            # 通过Prefetch实现, 理论上会更快，但可能数据量过小，还未进行验证，目前这句话加不加，感觉差不多，加了查询次数反而更大
+            qs = qs.prefetch_related(Prefetch('profiles', queryset=Profile.objects.filter(name__in=names)))
+            for item in names:
+                qs = qs.filter(profiles__name=item)
+            qs.distinct()
+
         return qs
 
     def filter_img_colors(self, qs, name, value):
         #
         # print(name)
-        # print(value)
+
         if value:
             names = [name.strip() for name in value.split(',')]  # strip()去除首尾空格
-            print(names)
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
+            # qs = qs.select_related('colors').filter(colors__image__closest_palette_color_parent__in=names)
+            print(f'filter_image_colors--> the original qs count is  {qs.count()} before filter, names is {names} ')
             for item in names:  # through and logical
-                qs = qs.filter(colors__image__closest_palette_color_parent=item).distinct()
-        # print(f'filter_fore_colors--> the original qs count is  {qs.count()}')
+                qs = qs.filter(colors__image__closest_palette_color_parent=item)
+            qs = qs.distinct()
+        print(f'filter_image_colors--> the original qs count is  {qs.count()}')
         return qs
 
     def filter_fore_colors(self, qs, name, value):
@@ -252,9 +323,11 @@ class ImgFilter(FilterSet):
         if value:
             names = [name.strip() for name in value.split(',')]  # strip()去除首尾空格
             print(names)
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
+            # qs = qs.select_related('colors').filter(colors__foreground__closest_palette_color_parent__in=names)
             for item in names:  # through and logical
-                qs = qs.filter(colors__foreground__closest_palette_color_parent=item).distinct()
+                qs = qs.filter(colors__foreground__closest_palette_color_html_code=item)
+            qs = qs.distinct()
+
         # print(f'filter_fore_colors--> the original qs count is  {qs.count()}')
         return qs
 
@@ -265,9 +338,12 @@ class ImgFilter(FilterSet):
         if value:
             names = [name.strip() for name in value.split(',')]  # strip()去除首尾空格
 
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
+            # 通过Prefetch实现, 理论上会更快，但可能数据量过小，还未进行验证，目前这句话加不加，感觉差不多，加了查询次数反而更大
+            # qs = qs.select_related('colors').filter(colors__background__closest_palette_color_parent__in=names)
             for item in names:  # through and logical
-                qs = qs.filter(colors__background__closest_palette_color_parent=item).distinct()
+                qs = qs.filter(colors__background__closest_palette_color_html_code=item)
+            qs = qs.distinct()
+
         # print(f'filter_back_colors--> the original qs count is {qs.count()}')
         return qs
 
@@ -278,8 +354,7 @@ class ImgFilter(FilterSet):
             qs = qs.filter(aspect_ratio__lt=1)
         elif value == 'Tall':
             qs = qs.filter(aspect_ratio__gt=1)
-        else:
-            pass
+        print('filter_layout', name, value)
         return qs
 
 
@@ -324,7 +399,6 @@ class ImgSearchFilter(filters.SearchFilter):
 
 
 class AddressFilter(FilterSet):
-
     class Meta:
         model = Address  # 模型名
 
@@ -339,6 +413,3 @@ class AddressFilter(FilterSet):
             'longitude': ['gte', 'lte', 'range'],
             'latitude': ['gte', 'lte', 'range'],
         }
-
-
-

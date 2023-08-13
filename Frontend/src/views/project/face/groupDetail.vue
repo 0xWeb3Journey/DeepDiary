@@ -1,5 +1,10 @@
 <template>
   <div>
+    <DetailHead
+      content="人脸详情"
+      @edit="onEdit"
+      @remove="onRemove"
+    ></DetailHead>
     <Carosel title="照片" :items="groups"></Carosel>
     <Gallery
       ref="face"
@@ -13,11 +18,13 @@
 
 <script>
   import Gallery from '@/components/Gallery'
-  import Carosel from './carosel.vue'
-  import { getCategoryDetail } from '@/api/gallery'
+  import Carosel from '@/components/Carosel'
+  import { getGroupDetail } from '@/api/gallery'
+  import DetailHead from './detailHead.vue'
   export default {
     name: 'GroupDetail',
-    components: { Gallery, Carosel },
+    components: { Gallery, Carosel, DetailHead },
+
     data() {
       return {
         groups: [],
@@ -36,7 +43,7 @@
           newVal
         )
         this.groups = []
-        this.fetchFaceGroupDetail()
+        this.fetchGroupDetail()
       },
     },
     created() {
@@ -44,7 +51,7 @@
     },
     mounted() {
       console.log('component have been mounted --')
-      // this.fetchFaceGroupDetail()
+      // this.fetchGroupDetail()
     },
     activated() {
       console.log('the face component is activated')
@@ -54,14 +61,14 @@
       console.log('the face component is deactivated')
     },
     methods: {
-      async fetchFaceGroupDetail() {
-        console.log('start to get the fetchFaceGroupDetail...')
+      async fetchGroupDetail() {
+        console.log('start to get the fetchGroupDetail...')
 
         this.queryForm.id = this.$route.query.id
         // console.log('this.queryForm.id: ', this.queryForm.id)
-        const { data } = await getCategoryDetail(this.$route.query.id)
-        console.log('fetchFaceGroupDetail: ', data)
-        this.groups = [...data.img]
+        const { data } = await getGroupDetail(this.$route.query.id)
+        console.log('fetchGroupDetail: ', data)
+        this.groups = [...data.imgs]
       },
       //进入守卫：通过路由规则，进入该组件时被调用
       beforeRouteEnter(to, from, next) {
@@ -70,6 +77,12 @@
       //离开守卫：通过路由规则，离开该组件时被调用
       beforeRouteLeave(to, from, next) {
         console.log('beforeRouteLeave....')
+      },
+      onEdit() {
+        console.log('groupDetail: onEdit')
+      },
+      onRemove() {
+        console.log('groupDetail: onRemove')
       },
     },
   }

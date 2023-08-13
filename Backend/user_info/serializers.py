@@ -132,14 +132,24 @@ class ProfileSerializer(serializers.ModelSerializer):
     """于文章列表中引用的嵌套序列化器"""
     # 本级属性
     profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
-    roles = DisplayChoiceField(choices=ROLES_OPTION)  # 获取choice 属性值方式一：指定复写后的choice类
-    faces = FaceBriefSerializer(many=True, read_only=True)
+    roles = DisplayChoiceField(choices=ROLES_OPTION, read_only=True)  # 获取choice 属性值方式一：指定复写后的choice类
+    # faces = FaceBriefSerializer(many=True, read_only=True)
     demands = DemandSerializer(many=True, read_only=True)
     resources = ResourceSerializer(many=True, read_only=True)
     experiences = ExperienceSerializer(many=True, read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['id', 'name', 'avatar', 'introduction', 'roles', 'profile_url', 'faces', 'demands', 'resources',
+        fields = ['id', 'name', 'avatar', 'introduction', 'roles', 'profile_url',  'demands', 'resources',
                   'experiences']
         # fields = '__all__'
+
+    def to_representation(self, value):
+        rst = {}
+        # 调用父类获取当前序列化数据，value代表每个对象实例ob
+        data = super().to_representation(value)
+        # 对序列化数据做修改，添加新的数据
+        rst['data'] = data
+        rst['code'] = 200
+        rst['msg'] = 'profile detail info'
+        return rst
