@@ -1,8 +1,9 @@
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import AnonymousUser
 from rest_framework import serializers
 from library.serializers_out import FaceBriefSerializer
 from tags.serializers import TagSerializerField
-from user_info.models import Profile, Company, ROLES_OPTION, Demand, Resource, Experience
+from user_info.models import Profile, Company, ROLES_OPTION, Demand, Resource, Experience, RELATION_OPTION
 from utils.serializers import DisplayChoiceField
 
 
@@ -137,10 +138,30 @@ class ProfileSerializer(serializers.ModelSerializer):
     demands = DemandSerializer(many=True, read_only=True)
     resources = ResourceSerializer(many=True, read_only=True)
     experiences = ExperienceSerializer(many=True, read_only=True)
+    relation = serializers.SerializerMethodField()
+
+    def get_relation(self, instance):
+
+        # 获取当前登录用户
+        current_user = self.context['request'].user
+        # print(f'current_user is {current_user}')
+        # 在representation中添加当前登录用户的信息
+        if isinstance(current_user, AnonymousUser):
+            # current_user is an anonymous user
+            # Perform actions specific to anonymous users
+            return None
+        else:
+            # current_user is not an anonymous user
+            # Perform actions for authenticated users
+
+            recontact = instance.re_from_relations.filter(re_to=current_user).first()  # 有多条数据
+            if recontact:
+                return RELATION_OPTION[recontact.relation][1]
+            return None
 
     class Meta:
         model = Profile
-        fields = ['id', 'name', 'avatar', 'introduction', 'roles', 'profile_url',  'demands', 'resources',
+        fields = ['id', 'name', 'relation', 'avatar', 'introduction', 'roles', 'profile_url',  'demands', 'resources',
                   'experiences']
         # fields = '__all__'
 

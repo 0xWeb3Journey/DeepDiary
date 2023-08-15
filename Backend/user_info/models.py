@@ -51,6 +51,21 @@ POSITION_OPTION = (
     (11, "其它"),
 )
 
+# 原始字符串列表
+strings = [
+    '我', '妻子', '丈夫', '儿子', '女儿', '爸爸', '妈妈', '爷爷', '奶奶', '外公', '外婆',
+    '家人', '哥哥', '姐姐', '弟弟', '妹妹', '亲戚', '男朋友', '女朋友', '同事', '朋友',
+    '同学', '闺蜜', '客户', '供应商', '合作伙伴', '其他'
+]
+
+# 创建字符串到整数的映射
+string_to_int_mapping = {s: i for i, s in enumerate(strings)}
+
+# 根据映射生成格式模板
+RELATION_OPTION = tuple((i, s) for s, i in string_to_int_mapping.items())
+
+# print(RELATION_OPTION)
+
 
 def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "avatar"
@@ -139,7 +154,8 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
 
     def __str__(self):
-        return f'{self.id}_{self.name}'
+        # return f'{self.id}_{self.name}'
+        return self.name
         # return f'{self.get_position_display()}_{self.username}'
         # return f'{self.company.name}_{self.position}_{self.name}'
 
@@ -154,12 +170,41 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     @staticmethod
     def get_attr_nums(name):
         # 这里如果不加rst[0]，则返回有2个中括号[[]]
-        rst = Profile.objects.annotate(value=Count(name)).values('name','value').distinct().order_by(
+        rst = Profile.objects.annotate(value=Count(name)).values('name', 'value').distinct().order_by(
             '-value'),  # 这里的-是降序，如果不加-则是升序
         return rst[0]
 
     class Meta:
         ordering = ('-created_at',)
+        get_latest_by = 'id'
+
+
+# 本模型主要记录朋友之间的关系，备注，描述等信息
+class ReContact(models.Model):
+    re_from = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='re_from_relations')
+    re_to = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='re_to_relations')
+    relation = models.SmallIntegerField(choices=RELATION_OPTION, blank=True, default='friend',
+                                        verbose_name="关系", help_text="re_from和re_to的关系")
+    nickname = models.CharField(max_length=20, blank=True, verbose_name="re_from的真实名字",
+                                help_text="re_from的真实名字")
+    PyInitial = models.CharField(max_length=20, blank=True, verbose_name="re_from的拼音首字母",
+                                 help_text="re_from的拼音首字母")
+    quanpin = models.CharField(max_length=20, blank=True, verbose_name="re_from的全拼", help_text="re_from的全拼")
+    conRemark = models.CharField(max_length=20, blank=True, verbose_name="re_from的备注", help_text="re_from的备注")
+    conRemarkPYFull = models.CharField(max_length=20, blank=True, verbose_name="re_from的备注拼音全拼",
+                                       help_text="re_from的备注拼音全拼")
+    conRemarkPYShort = models.CharField(max_length=20, blank=True, verbose_name="re_from的备注拼音首字母",
+                                        help_text="re_from的备注拼音首字母")
+    tags = TaggableManager(blank=True, verbose_name="Tags", help_text="给这位联系人打上的标签")
+    desc = models.TextField(blank=True, verbose_name="描述", help_text="描述")
+    sourceExtInfo = models.CharField(max_length=20, blank=True, verbose_name="来源扩展信息", help_text="来源扩展信息")
+
+    def __str__(self):
+        # return f'{self.re_from.name}_{self.re_to.name}_{self.relation}'
+        return f'{self.re_from.name}_是_{self.re_to.name}_的_{RELATION_OPTION[self.relation][1]}'
+
+    class Meta:
+        ordering = ('re_from',)
         get_latest_by = 'id'
 
 

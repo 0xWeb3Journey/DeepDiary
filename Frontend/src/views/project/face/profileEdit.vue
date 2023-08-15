@@ -22,7 +22,7 @@
       <Rename :name="profileNew.name" @confirmRename="onConfirmRename"></Rename>
 
       <ProfileRelationTags
-        :relation="newRelation"
+        :relation="profileNew.relation"
         @relationChoosed="onRelationChoosed"
       ></ProfileRelationTags>
       <div>
@@ -76,6 +76,7 @@
           avatar:
             'https://cube.elemecdn.com/6/7b/03f0a0a0b0e2f6b5b6b5e2f0a0e0b0a0.jpeg',
           name: 'DeepDiary',
+          relation: '',
         },
         fetchParams: {
           id: 0,

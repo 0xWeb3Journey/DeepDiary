@@ -8,6 +8,7 @@ from library.models import Img, Category, ImgMcs, Color, ColorItem, ColorBackgro
 from library.serializers_out import FaceBriefSerializer, ColorBriefSerializer
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
 from tags.serializers import TagSerializerField
+from user_info.models import Profile
 from user_info.serializers_out import ProfileBriefSerializer
 from utils.serializers import RecursiveField
 
@@ -227,15 +228,34 @@ class ImgSerializer(serializers.ModelSerializer):
         # library.models.Img.address.RelatedObjectDoesNotExist: Img has no address
         return data
 
+class RelatedFieldTest(serializers.RelatedField):
+    def to_representation(self, value):
+        return f'RelatedField:{value.is_get_info}'
 
 class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可以的
 
     # 父级属性
-    issue_url = serializers.HyperlinkedIdentityField(view_name='issue-detail')
-    issue = serializers.CharField(source="issue.desc", read_only=True)
+    # issue_url = serializers.HyperlinkedIdentityField(view_name='issue-detail')
+    # issue = serializers.CharField(source="issue.desc", read_only=True)
     # 子级属性：一对多
 
-    names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
+    # 1. serializers.RelatedField： 用于自定义关联字段的序列化和反序列化。 OK
+    # stats = RelatedFieldTest(read_only=True)  # RelatedField
+    # serializers.PrimaryKeyRelatedField： 用于展示关联模型的主键值。 OK
+    # dates = serializers.PrimaryKeyRelatedField(queryset=Date.objects.all())  # PrimaryKeyRelatedField
+    # 3. serializers.StringRelatedField： 使用关联模型的 __str__ 方法的字符串表示。 OK
+    names = serializers.StringRelatedField(many=True, source='profiles')  # StringRelatedField, 如果字段就是外键名，则不用增加 source='profiles'
+    # 4. serializers.SlugRelatedField： 使用关联模型的特定字段值，例如使用 slug 字段的值。 OK
+    # evaluates = serializers.SlugRelatedField(slug_field='total_views', queryset=Evaluate.objects.all())  # SlugRelatedField
+    # 5. serializers.HyperlinkedRelatedField： 使用超链接的形式显示关联对象。OK
+    # address = serializers.HyperlinkedRelatedField(view_name='address-detail', read_only=True)  # HyperlinkedRelatedField
+    # 6. serializers.ManyRelatedField： 用于序列化多对多关系的字段。
+    # profiles = serializers.ManyRelatedField(child_relation=RelatedFieldTest(), read_only=True)  # ManyRelatedField
+    # 7. serializers.ListSerializer： 用于序列化多个对象的关联字段，如 ManyToMany 关系。OK
+    # profiles = serializers.ListSerializer(child=serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all()))  # ListSerializer
+
+
+    # names = SerializerMethodField(label='names', read_only=True)  # 获取子集模型字段的方法二，对于不存在的字段，临时添加字段，需要结合get_字段名()这个函数
     profiles = ProfileBriefSerializer(many=True, read_only=True)  # 这里的名字，必须是Profile 定义Img 外键时候的'related_name'
     faces = FaceBriefSerializer(many=True, read_only=True)  # 这里的名字，必须是Face 定义Img 外键时候的'related_name'
     dates = DateSerializer(read_only=True)  # this name should be the same as model related name
@@ -246,10 +266,9 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     colors = ColorBriefSerializer(read_only=True)  # this name should be the same as model related name
 
     def get_names(self, obj):
-        print('type(obj)')
-        query_set = obj.faces.all()
-        # print('getting the faces now....')
-        return [obj.profile.name for obj in query_set if obj.profile]
+        # 获取与当前 Img 实例关联的所有 Profile 实例的名称
+        profile_names = obj.profiles.values_list('name', flat=True)
+        return list(profile_names)  # 转换为列表返回
 
     class Meta:
         model = Img

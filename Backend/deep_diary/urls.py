@@ -30,7 +30,7 @@ from library.views import ImgViewSet, ImgCategoryViewSet, ImgMcsViewSet, Categor
 from project.views import ProjectViewSet, ProductViewSet, ToolingViewSet, OutsourcingViewSet, PurchaseViewSet, \
     DeliveryViewSet, ResumeViewSet, IssueViewSet
 from tags.views import TagViewSet
-from user_info.views import UserViewSet, CompanyViewSet, ProfileViewSet
+from user_info.views import UserViewSet, CompanyViewSet, ProfileViewSet, ReContactViewSet
 from utils.views import AdViewSet
 
 router = DefaultRouter()
@@ -43,6 +43,7 @@ router.register(r'tag', TagViewSet)
 router.register(r'comment', CommentViewSet)
 router.register(r'user', UserViewSet)
 router.register(r'profile', ProfileViewSet)
+router.register(r'recontact', ReContactViewSet)
 router.register(r'company', CompanyViewSet)
 router.register(r'project', ProjectViewSet)  # 新增
 router.register(r'product', ProductViewSet)  # 新增

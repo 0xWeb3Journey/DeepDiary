@@ -8,10 +8,10 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from user_info.models import Profile, Company
+from user_info.models import Profile, Company, ReContact
 from user_info.serializers import UserRegisterSerializer, ProfileSerializer, CompanySerializer, \
     UserDetailSerializer
-from user_info.serializers_out import ProfileBriefSerializer
+from user_info.serializers_out import ProfileBriefSerializer, ReContactGraphSerializer
 # class UserRegisterViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()
 #     serializer_class = UserRegisterSerializer
@@ -108,7 +108,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         face_id = self.request.data.get("id", None)
         print(f'人物更新：validated_data =  {serializer.validated_data}')
         print(f'人脸ID：face_id =  {face_id}')
-        print(f'当前访问的用户是 =  {self.request.user}')
+        # print(f'当前访问的用户是 =  {self.request.user}')
         instance = self.get_object()  # 获取详情的实例对象
         face_ins = instance.faces.filter(id=face_id).first()
         if face_ins:
@@ -155,3 +155,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+
+
+class ReContactViewSet(viewsets.ModelViewSet):
+    queryset = ReContact.objects.all()
+    serializer_class = ReContactGraphSerializer

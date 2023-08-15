@@ -80,7 +80,7 @@ class CategoryBriefSerializer(serializers.ModelSerializer):
 
 class ImgGraphSerializer(serializers.ModelSerializer):
     tags = TagSerializerField(read_only=True)
-    image = serializers.ImageField(source="src", read_only=True)
+    image = serializers.ImageField(source="thumb", read_only=True)
     label = serializers.CharField(source="name", read_only=True)
     desc = serializers.CharField(source="caption", read_only=True)
     value = serializers.SerializerMethodField()  # method 2: through method
