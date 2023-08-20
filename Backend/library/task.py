@@ -11,6 +11,7 @@ import numpy as np
 import pyexiv2
 from PIL import Image, ExifTags
 from celery import shared_task
+from django.contrib.auth.hashers import make_password
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import transaction, IntegrityError
@@ -95,6 +96,41 @@ class ImgProces:
         image_file.close()
         return image_content
 
+    @staticmethod
+    def read_img(instance=None, read_type=None):
+        """
+        instance： 图片对象
+        image_content: 二进制文件流
+        """
+        # 读取图片
+        # image_file = self.instance.src.open()  # 方式一：读取本地或网络图片
+        if not instance:
+            print('instance is None')
+            return None
+        if read_type is None:
+            read_type = ['cv2', 'PIL', 'pyexiv2']
+
+        image_file = default_storage.open(instance.src.name)  # 方式二：读取本地或网络图片
+        image_content = image_file.read()
+        image_content_obj = BytesIO(image_content)
+        image_file.close()
+        image = {
+            'cv2': None,
+            'PIL': None,
+            'pyexiv2': None,
+        }
+        for type in read_type:
+            if type == 'cv2':
+                image[type] = cv2.imdecode(np.frombuffer(image_content_obj.getvalue(), np.uint8), cv2.IMREAD_COLOR)
+            elif type == 'PIL':
+                image[type] = Image.open(image_content_obj)
+            elif type == 'pyexiv2':
+                image[type] = pyexiv2.ImageData(image_content)
+            else:
+                raise Exception(f'not support this type: {type}')
+
+        return image
+
     def save_exif_info(self):
         pass
 
@@ -150,7 +186,7 @@ class ImgProces:
     def face_crop(image, bbox):
         """
         image: 已经打开的图片数组
-        bbox: 人脸框, 格式为[x左上, y左上, wid, height]
+        bbox: 人脸框, 格式为[x左上, y左上, wid, height], 单位为像素值
         file：构造后的InMemoryUploadedFile对象
         """
 
@@ -173,6 +209,72 @@ class ImgProces:
         file = InMemoryUploadedFile(file_stream, None, face_name, 'image/jpeg', len(file_data), None)
 
         return file
+
+    @staticmethod
+    def face_zoom(area, ratio, width, height):  # area: 中心坐标，宽度，高度
+        [x, y, w, h] = area
+
+        w = w * ratio
+        h = h * ratio
+        x1 = max(x - w / 2, 0)
+        y1 = max(y - h / 2, 0)
+        x2 = min(x1 + w, 1)
+        y2 = min(y1 + h, 1)
+        # print(f'INFO: the face width is {width}, face height is {height}')
+        bbox = [x1 * width, y1 * height, x2 * width, y2 * height]
+
+        return bbox  # 这里的bbox 还是浮点型，后续保存图片的时候统一转换
+        # return np.array(bbox).astype(int)
+
+    @staticmethod
+    def compute_iou(rec1, rec2):  # 这里的矩形，包括左上角坐标和右下角坐标
+        """
+        计算两个矩形框的交并比。
+        :param rec1: (x0,y0,x1,y1)      (x0,y0)代表矩形左上的顶点，（x1,y1）代表矩形右下的顶点。下同。
+        :param rec2: (x0,y0,x1,y1)
+        :return: 交并比IOU.
+        """
+        left_column_max = max(rec1[0], rec2[0])
+        right_column_min = min(rec1[2], rec2[2])
+        up_row_max = max(rec1[1], rec2[1])
+        down_row_min = min(rec1[3], rec2[3])
+        # 两矩形无相交区域的情况
+        if left_column_max >= right_column_min or down_row_min <= up_row_max:
+            return 0
+        # 两矩形有相交区域的情况
+        else:
+            S1 = (rec1[2] - rec1[0]) * (rec1[3] - rec1[1])
+            S2 = (rec2[2] - rec2[0]) * (rec2[3] - rec2[1])
+            S_cross = (down_row_min - up_row_max) * (right_column_min - left_column_max)
+            return S_cross / (S1 + S2 - S_cross)
+
+    def create_new_profile(self, img_ins, face, face_name):
+        img_pil = self.read_img(img_ins, ['PIL']).get('PIL', None)
+        bbox = np.round(face.bbox).astype(np.int16)
+        username = face_name
+        try:
+            # 创建一个新用户profile对象，设定默认密码为666，加密保存，User中is_active设置为0， username设置成name，
+            # 如果username已经存在相同字段，则在name后面增加4位随机数，再次创建保存
+            while Profile.objects.filter(username=username).exists():
+                # 生成4位随机数，并与name拼接
+                random_suffix = str(random.randint(1000, 9999))
+                username = f'{face_name}{random_suffix}'
+            print(f'INFO: will created a new profile, the name is : {username}')
+        except IntegrityError:
+            print('ERROR: Failed to create a new profile. IntegrityError occurred.')
+
+        creation_params = {
+            'username': username,
+            'password': make_password('deep-diary666'),
+            'name': face_name,
+            'avatar': self.face_crop(img_pil, bbox),  # 需要对avatar进行赋值
+            'embedding': face.normed_embedding.astype(np.float16).tobytes(),
+        }
+        profile, created = Profile.objects.get_or_create(name=face_name, defaults=creation_params)
+        if created:
+            print(f'INFO: success created a new profile: {profile.name}')
+
+        return profile, created
 
     @staticmethod
     def face_recognition(embedding):  # 'instance', serializers
@@ -203,11 +305,57 @@ class ImgProces:
         if max_similarity_score > calib['face']['reco_threshold']:
             profile = Profile.objects.all()[int(max_similarity_index)]
             face_score = max_similarity_score
-
-        if profile:
             print(f'INFO: recognition result: {profile}--', face_score)
         else:
-            print(f'INFO: recognition result: unknown--', face_score)
+            # 新创建一个profile
+            print(f'INFO: recognition result: unknown--, will create a new profile')
+
+        return profile, face_score
+
+    def face_check_profile(self, img_ins, face, enableLM=True):
+        """
+        根据人脸检测结果，判断是否需要创建Profile
+        img: 图片对象
+        face: 人脸识别结果
+        names: 通过LightRoom检测到的人脸名字
+        bboxs: 通过LightRoom检测到的人脸框
+        return:
+        profile: Profile对象
+        face_score: 人脸相似度
+        """
+
+        # 1. 获取人脸名字
+        names = []
+        face_name = 'unknown'
+        enableLM = False  # 强制关闭LM方式
+        if enableLM:  # 通过LM方式检测到了人脸
+            names, bboxs = self.get_lm_face_info(img_ins)
+        if len(names) > 0:
+            ious = []
+            for bbox in bboxs:
+                iou = self.compute_iou(bbox, face.bbox)  # 计算LM 人脸区域跟insight face 人脸区域的重合度
+                ious = np.append(ious, iou)
+            idx = ious.argmax()
+            # print(f'INFO ious is {ious}')
+            # print(f'INFO names is {names}')
+            # print(f'INFO: the identified idx is {idx}')
+            if ious[idx] > 0.3:  # 重合度超过30%
+                face_name = names[idx]
+                face_score = 1
+            else:
+                face_name = face_name + '_' + ''.join(random.sample(string.ascii_letters + string.digits, 4))
+                face_score = 0
+            print(f"\033[1;32m INFO: estimated name is {face_name}, which is from LM \033[0m")
+            # 检查Profile 数据库中是否包含此人脸名字
+            profile, created = self.create_new_profile(img_ins, face, face_name)
+
+        else:  # 通过LM方式未检测到人脸
+            print(f'INFO: there is no LM_face_info detected ... ')
+            print(f'INFO: estimated face name based on exist feats now  ... ')
+            profile, face_score = self.face_recognition(face.normed_embedding)
+            if not profile:
+                profile, created = self.create_new_profile(img_ins, face, face_name)
+            # face_name, sim = get_face_name(face.normed_embedding)  # 通过跟人脸特征库的比较，推理出相关人脸名称
 
         return profile, face_score
 
@@ -607,8 +755,8 @@ class ImgProces:
         img_read = pyexiv2.ImageData(self.read(instance))  # 登记图片路径
 
         # 2.2 get the exif info by PIL
-        # image_pil = Image.open(BytesIO(self.read()))
-        # exif_data = image_pil._getexif()
+        # img_pil = Image.open(BytesIO(self.read()))
+        # exif_data = img_pil._getexif()
         # if exif_data is None:
         #     print("No EXIF data found.")
         #     return
@@ -708,6 +856,42 @@ class ImgProces:
         print(
             f'--------------------{instance.id} :img infos have been store to the database---------------------------')
 
+    def get_lm_face_info(self, instance):
+        print(f'INFO: get_LM_face_info ... ')
+        num = 1  # xmp 内容下表从1开始
+        is_have_face = True
+        names = []
+        bboxs = []
+        # img_read = pyexiv2.ImageData(self.read(instance))  # 登记图片路径
+        img = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+        if img is None:
+            print(f'INFO: img is None')
+            return names, bboxs
+        xmp = img.read_xmp()  # 读取元数据，这会返回一个字典
+
+        while is_have_face:
+            item = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Type'.format(num)
+            is_have_face = xmp.get(item, None)
+            if is_have_face:
+                print(f'INFO: LM face detected')
+                idx_name = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Name'.format(num)
+                idx_h = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Area/stArea:h'.format(num)
+                idx_w = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Area/stArea:w'.format(num)
+                idx_x = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Area/stArea:x'.format(num)
+                idx_y = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Area/stArea:y'.format(num)
+                num += 1
+
+                name = xmp.get(idx_name, 'unknown')
+                names.append(name)
+                lm_face_area = [xmp.get(idx_x), xmp.get(idx_y), xmp.get(idx_w), xmp.get(idx_h)]  # 0~1 之间的字符
+                lm_face_area = np.array(lm_face_area).astype(float)  # 0~1 之间的浮点，中心区域，人脸长，宽
+                # bbox = face_zoom(lm_face_area, 1, instance.src.width, instance.src.height)  # 转变成像素值，左上区域和右下区域坐标，跟insightface 保持一致
+                bbox = self.face_zoom(lm_face_area, 1, instance.wid,
+                                      instance.height)  # 转变成像素值，左上区域和右下区域坐标，跟insightface 保持一致
+                bboxs.append(bbox)
+        print(f'INFO: the LM names is {names}')
+        return names, bboxs
+
     def get_faces(self, instance=None, force=False, save_type='instance'):  # 'instance', serializers
         #  判断当前实例是否已经执行过人脸识别，如果是，直接打印相关信息并返回
         # 1. 判断是否需要处理
@@ -725,21 +909,25 @@ class ImgProces:
 
         # 2. processing the image
         self.face_init()
-        image_content = self.read(instance)
-        image_content_obj = BytesIO(image_content)
+        # image_content = self.read(instance)
+        # image_content_obj = BytesIO(image_content)
+        # 
+        # np_array = np.frombuffer(image_content_obj.getvalue(), np.uint8)
+        # image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+        # img_pil = Image.open(image_content_obj)
 
-        np_array = np.frombuffer(image_content_obj.getvalue(), np.uint8)
-        image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
-        faces = self.app.get(image)
-
-        image_pil = Image.open(image_content_obj)
+        img = self.read_img(instance, ['cv2', 'PIL'])
+        img_cv2 = img.get('cv2', None)
+        img_pil = img.get('PIL', None)
+        faces = self.app.get(img_cv2)
 
         for face in faces:
             pose = face.pose.astype(np.float16)
             bbox = np.round(face.bbox).astype(np.int16)
             # 人脸识别---->profile
-            # 根据name找到profile对象
-            profile, face_score = self.face_recognition(face.normed_embedding)
+            # 检查是否存在profile对象，如果不存在，则创建profile对象
+            # profile, face_score = self.face_recognition(face.normed_embedding)
+            profile, face_score = self.face_check_profile(instance, face)
 
             if save_type == 'instance':
                 fc = {
@@ -748,7 +936,7 @@ class ImgProces:
                     'det_score': face.det_score,
                     'face_score': face_score,
                     'is_confirmed': True if face_score > 0.8 else False,
-                    'src': self.face_crop(image_pil, bbox),  # 需要对src进行赋值
+                    'src': self.face_crop(img_pil, bbox),  # 需要对src进行赋值
                     'age': face.age,
                     'gender': face.gender,
                     'embedding': face.normed_embedding.astype(np.float16).tobytes(),
@@ -1017,7 +1205,10 @@ class ImgProces:
                                         field_list=field_list)
 
     def add_colors_to_category(self, instance=None):
-
+        # 1. get the instance and check if it is OK to add to the category
+        instance, process = self.__is_OK_add_to_category__(instance=instance, field='colors')
+        if not process:
+            return
         # 2. get the colors
         img_colors = instance.colors.image.all()
         for color in img_colors:
@@ -1092,7 +1283,7 @@ class ImgProces:
         imgs = Img.objects.all()
         # 2. Go through each img
         for (img_idx, img) in enumerate(imgs):
-            print(f'--------------------INFO: This is img{img_idx}: {img.id} ---------------------')
+            print(f'--------------------INFO: This is img_{img.id}, current img cnt is: {img_idx}---------------------')
             self.add_img_to_category(self, instance=img, func_list=func_list)
 
     # ----------------------some functions----------------------
@@ -1133,7 +1324,9 @@ class ImgProces:
                     random_suffix = str(random.randint(1000, 9999))
                     username = f'{name}{random_suffix}'
 
-                profile = Profile.objects.create_user(username=username, password='deep-diary', is_active=0, name=name,
+                profile = Profile.objects.create_user(username=username, password=make_password('deep-diary666'),
+                                                      is_active=0,
+                                                      name=name,
                                                       embedding=fc_instance.embedding, avatar=fc_instance.src)
 
                 fc_instance.profile = profile
@@ -1150,3 +1343,46 @@ class ImgProces:
         :return:
         """
         pass
+
+
+@shared_task
+def check_img_info(instance, get_list=None, add_list=None, force=False):
+    print('periodic task: check_all_img_info ...')
+    if get_list is None:
+        get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
+                    'get_faces']
+    if add_list is None:
+        add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+                    'add_colors_to_category']
+    print(f'INFO:-> param force: {force}')
+    print(f'INFO:-> param get_list: {get_list}')
+    print(f'INFO:-> param add_list: {add_list}')
+
+    img_process = ImgProces()
+    img_process.get_img(img_process, instance=instance,  func_list=get_list, force=force)
+    img_process.add_img_to_category(img_process, func_list=add_list)
+
+
+@shared_task
+def check_all_img_info(get_list=None, add_list=None, force=False):
+    print('periodic task: check_all_img_info ...')
+    if get_list is None:
+        get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
+                    'get_faces']
+    if add_list is None:
+        add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+                    'add_colors_to_category']
+    print(f'INFO:-> param force: {force}')
+    print(f'INFO:-> param get_list: {get_list}')
+    print(f'INFO:-> param add_list: {add_list}')
+
+    img_process = ImgProces()
+    img_process.get_all_img(img_process, func_list=get_list, force=force)
+
+    img_process.add_all_img_to_category(img_process, func_list=add_list)
+
+
+@shared_task
+def test(value):
+    print(f'INFO: periodic task: the value is {value}')
+    return f'success received the value: {value}'

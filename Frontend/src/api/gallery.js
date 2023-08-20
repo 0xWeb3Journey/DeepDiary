@@ -125,22 +125,7 @@ export function upload(data) {
   })
 }
 
-export function getGroup(params) {
-  console.log(params)
-  return request({
-    url: '/api/category/',
-    method: 'get',
-    params,
-  })
-}
 
-export function getGroupDetail(id) {
-  console.log(id)
-  return request({
-    url: '/api/category/' + id + '/',
-    method: 'get',
-  })
-}
 
 export function getFilterList(params) {
   console.log(params)

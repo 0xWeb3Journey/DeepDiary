@@ -19,7 +19,7 @@
 <script>
   import Gallery from '@/components/Gallery'
   import Carosel from '@/components/Carosel'
-  import { getGroupDetail } from '@/api/gallery'
+  import { getGroupDetail } from '@/api/category'
   import DetailHead from './detailHead.vue'
   export default {
     name: 'GroupDetail',

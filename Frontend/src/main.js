@@ -14,7 +14,7 @@ import '@/layouts/export'
 //   const { mockXHR } = require('@/utils/static')
 //   mockXHR()
 // }
-
+Vue.config.devtools = false
 Vue.config.productionTip = false
 
 new Vue({

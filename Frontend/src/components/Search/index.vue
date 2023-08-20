@@ -338,8 +338,8 @@
 </template>
 
 <script>
-  import { getGroup, getProfile, getFilterList } from '@/api/gallery'
-  getGroup
+  import { getProfile, getFilterList } from '@/api/gallery'
+  import { getGroup } from '@/api/category'
   export default {
     name: 'ImgSearch',
     components: {},

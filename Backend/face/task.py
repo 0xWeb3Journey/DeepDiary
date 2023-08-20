@@ -135,7 +135,7 @@
 #     # print(f'INFO: the face width is {width}, face height is {height}')
 #     bbox = [x1 * width, y1 * height, x2 * width, y2 * height]
 #
-#     return bbox  # 这里的bbox 还是浮点型，后续保存图片的时候同意转换
+#     return bbox  # 这里的bbox 还是浮点型，后续保存图片的时候统一转换
 #     # return np.array(bbox).astype(int)
 #
 #

@@ -27,6 +27,7 @@
   import ImgSearch from '@/components/Search'
   import infiniteScroll from 'vue-infinite-scroll'
   import { getImg } from '@/api/gallery'
+  import store from '@/store'
   export default {
     name: 'PgGallery',
     components: { Gallery, ImgSearch }, //ImgSearch
@@ -43,6 +44,7 @@
           c_fore: '',
           c_back: '',
           address__city: '',
+          user__username: store.getters['user/username'],
         },
         gallerys: [],
         Loading: false,

@@ -1,13 +1,31 @@
 <template>
   <div class="select-avatar-container">
-    <AlbumContainer
-      :items="profile.data"
-      :total="profile.totalCnt"
-      :title="profile.title"
-      :busy="busy"
-      @albumClick="onGetAlbumId"
-      @load="onLoad"
-    />
+    <el-drawer
+      ref="drawer"
+      title="请选择相册封面"
+      :before-close="handleClose"
+      :visible.sync="dialog"
+      direction="rtl"
+      custom-class="demo-drawer"
+    >
+      <div class="demo-drawer__content">
+        <AlbumContainer
+          :items="profile.data"
+          :total="profile.totalCnt"
+          :title="profile.title"
+          :busy="busy"
+          @albumClick="onGetAlbumId"
+          @load="onLoad"
+        />
+
+        <div class="demo-drawer__footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" :loading="loading" @click="submitForm">
+            {{ loading ? '提交中 ...' : '确 定' }}
+          </el-button>
+        </div>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
@@ -19,9 +37,25 @@
   export default {
     name: 'SelectAvatar',
     components: { AlbumContainer }, //album container
-    props: {},
+    props: {
+      isDisp: {
+        type: Boolean,
+        default: false, // model field name
+        required: true,
+      },
+      id: {
+        type: Number,
+        default: 30,
+        required: true,
+      },
+    },
     data() {
       return {
+        dialog: false,
+        loading: false, //used for the stat of changing the name
+        busy: true, //used for the stat of loading more faces
+        timer: null,
+
         profile: {
           name: '',
           title: 'select avatar',
@@ -43,8 +77,24 @@
         },
       }
     },
-    watch: {},
-    mounted() {},
+    watch: {
+      isDisp(newVal, oldVal) {
+        this.dialog = newVal
+        if (newVal) {
+          this.getAvatarsParams.page = 1
+          this.onGetAvatars()
+        }
+      },
+      id(newVal, oldVal) {
+        console.log('SelectAvatar: watch id changed', newVal)
+        this.getAvatarsParams.profile = newVal
+      },
+    },
+    mounted() {
+      // mounted first, then the id will be clicked, so those code is not working
+      //   console.log('SelectAvatar: mounted', this.id)
+      //   this.getAvatarsParams.profile = this.id
+    },
     methods: {
       handleClose(done) {
         console.log('SelectAvatar: handleClose', this.id, this.avatar_id, done) //this.id is the profile id
@@ -97,7 +147,7 @@
         this.getAvatarsParams.page++
         this.onGetAvatars()
       },
-      // change the avatar
+      // get the avatars
       async onGetAvatars() {
         console.log('onChangeAvatar: onChangeAvatar')
         this.busy = true

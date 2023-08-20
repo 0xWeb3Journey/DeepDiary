@@ -17,7 +17,7 @@ from library.pagination import GalleryPageNumberPagination, AddressNumberPaginat
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
 from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer
-from library.task import ImgProces
+from library.task import ImgProces, check_img_info
 from user_info.models import Profile, ReContact
 from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerializer, ReContactGraphSerializer
 #
@@ -70,18 +70,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         print(f"INFO:temporary_file_path, {f_path}")
 
         instance = serializer.save(user=self.request.user)
-
-        # get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
-        #             'get_faces']  # get_exif_info 必须第一个，因为是这个函数创建了stat实例
-        # # get_list = ['get_exif_info', 'get_faces']
-        # add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
-        #             'add_colors_to_category']
-        # # add_list = ['add_colors_to_category']
-        #
-        # img_process = ImgProces(instance=instance)
-        # img_process.get_img(img_process, instance=instance, func_list=get_list, force=True)
-        #
-        # img_process.add_img_to_category(img_process, instance=instance, func_list=add_list)
+        check_img_info.delay(instance)
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
         data = self.request.data
@@ -155,10 +144,11 @@ class ImgViewSet(viewsets.ModelViewSet):
         print('------------------batch_img_test------------------')
         force, get_list, add_list = self.img_pre_process()
 
-        img_process = ImgProces()
-        img_process.get_all_img(img_process, func_list=get_list, force=force)
+        # img_process = ImgProces()
+        # img_process.get_all_img(img_process, func_list=get_list, force=force)
+        # img_process.add_all_img_to_category(img_process, func_list=add_list)
 
-        img_process.add_all_img_to_category(img_process, func_list=add_list)
+        check_img_info.delay(get_list=get_list, add_list=add_list, force=force)
         return Response({"msg": "batch_img_test success"})
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
@@ -167,15 +157,17 @@ class ImgViewSet(viewsets.ModelViewSet):
         instance = self.get_object()  # 获取详情的实例对象
         force, get_list, add_list = self.img_pre_process()
 
-        img_process = ImgProces(instance=instance)
-        if get_list:
-            print(f'INFO:-> param get_list: {get_list}')
-            img_process.get_img(img_process, instance=instance, func_list=get_list, force=force)
-        if add_list:
-            print(f'INFO:-> param add_list: {add_list}')
-            img_process.add_img_to_category(img_process, instance=instance, func_list=add_list)
+        # img_process = ImgProces(instance=instance)
+        # if get_list:
+        #     print(f'INFO:-> param get_list: {get_list}')
+        #     img_process.get_img.delay(img_process, instance=instance, func_list=get_list, force=force)
+        # if add_list:
+        #     print(f'INFO:-> param add_list: {add_list}')
+        #     img_process.add_img_to_category.delay(img_process, instance=instance, func_list=add_list)
+        #
+        # print('------------------img_process finished------------------')
 
-        print('------------------img_process finished------------------')
+        check_img_info.delay(instance=instance, get_list=get_list, add_list=add_list, force=force)
         return Response({"msg": 'img_process finished'})
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false

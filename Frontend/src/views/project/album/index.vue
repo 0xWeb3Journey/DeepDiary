@@ -55,6 +55,8 @@
   import ImgSearch from '@/components/Search'
   //   import Img from '../../img'
   import infiniteScroll from 'vue-infinite-scroll'
+  import store from '@/store'
+
   export default {
     name: 'PgAlbum',
     components: { Album, ImgSearch }, //Mcs, Tags, Color,Img
@@ -82,6 +84,7 @@
           address__city: '',
           address__longitude__range: '',
           address__latitude__range: '',
+          user__username: store.getters['user/username'],
         },
         img: {
           id: 424,

@@ -69,13 +69,15 @@ RELATION_OPTION = tuple((i, s) for s, i in string_to_int_mapping.items())
 
 def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "avatar"
-    user_fold = os.path.join(instance.user.username, sub_folder, filename)
+    # user_fold = os.path.join(instance.user.username, sub_folder, filename)
+    user_fold = os.path.join(instance.username, sub_folder, filename)
     return user_fold
 
 
 def user_upload_img(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "user_info_img"
-    user_fold = os.path.join(instance.user.username, sub_folder, filename)
+    # user_fold = os.path.join(instance.user.username, sub_folder, filename)
+    user_fold = os.path.join(instance.username, sub_folder, filename)
     return user_fold
 
 

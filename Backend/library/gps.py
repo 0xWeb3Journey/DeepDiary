@@ -11,7 +11,7 @@ def GPS_format(data):
     :param data: 原始经度和纬度值
     :return:
     """
-    print(f'original GPS string: {data}')
+    # print(f'original GPS string: {data}')
     if not data:
         return None
 
@@ -22,7 +22,7 @@ def GPS_format(data):
     # 度的值
     data_tmp = data_list[0].split('/')
     temp_degree = int(data_tmp[0]) / int(data_tmp[1])
-    print(f'original GPS temp_degree string: {temp_degree}')
+    # print(f'original GPS temp_degree string: {temp_degree}')
     # 分的值， 单位为度
     # 替换分秒的值
     data_tmp = data_list[1].split('/')

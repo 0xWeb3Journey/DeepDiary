@@ -160,8 +160,9 @@ class ImgFilter(FilterSet):
         'address__city': ['exact', 'contains'],
         'address__district': ['exact', 'contains'],
         'address__location': ['icontains'],
-        # face
-        'profiles__name': ['exact', 'icontains'],  #
+        # profile
+        'user__name': ['exact'],  #
+        'user__username': ['exact'],  #
         # date
         'dates__year': ['exact', 'contains'],  #
         'dates__month': ['exact', 'contains'],  #
@@ -198,11 +199,9 @@ class ImgFilter(FilterSet):
             'address__location': ['icontains'],
             'address__longitude': ['gte', 'lte', 'range'],
             'address__latitude': ['gte', 'lte', 'range'],
-            # # face
-            #
-            # # 'faces': ['exact', 'gte', 'lte'],  #
-            # 'faces__name': ['exact', 'icontains'],  #
-            # 'faces__id': ['gte', 'lte', 'contains'],  #
+            # user
+            'user__name': ['exact'],  #
+            'user__username': ['exact'],  #
             # date
             'dates__year': ['exact', 'gte', 'lte', 'contains'],  #
             'dates__month': ['exact', 'gte', 'lte', 'contains'],  #

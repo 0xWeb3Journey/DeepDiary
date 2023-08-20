@@ -95,7 +95,7 @@
       // change string format to int
       this.profileDetail.query.id = parseInt(this.$route.query.id)
       this.faces.query.profile = this.profileDetail.query.id
-      // this.faces.query.page = 1
+      this.faces.query.page = 1
       this.isGetRoutePrarms = true
       console.log(
         'ProfileDetail: the face component is activated',
