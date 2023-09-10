@@ -1,5 +1,6 @@
 <template>
   <div class="img-container">
+    <DetailHead content="图片详情"></DetailHead>
     <div class="img_wrap">
       <el-image :src="img.src" lazy class="imgDetail"></el-image>
     </div>
@@ -15,6 +16,14 @@
       @albumClick="onGetAlbumId"
       @doubleClick="onRouteJump"
     ></Album>
+
+    <!-- <AlbumContainer
+      :items="img.profiles"
+      :total="totalPerson"
+      title="Profiles"
+      :busy="false"
+      @albumClick="onGetAlbumId"
+    /> -->
     <!-- 地图 -->
     <!-- <Map ref="map" :addrs="[img.address]" /> -->
     <div class="amap-wrap">
@@ -31,13 +40,13 @@
     </div>
     <h3>{{ img.address.location }}</h3>
     <Color v-if="img.colors" :colors="img.colors"></Color>
-    <Mcs
+    <!-- <Mcs
       v-if="checkedIndex >= 0"
       :id="checkedId"
       :mcs="img.mcs"
       mcstype="face"
       :title="`Mcs Info-${checkedId}`"
-    ></Mcs>
+    ></Mcs> -->
   </div>
 </template>
 
@@ -45,13 +54,16 @@
   import { getImgDetail } from '@/api/gallery'
 
   import Album from '@/components/Album'
+  import AlbumContainer from '@/components/Album/content.vue'
   import Mcs from './mcs.vue'
   import Tags from './tags.vue'
   import Color from './color.vue'
+  import DetailHead from './detailHead.vue'
+
   import '@/plugins/aMap'
   export default {
     name: 'Img',
-    components: { Album, Mcs, Tags, Color },
+    components: { Album, Tags, Color, DetailHead }, //AlbumContainer, Mcs
     //进入守卫：通过路由规则，进入该组件时被调用
     beforeRouteEnter(to, from, next) {
       console.log('beforeRouteEnter....')

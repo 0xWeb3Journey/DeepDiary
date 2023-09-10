@@ -105,7 +105,7 @@ class Img(models.Model):
 
     ## 标签属性: label
     title = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片标题", help_text='图片标题')
-    caption = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片描述", help_text='图片描述')
+    caption = models.CharField(max_length=100, null=True, blank=True, verbose_name="图片描述", help_text='图片描述')
     label = models.CharField(max_length=20, null=True, blank=True, verbose_name="图片说明", help_text='图片说明')
     tags = TaggableManager(blank=True, verbose_name="照片标签", help_text='照片标签', related_name='imgs')
     embedding = models.BinaryField(null=True, blank=True, verbose_name='图片特征',
@@ -145,6 +145,16 @@ class Img(models.Model):
         # 这里如果不加rst[0]，则返回有2个中括号[[]]
         return rst[0]
 
+    @staticmethod
+    def get_filtered_attr_nums(queryset, name):
+        # rst = queryset.annotate(value=Count(name)).values_list('value', flat=True).distinct().order_by(
+        #     '-value'),
+        # return rst[0]
+        rst = queryset.annotate(value=Count(name)).values('value').distinct().order_by(
+        # rst = Img.objects.annotate(value=Count(name)).values('value').distinct().order_by(
+            '-value'),
+        # 这里如果不加rst[0]，则返回有2个中括号[[]]
+        return rst[0]
 
     class Meta:
         ordering = ('-created_at',)
@@ -177,6 +187,12 @@ class Stat(models.Model):
                                   help_text='是否完成人脸识别')
     is_object = models.BooleanField(blank=True, default=False, verbose_name="是否完成目标识别",
                                     help_text='是否完成目标识别')
+    is_get_caption = models.BooleanField(blank=True, default=False, verbose_name="是否完成了图转文",
+                                         help_text='是否完成了图转文')
+    is_get_feature = models.BooleanField(blank=True, default=False, verbose_name="是否完成图片特征的提取",
+                                         help_text='是否完成了图转文')
+    is_get_clip_classification = models.BooleanField(blank=True, default=False, verbose_name="是否完成图片clip分类",
+                                                     help_text='是否完成图片clip分类')
 
 
 class Category(MPTTModel):
@@ -190,7 +206,8 @@ class Category(MPTTModel):
                                   related_name='categories')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True, related_name='categories')
-    name = models.CharField(max_length=50, null=True, blank=True, unique=True, verbose_name="图片类别",
+    #  unique=True ---》 change to unique together
+    name = models.CharField(max_length=50, null=True, blank=True, verbose_name="图片类别",
                             help_text='图片按应用进行划分')
     level = models.PositiveIntegerField(default=0, editable=False)
 
@@ -227,7 +244,8 @@ class Category(MPTTModel):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     class Meta:
-        ordering = ['-id']
+        # ordering = ['-id']
+        unique_together = ('parent', 'name',)
 
     def __str__(self):
         return f'{self.pk}_{self.name}'
@@ -243,14 +261,42 @@ class Category(MPTTModel):
         if level <= 1:  # represent the first level
             # rst = children.annotate(value=F('name')).\
             #     values('name', 'value').distinct().order_by('-value'),
-            rst = category.get_children().annotate(value=Count('imgs')).\
+            rst = category.get_children().annotate(value=Count('imgs')). \
                 values('name', 'value').distinct().order_by('-value'),
         else:
             rst = category.get_descendants().filter(level=level).annotate(
                 value=Count('imgs')).values('name',
                                             'value').distinct().order_by('-value'),
         # 这里如果不加rst[0]，则返回有2个中括号[[]]
-        print(rst[0])
+        # print(rst[0])
+        return rst[0]  # or rst[0]
+
+    @staticmethod
+    def get_filtered_cate_children(queryset, name, level=0):
+
+        category = Category.objects.filter(name=name).first()
+        if not category:
+            # if there is no record in the database, then return []
+            return []
+
+        if level <= 1:  # represent the first level
+            # rst = children.annotate(value=F('name')).\
+            #     values('name', 'value').distinct().order_by('-value'),
+            rst = category.get_children().filter(imgs__in=queryset).annotate(value=Count('imgs')). \
+                values('name', 'value').distinct().order_by('-value'),
+        else:
+            # get_descendants = category.get_descendants()
+            # print(len(get_descendants))
+            # obj_level = category.get_descendants().filter(level=level)
+            # print(len(obj_level))
+            # obj_level_in_imgs = obj_level.filter(imgs__in=queryset)
+            # print(len(obj_level_in_imgs))
+
+            rst = category.get_descendants().filter(level=level).filter(imgs__in=queryset).annotate(
+                value=Count('imgs')).values('name',
+                                            'value').distinct().order_by('-value'),
+        # 这里如果不加rst[0]，则返回有2个中括号[[]]
+        # print(rst[0])
         return rst[0]  # or rst[0]
 
     def get_cate_children_loop(self, name, level=0):

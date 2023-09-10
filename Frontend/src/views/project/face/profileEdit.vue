@@ -1,6 +1,5 @@
 <template>
   <div class="edit-container">
-    <h1>here is the ProfileEdit</h1>
     <el-drawer
       :title="title"
       :visible.sync="drawer"

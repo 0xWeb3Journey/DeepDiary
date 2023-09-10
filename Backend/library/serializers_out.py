@@ -67,7 +67,6 @@ class CategoryBriefSerializer(serializers.ModelSerializer):
     value = serializers.SerializerMethodField()  # method 2: through method
     children = RecursiveField(many=True, required=False)
 
-
     @extend_schema_field(int)  # 提供额外的类型信息
     def get_value(self, ins):
         value = ins.imgs.count()  # return the img counts
@@ -76,6 +75,27 @@ class CategoryBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'url', 'children', 'src', 'thumb', 'value']
+
+
+class CategoryFilterListSerializer(serializers.ModelSerializer):
+    value = serializers.CharField(source="name", read_only=True)
+    label = serializers.CharField(source="name", read_only=True)
+    count = serializers.SerializerMethodField()  # method 2: through method
+    children = RecursiveField(many=True, required=False)
+
+    def get_count(self, ins):
+        value = ins.imgs.count()  # return the img counts
+        return value
+
+    class Meta:
+        model = Category
+        fields = ['value', 'label', 'count', 'children']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not instance.children.exists():
+            data.pop('children', None)  # Remove 'children' key if it's empty
+        return data
 
 
 class ImgGraphSerializer(serializers.ModelSerializer):

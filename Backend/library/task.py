@@ -6,9 +6,11 @@ import string
 from datetime import datetime
 from io import BytesIO
 
+import clip
 import cv2
 import numpy as np
 import pyexiv2
+import torch
 from PIL import Image, ExifTags
 from celery import shared_task
 from django.contrib.auth.hashers import make_password
@@ -16,6 +18,7 @@ from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import transaction, IntegrityError
 from insightface.app import FaceAnalysis
+from lavis.models import load_model_and_preprocess
 from sklearn.metrics.pairwise import cosine_similarity
 
 from deep_diary.settings import cfg, calib
@@ -79,6 +82,8 @@ class ImgProces:
         self.instance = instance
         self.path = path
         self.procedure = procedure
+        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
 
     @staticmethod
     def read(instance=None):
@@ -275,6 +280,65 @@ class ImgProces:
             print(f'INFO: success created a new profile: {profile.name}')
 
         return profile, created
+
+    @staticmethod
+    def img_recognition(text):  # 'instance', serializers
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model, preprocess = clip.load("ViT-B/32", device=device)
+
+        text = clip.tokenize(text).to(device)
+
+        image_features = Img.objects.values_list('embedding', flat=True)
+        embeddings = [np.frombuffer(embedding, dtype=np.float32) for embedding in image_features if embedding]
+        # 将所有的embedding转换为矩阵形式，大小为N* 512
+        embeddings = np.stack(embeddings)
+
+
+        with torch.no_grad():
+            text_features = model.encode_text(text)
+            image_features = torch.tensor(embeddings, dtype=torch.float16).to(device)
+            print(text_features.shape)
+            print(image_features.shape)
+            print(type(text_features))
+            print(type(image_features))
+
+        # Pick the top 5 most similar labels for the image
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+        similarity = (100.0 * text_features @ image_features.T).softmax(dim=-1)
+        values, indices = similarity[0].topk(5)
+
+        # 方法一: 使用itemgetter根据索引值获取id列表
+        # filtered_data = itemgetter(*indices.cpu().numpy().tolist())(imgs)
+        # topk_ids = [img.id for img in filtered_data]
+        # print('方法一: 使用itemgetter根据索引值获取id列表', topk_ids)
+
+        imgs = Img.objects.all()
+        # 方法二: 根据索引值直接获取id列表
+        topk_ids = [imgs[i].id for i in indices.cpu().numpy().tolist()]
+        print('方法二: 根据索引值直接获取id列表', topk_ids)
+
+        from django.db.models import Case, When, IntegerField
+        # 创建一个排序表达式
+        order_by_expression = Case(
+            *[
+                When(id=id, then=index)  # 每个 id 对应一个索引值
+                for index, id in enumerate(topk_ids)
+            ],
+            default=len(topk_ids),  # 默认情况下，使用 topk_ids 列表的长度作为排序值
+            output_field=IntegerField(),
+        )
+        # 对 imgs 查询集进行排序
+        filtered_data = imgs.filter(id__in=topk_ids).order_by(order_by_expression)
+
+        # Print the result
+        print("\nTop predictions:\n")
+        for value, index in zip(values, indices):
+            print(f"{index}: {100 * value.item():.2f}%")
+
+        return filtered_data
+
 
     @staticmethod
     def face_recognition(embedding):  # 'instance', serializers
@@ -735,6 +799,73 @@ class ImgProces:
             print(
                 f'--------------------{instance.id} :categories have been store to the database---------------------------')
 
+    def get_clip_classification(self, instance=None, force=False, cls_names=None):
+        # 1. 判断是否需要处理
+        field = 'is_get_clip_classification'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+
+        if cls_names is None:
+            #  classification
+            cls_names = [
+                "interior objects",
+                "nature landscape",
+                "beaches seaside",
+                "events parties",
+                "food drinks",
+                "paintings art",
+                "pets animals",
+                "text visuals",
+                "sunrises sunsets",
+                "cars vehicles",
+                "macro flowers",
+                "streetview architecture",
+                "people portraits",
+            ]
+        # 2. processing the image
+        categories = []
+
+        raw_image = self.read_img(instance, ['PIL']).get('PIL', None).convert("RGB")
+        # Load CLIP feature extractor model,
+        # vis_processors, txt_processors = load_model_and_preprocess(
+        # "clip_feature_extractor", model_type="ViT-B-32", is_eval=True, device=device)
+        model, vis_processors, txt_processors = load_model_and_preprocess("clip_feature_extractor",
+                                                                          model_type="ViT-B-32", is_eval=True,
+                                                                          device=self.device)
+        # Optional to use prompts to guide the model
+        cls_names = [txt_processors["eval"](cls_nm) for cls_nm in cls_names]
+
+        image = vis_processors["eval"](raw_image).unsqueeze(0).to(self.device)
+        #  Extract image embedding and class name embeddings
+        sample = {"image": image, "text_input": cls_names}
+        clip_features = model.extract_features(sample)
+        image_features = clip_features.image_embeds_proj
+        text_features = clip_features.text_embeds_proj
+
+        # Matching image embeddings with each class name embeddings
+        sims = (image_features @ text_features.t())[0] / 0.01
+        probs = torch.nn.Softmax(dim=0)(sims).tolist()
+
+        prob_max = max(probs)
+        cla_name = cls_names[probs.index(prob_max)]
+        for cls_nm, prob in zip(cls_names, probs):
+            if prob > 0.25:
+                print(f"{cls_nm}: \t {prob:.3%}")
+                # 3. save the result
+                field_list = [
+                    'clip_categories',
+                    cls_nm,
+                ]
+                self.__add_levels_to_category__(instance=instance,
+                                                field_list=field_list)
+
+        # 4. update the stats
+        stats.is_get_clip_classification = True
+        stats.save()
+        print(
+            f'--------------------{instance.id} : clip categories have been store to the database---------------------------')
+
     def get_exif_info(self, instance=None, force=False):
         # 1. 判断是否需要处理
         field = 'is_get_info'
@@ -752,18 +883,7 @@ class ImgProces:
         lm_tags = []
         # 2.1 get the exif info by pyexiv2
         # img_read = pyexiv2.Image(self.path) if self.path else pyexiv2.ImageData(self.read())  # 登记图片路径
-        img_read = pyexiv2.ImageData(self.read(instance))  # 登记图片路径
-
-        # 2.2 get the exif info by PIL
-        # img_pil = Image.open(BytesIO(self.read()))
-        # exif_data = img_pil._getexif()
-        # if exif_data is None:
-        #     print("No EXIF data found.")
-        #     return
-        # print("Image EXIF information:")
-        # for tag_id, value in exif_data.items():
-        #     tag_name = ExifTags.TAGS.get(tag_id, tag_id)
-        #     print(f"{tag_name}: {value}")
+        img_read = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
 
         exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
         iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
@@ -777,7 +897,7 @@ class ImgProces:
         # print(f'INFO: instance.src.size is {instance.src.size}')
 
         if exif:
-            print(f'INFO: exif is true ')
+            # print(f'INFO: exif is true ')
             # deal with timing
             date_str = exif['Exif.Photo.DateTimeOriginal']
 
@@ -818,19 +938,41 @@ class ImgProces:
             instance.aspect_ratio = instance.height / instance.wid
             instance.camera_brand = exif.get('Exif.Image.Make')
             instance.camera_model = exif.get('Exif.Image.Model')
+        else:
+            # print(f'INFO: exif is false ')
+            # # 2.2 get the exif info by PIL
+            img_pil = self.read_img(instance, ['PIL']).get('PIL', None)
+            # # 获取属性列表
+            # img_attributes = dir(img_pil)
+            #
+            # # 遍历属性并打印
+            # for attr in img_attributes:
+            #     attr_value = getattr(img_pil, attr)
+            #     print(f"Attribute: {attr}, Value: {attr_value}")
+            # print(type(img_pil.width))  # int 类型
+            instance.wid = int(img_pil.width)  # 其实本身已经是int类型的了
+            instance.height = int(img_pil.height)  # 其实本身已经是int类型的了
+            instance.aspect_ratio = instance.height / instance.wid
 
         if iptc:
-            print(f'INFO: iptc is true ')
+            # print(f'INFO: iptc is true ')
             instance.title = iptc.get('iptc.Application2.ObjectName')
             instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
             lm_tags = iptc.get('Iptc.Application2.Keywords')
+        else:
+            # print(f'INFO: iptc is false ')
+            pass
 
         if xmp:
-            print(f'INFO: xmp is true ')
+            # print(f'INFO: xmp is true ')
             instance.label = xmp.get('Xmp.xmp.Label')  # color mark
             eval.rating = int(xmp.get('Xmp.xmp.Rating', 0))
             # if eval.rating:
             #     eval.rating = int(xmp.get('Xmp.xmp.Rating'))
+
+        else:
+            # print(f'INFO: xmp is false ')
+            pass
 
         # 使用阿里云后端，这个无法直接访问
         # instance.wid = instance.src.width
@@ -840,8 +982,8 @@ class ImgProces:
         instance.save()  # save the image instance, already saved during save the author
 
         if lm_tags:
-            print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
-            print(f'INFO: the instance id is {instance.id}')
+            # print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
+            # print(f'INFO: the instance id is {instance.id}')
             # instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
             instance.tags.add(*lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
 
@@ -976,11 +1118,91 @@ class ImgProces:
                                     np.round(face.landmark_3d_68).astype(np.int16)],
                 }
                 self.save_face_serializers(data)
-        stats = instance.stats
+
         # 3. update the stats
         stats.is_face = True
         stats.save()
         return faces
+
+    def get_caption(self, instance=None, force=False):  # 'instance', serializers
+        """
+        purpose: 对图片进行简单描述
+        params:
+            instance: the image django instance
+            force: identify whether you need to process this instance even this instance already processed
+        return:
+            caption: the caption of the image
+        """
+        # 1. 判断是否需要处理
+        field = 'is_get_caption'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+        device = self.device
+        raw_image = self.read_img(instance, ['PIL']).get('PIL', None)
+        raw_image = raw_image.convert("RGB")
+        # loads BLIP caption base model, with finetuned checkpoints on MSCOCO captioning dataset.
+        # this also loads the associated image processors
+        model, vis_processors, _ = load_model_and_preprocess(name="blip_caption", model_type="base_coco", is_eval=True,
+                                                             device=device)
+        # preprocess the image
+        # vis_processors stores image transforms for "train" and "eval" (validation / testing / inference)
+        image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
+        # generate caption
+        caption = model.generate({"image": image})
+        print(caption)
+
+        # save the caption to the database
+        instance.caption = ''.join(caption)  # 将列表转成字符串
+        instance.save()
+
+        # update the stat
+        stats.is_get_caption = True
+        stats.save()
+
+        return caption
+
+    def get_feature(self, instance=None, force=False):  # 'instance', serializers
+        """
+        purpose: get the feature of the image
+        params:
+            instance: the image django instance
+        return:
+            feature: the feature of the image
+        """
+        # 1. 判断是否需要处理
+        field = 'is_get_feature'
+        instance, stats, process = self.__is_need_process__(instance, force, field)
+        if not process:
+            return
+        device = self.device
+        raw_image = self.read_img(instance, ['PIL']).get('PIL', None)
+        model, preprocess = clip.load("ViT-B/32", device=device)
+        image = preprocess(raw_image).unsqueeze(0).to(device)
+
+        # caption = self.get_caption(instance)
+        # caption.append('a boy is running on the ground')
+        # print(caption)
+        # text = clip.tokenize(caption).to(device)
+
+        with torch.no_grad():
+            image_features = model.encode_image(image)
+            print("Image features:", image_features.shape)
+            # text_features = model.encode_text(text)
+            # print("Text features:", text_features.shape)
+
+        #     logits_per_image, logits_per_text = model(image, text)
+        #     probs = logits_per_image.softmax(dim=-1).cpu().numpy()
+        # print("Label probs:", probs)
+
+        # save the feature to the database
+        instance.embedding = image_features.cpu().numpy().tobytes()
+        instance.save()
+        # update the stat
+        stats.is_get_feature = True
+        stats.save()
+
+        return image_features
 
     # ----------------------process for single img for several functions----------------------
     @shared_task
@@ -1061,6 +1283,7 @@ class ImgProces:
     #         parent_item.appendRow(item)
 
     def __add_levels_to_category__(self, instance=None, field_list=None, force=True):
+
         """
         add the levels to the category
         :param instance: the instance of the image
@@ -1090,7 +1313,12 @@ class ImgProces:
                 'description': f'this is {field} category',
                 'parent': None if idx == 0 else parent_obj,
             }
-            category_obj, created = Category.objects.get_or_create(name=field, defaults=creation_params)
+            get_params = {
+                'parent': None if idx == 0 else parent_obj,
+                'name': field,
+            }
+            category_obj, created = Category.objects.get_or_create(**get_params, defaults=creation_params)
+            # category_obj, created = Category.objects.get_or_create(name=field, defaults=creation_params)
             # add the instance to the category
             category_obj.imgs.add(instance)
             parent_obj = category_obj
@@ -1190,7 +1418,7 @@ class ImgProces:
         elif name_cnt <= 5:  # if faces biger then 1, small then 6
             # print(
             # f'----------------{instance.id} :found the face group-----------------------')
-            name_str = ','.join(names)
+            name_str = ' '.join(names)
         elif name_cnt:  # if faces biger then 5, then break
             # print(
             #     f'----------------{instance.id} :too many faces in the img-----------------------')
@@ -1359,7 +1587,7 @@ def check_img_info(instance, get_list=None, add_list=None, force=False):
     print(f'INFO:-> param add_list: {add_list}')
 
     img_process = ImgProces()
-    img_process.get_img(img_process, instance=instance,  func_list=get_list, force=force)
+    img_process.get_img(img_process, instance=instance, func_list=get_list, force=force)
     img_process.add_img_to_category(img_process, func_list=add_list)
 
 

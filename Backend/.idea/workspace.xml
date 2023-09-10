@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/celerybeat-schedule.bak" beforeDir="false" afterPath="$PROJECT_DIR$/celerybeat-schedule.bak" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/celerybeat-schedule.dat" beforeDir="false" afterPath="$PROJECT_DIR$/celerybeat-schedule.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/celerybeat-schedule.dir" beforeDir="false" afterPath="$PROJECT_DIR$/celerybeat-schedule.dir" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deep_diary/celery.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/celery.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/deep_diary/celeryconfig.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/celeryconfig.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
@@ -1486,26 +1483,18 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/face/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/face/task.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/filters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/gps.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/gps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/serializers_out.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers_out.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mycelery/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mycelery/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mycelery/library/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mycelery/library/tasks.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mycelery/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/user_info/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/api/gallery.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/Gallery/content.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/Gallery/content.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/src/components/Search/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/Search/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/SelectAvatar/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/SelectAvatar/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/album/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/album/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/groupDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/groupDetail.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/index copy.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/store/modules/img.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/store/modules/img.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/gallery/index.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -1570,7 +1559,7 @@
       <recent name="D:\BlueDoc\deep_diary\media\face_info\unknown" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests in tests.py">
+  <component name="RunManager" selected="Python.tests (1)">
     <configuration name="detect" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="deep_diary" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -1614,7 +1603,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="iat" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="tests (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -1622,11 +1611,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utils" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/library" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/iat.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/library/tests.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1656,7 +1645,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="voice" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="utils" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -1668,7 +1657,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/voice.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/utils.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1693,19 +1682,19 @@
     </configuration>
     <list>
       <item itemvalue="Python.detect" />
+      <item itemvalue="Python.tests (1)" />
+      <item itemvalue="Python.utils" />
       <item itemvalue="Python.diaryai" />
-      <item itemvalue="Python.iat" />
       <item itemvalue="Python.tests" />
-      <item itemvalue="Python.voice" />
       <item itemvalue="Python tests.Python tests in tests.py" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.tests (1)" />
+        <item itemvalue="Python.utils" />
         <item itemvalue="Python tests.Python tests in tests.py" />
         <item itemvalue="Python.tests" />
         <item itemvalue="Python.diaryai" />
-        <item itemvalue="Python.iat" />
-        <item itemvalue="Python.voice" />
       </list>
     </recent_temporary>
   </component>
@@ -1776,6 +1765,16 @@
           <url>file://$PROJECT_DIR$/user_info/serializers.py</url>
           <line>137</line>
           <option name="timeStamp" value="77" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/library/task.py</url>
+          <line>1198</line>
+          <option name="timeStamp" value="78" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/library/tests.py</url>
+          <line>52</line>
+          <option name="timeStamp" value="85" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

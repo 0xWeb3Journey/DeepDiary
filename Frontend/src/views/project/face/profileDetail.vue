@@ -47,7 +47,7 @@
         faces: {
           query: {
             page: 1,
-            size: 20,
+            size: 40,
             // profile__isnull: true,
             profile: 30,
             det_score__gt: 0.7,
@@ -57,6 +57,12 @@
             // age__gt: 35,
             // age__lt: 35,
             // gender: 0,
+            pose_x__gt: 0,
+            // pose_x__lt: 0,
+            // pose_y__gt: 0,
+            // pose_y__lt: 0,
+            // pose_z__gt: 10,
+            // pose_z__lt: -5,
           },
           data: [],
         },

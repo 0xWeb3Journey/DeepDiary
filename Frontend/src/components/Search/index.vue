@@ -1,19 +1,11 @@
 <template>
   <div class="search-container">
-    <!-- face numbers filter -->
-    <!-- <el-input-number
-      v-model="imgQuery.fc_nums"
-      :min="-1"
-      :max="6"
-      label="faceNums"
-      @change="handleFaceNumsChange"
-    ></el-input-number> -->
-    <!-- prefix-icon="el-icon-search" -->
+    <!-- one search -->
     <el-input
       v-model="imgQuery.search"
       clearable
       placeholder="Please input what you want"
-      @change="handelSearchChange"
+      @change="onSearch"
     >
       <!-- <el-button slot="append" icon="el-icon-search"></el-button> -->
       <i
@@ -27,8 +19,32 @@
         @click="reset_search"
       ></el-button>
     </el-input>
+
+    <!-- advance search -->
     <div v-if="advanced" class="advancedSearch">
-      <!-- face numbers filter -->
+      <!-- Category filter -->
+
+      <el-cascader
+        v-model="imgQuery.categories"
+        :options="filterList.categories"
+        :props="{
+          expandTrigger: 'hover',
+          multiple: false,
+          checkStrictly: true,
+        }"
+        :show-all-levels="false"
+        collapse-tags
+        clearable
+        filterable
+        @change="onSearch"
+      >
+        <template slot-scope="{ data }">
+          <span>{{ data.label }}</span>
+          <!-- <span v-if="!node.isLeaf">({{ data.count }})</span> -->
+          <span>({{ data.count }})</span>
+        </template>
+      </el-cascader>
+
       <el-select
         v-model="imgQuery.fc_nums"
         clearable
@@ -36,13 +52,13 @@
         default-first-option
         placeholder="People Numbers"
         :loading="loading"
-        @change="handleFaceNumsChange"
+        @change="onSearch"
       >
         <el-option
           v-for="item in filterList.fc_nums"
-          :key="item"
-          :label="item"
-          :value="item"
+          :key="item.value"
+          :label="item.value"
+          :value="item.value"
           :disabled="false"
         ></el-option>
       </el-select>
@@ -55,7 +71,7 @@
         default-first-option
         placeholder="Group Name"
         :loading="loading"
-        @change="handleGroupChange"
+        @change="onCateSearch"
       >
         <el-option
           v-for="item in filterList.group"
@@ -72,14 +88,14 @@
       </el-select>
       <!-- face name filter -->
       <el-select
-        v-model="checked_fcName"
+        v-model="imgQuery.fc_name"
         multiple
         clearable
         filterable
         default-first-option
         placeholder="Friend Name"
         :loading="loading"
-        @change="handleFaceAlbumChange"
+        @change="onSearch"
       >
         <el-option
           v-for="item in filterList.fc_name"
@@ -96,14 +112,14 @@
       </el-select>
       <!-- Tags filter -->
       <el-select
-        v-model="checked_tags"
+        v-model="imgQuery.tags"
         multiple
         clearable
         filterable
         placeholder="Tags"
         default-first-option
         :loading="loading"
-        @change="handleTagsChange"
+        @change="onSearch"
       >
         <el-option
           v-for="item in filterList.tags"
@@ -127,7 +143,7 @@
         default-first-option
         placeholder="City"
         :loading="loading"
-        @change="handleAddressChange"
+        @change="onSearch"
       >
         <el-option
           v-for="item in filterList.city"
@@ -193,14 +209,14 @@
 
       <!-- image color filter -->
       <el-select
-        v-model="checked_cImg"
+        v-model="imgQuery.c_img"
         multiple
         clearable
         filterable
         default-first-option
         placeholder="Image Colors"
         :loading="loading"
-        @change="handleImgColorChange(checked_cImg, 'img_color')"
+        @change="onSearch"
       >
         <el-option
           v-for="item in filterList.c_img"
@@ -209,56 +225,6 @@
           :value="item.name"
           :disabled="false"
           :style="`background-color: ${item.color}`"
-        >
-          <span style="float: left; color: #ffffff">{{ item.name }}</span>
-          <span style="float: right; color: #ffffff; font-size: 13px">
-            {{ item.value }}
-          </span>
-        </el-option>
-      </el-select>
-      <!-- background color filter -->
-      <el-select
-        v-model="checked_cBack"
-        multiple
-        clearable
-        filterable
-        default-first-option
-        placeholder="Background Colors"
-        :loading="loading"
-        @change="handleImgColorChange(checked_cBack, 'back_color')"
-      >
-        <el-option
-          v-for="item in filterList.c_back"
-          :key="item.name"
-          :label="item.name"
-          :value="item.name"
-          :disabled="false"
-          :style="`background-color: ${item.name}`"
-        >
-          <span style="float: left; color: #ffffff">{{ item.name }}</span>
-          <span style="float: right; color: #ffffff; font-size: 13px">
-            {{ item.value }}
-          </span>
-        </el-option>
-      </el-select>
-      <!-- foreground color filter -->
-      <el-select
-        v-model="checked_cFore"
-        multiple
-        clearable
-        filterable
-        default-first-option
-        placeholder="Foreground Colors"
-        :loading="loading"
-        @change="handleImgColorChange(checked_cFore, 'fore_color')"
-      >
-        <el-option
-          v-for="item in filterList.c_fore"
-          :key="item.name"
-          :label="item.name"
-          :value="item.name"
-          :disabled="false"
-          :style="`background-color: ${item.name}`"
         >
           <span style="float: left; color: #ffffff">{{ item.name }}</span>
           <span style="float: right; color: #ffffff; font-size: 13px">
@@ -275,7 +241,7 @@
         default-first-option
         placeholder="Rating"
         :loading="loading"
-        @change="handleRatingChange"
+        @change="onSearch"
       >
         <el-option
           v-for="item in [1, 2, 3, 4, 5]"
@@ -302,7 +268,7 @@
         default-first-option
         placeholder="Ording"
         :loading="loading"
-        @change="handleOrdingChange"
+        @change="onSearch"
       >
         <el-option
           v-for="item in filterList.ordering"
@@ -319,16 +285,15 @@
           <!-- <div class="block">
           <span class="demonstration">Date Range</span> -->
           <el-date-picker
-            v-model="checked_dateRange"
+            v-model="imgQuery.dates__capture_date__range"
             type="daterange"
-            align="right"
             unlink-panels
             range-separator="To"
             start-placeholder="Start Date"
             end-placeholder="End Date"
             :picker-options="pickerOptions"
             value-format="yyyy-MM-dd"
-            @change="handleDateRangeChange"
+            @change="onSearch"
           ></el-date-picker>
           <!-- </div> -->
         </el-col>
@@ -338,8 +303,7 @@
 </template>
 
 <script>
-  import { getProfile, getFilterList } from '@/api/gallery'
-  import { getGroup } from '@/api/category'
+  import { getFilterList } from '@/api/img'
   export default {
     name: 'ImgSearch',
     components: {},
@@ -363,47 +327,644 @@
     },
     data() {
       return {
-        faceAlbumQuery: {
-          page: 1,
-          size: 20,
-          name: '',
-          item_cnt: '',
-          c_img: '',
-          c_fore: '',
-          c_back: '',
-        },
-        categoryQuery: {
-          page: 1,
-          size: 20,
-          name: '',
-          type: '',
-          value: '',
-          // imgs: '',
-          c_img: '',
-          c_fore: '',
-          c_back: '',
-        },
+        // categoryQuery: {
+        //   page: 1,
+        //   size: 20,
+        //   name: '',
+        //   type: '',
+        //   value: '',
+        //   // imgs: '',
+        //   c_img: '',
+        //   c_fore: '',
+        //   c_back: '',
+        // },
         imgQuery: {
           page: 1,
           size: 20,
           search: '',
           id: '',
           fc_nums: '',
-          fc_name: '',
-          c_img: '',
+          fc_name: [],
+          c_img: [],
           c_fore: '',
           c_back: '',
           address__city: '',
-          dates__capture_date__range: '',
-          categories__type: '',
+          dates__capture_date__range: [],
+          categories: '',
           categories__name: '',
-          tags: '',
+          tags: [],
           layout: '',
           evaluates__rating: '',
           search: '',
           ordering: '',
         },
+        checked_fcGroup: '',
+        options: [
+          {
+            value: 'date',
+            label: 'date',
+            count: 55,
+            children: [
+              {
+                value: '2023',
+                label: '2023',
+                count: 31,
+                children: [
+                  {
+                    value: '2023-01',
+                    label: '2023-01',
+                    count: 1,
+                    children: [
+                      {
+                        value: '2023-01-22',
+                        label: '2023-01-22',
+                        count: 1,
+                        children: [],
+                      },
+                    ],
+                  },
+                  {
+                    value: '2023-03',
+                    label: '2023-03',
+                    count: 1,
+                    children: [
+                      {
+                        value: '2023-03-27',
+                        label: '2023-03-27',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2023-03-07',
+                        label: '2023-03-07',
+                        count: 0,
+                        children: [],
+                      },
+                    ],
+                  },
+                  {
+                    value: '2023-04',
+                    label: '2023-04',
+                    count: 2,
+                    children: [
+                      {
+                        value: '2023-04-10',
+                        label: '2023-04-10',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2023-04-17',
+                        label: '2023-04-17',
+                        count: 1,
+                        children: [],
+                      },
+                    ],
+                  },
+                  {
+                    value: '2023-08',
+                    label: '2023-08',
+                    count: 27,
+                    children: [
+                      {
+                        value: '2023-08-05',
+                        label: '2023-08-05',
+                        count: 27,
+                        children: [],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                value: '1970',
+                label: '1970',
+                count: 3,
+                children: [
+                  {
+                    value: '1970-01',
+                    label: '1970-01',
+                    count: 3,
+                    children: [
+                      {
+                        value: '1970-01-01',
+                        label: '1970-01-01',
+                        count: 3,
+                        children: [],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                value: '2021',
+                label: '2021',
+                count: 21,
+                children: [
+                  {
+                    value: '2021-10',
+                    label: '2021-10',
+                    count: 6,
+                    children: [
+                      {
+                        value: '2021-10-11',
+                        label: '2021-10-11',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2021-10-10',
+                        label: '2021-10-10',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2021-10-04',
+                        label: '2021-10-04',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2021-10-03',
+                        label: '2021-10-03',
+                        count: 2,
+                        children: [],
+                      },
+                      {
+                        value: '2021-10-15',
+                        label: '2021-10-15',
+                        count: 1,
+                        children: [],
+                      },
+                    ],
+                  },
+                  {
+                    value: '2021-09',
+                    label: '2021-09',
+                    count: 7,
+                    children: [
+                      {
+                        value: '2021-09-23',
+                        label: '2021-09-23',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2021-09-19',
+                        label: '2021-09-19',
+                        count: 2,
+                        children: [],
+                      },
+                      {
+                        value: '2021-09-21',
+                        label: '2021-09-21',
+                        count: 2,
+                        children: [],
+                      },
+                      {
+                        value: '2021-09-06',
+                        label: '2021-09-06',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2021-09-09',
+                        label: '2021-09-09',
+                        count: 1,
+                        children: [],
+                      },
+                    ],
+                  },
+                  {
+                    value: '2021-08',
+                    label: '2021-08',
+                    count: 5,
+                    children: [
+                      {
+                        value: '2021-08-27',
+                        label: '2021-08-27',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2021-08-22',
+                        label: '2021-08-22',
+                        count: 3,
+                        children: [],
+                      },
+                      {
+                        value: '2021-08-18',
+                        label: '2021-08-18',
+                        count: 1,
+                        children: [],
+                      },
+                    ],
+                  },
+                  {
+                    value: '2021-07',
+                    label: '2021-07',
+                    count: 3,
+                    children: [
+                      {
+                        value: '2021-07-04',
+                        label: '2021-07-04',
+                        count: 1,
+                        children: [],
+                      },
+                      {
+                        value: '2021-07-31',
+                        label: '2021-07-31',
+                        count: 2,
+                        children: [],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            value: 'location',
+            label: 'location',
+            count: 55,
+            children: [
+              {
+                value: '中国',
+                label: '中国',
+                count: 50,
+                children: [
+                  {
+                    value: '浙江省',
+                    label: '浙江省',
+                    count: 50,
+                    children: [
+                      {
+                        value: '台州市',
+                        label: '台州市',
+                        count: 3,
+                        children: [
+                          {
+                            value: '临海市',
+                            label: '临海市',
+                            count: 3,
+                          },
+                        ],
+                      },
+                      {
+                        value: '宁波市',
+                        label: '宁波市',
+                        count: 47,
+                        children: [
+                          {
+                            value: '慈溪市',
+                            label: '慈溪市',
+                            count: 46,
+                          },
+                          {
+                            value: '余姚市',
+                            label: '余姚市',
+                            count: 1,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                value: 'No GPS',
+                label: 'No GPS',
+                count: 5,
+              },
+            ],
+          },
+          {
+            value: 'img_color',
+            label: 'img_color',
+            count: 55,
+            children: [
+              {
+                value: 'brown',
+                label: 'brown',
+                count: 20,
+                children: [],
+              },
+              {
+                value: 'grey',
+                label: 'grey',
+                count: 26,
+                children: [],
+              },
+              {
+                value: 'skin',
+                label: 'skin',
+                count: 9,
+                children: [],
+              },
+              {
+                value: 'blue',
+                label: 'blue',
+                count: 11,
+                children: [],
+              },
+              {
+                value: 'light grey',
+                label: 'light grey',
+                count: 44,
+                children: [],
+              },
+              {
+                value: 'light brown',
+                label: 'light brown',
+                count: 19,
+                children: [],
+              },
+              {
+                value: 'maroon',
+                label: 'maroon',
+                count: 4,
+                children: [],
+              },
+              {
+                value: 'beige',
+                label: 'beige',
+                count: 0,
+                children: [],
+              },
+              {
+                value: 'light blue',
+                label: 'light blue',
+                count: 7,
+                children: [],
+              },
+              {
+                value: 'teal',
+                label: 'teal',
+                count: 1,
+                children: [],
+              },
+              {
+                value: 'black',
+                label: 'black',
+                count: 22,
+                children: [],
+              },
+              {
+                value: 'olive green',
+                label: 'olive green',
+                count: 29,
+                children: [],
+              },
+              {
+                value: 'red',
+                label: 'red',
+                count: 10,
+                children: [],
+              },
+              {
+                value: 'yellow',
+                label: 'yellow',
+                count: 2,
+                children: [],
+              },
+              {
+                value: 'light green',
+                label: 'light green',
+                count: 4,
+                children: [],
+              },
+              {
+                value: 'lavender',
+                label: 'lavender',
+                count: 4,
+                children: [],
+              },
+              {
+                value: 'green',
+                label: 'green',
+                count: 1,
+                children: [],
+              },
+              {
+                value: 'white',
+                label: 'white',
+                count: 2,
+                children: [],
+              },
+              {
+                value: 'violet',
+                label: 'violet',
+                count: 1,
+                children: [],
+              },
+              {
+                value: 'purple',
+                label: 'purple',
+                count: 2,
+                children: [],
+              },
+              {
+                value: 'hot pink',
+                label: 'hot pink',
+                count: 3,
+                children: [],
+              },
+              {
+                value: 'navy blue',
+                label: 'navy blue',
+                count: 1,
+                children: [],
+              },
+            ],
+          },
+          {
+            value: 'scene',
+            label: 'scene',
+            count: 28,
+            children: [
+              {
+                value: 'people portraits',
+                label: 'people portraits',
+                count: 25,
+                children: [],
+              },
+              {
+                value: 'pets animals',
+                label: 'pets animals',
+                count: 4,
+                children: [],
+              },
+              {
+                value: 'food drinks',
+                label: 'food drinks',
+                count: 10,
+                children: [],
+              },
+              {
+                value: 'events parties',
+                label: 'events parties',
+                count: 6,
+                children: [],
+              },
+              {
+                value: 'interior objects',
+                label: 'interior objects',
+                count: 4,
+                children: [],
+              },
+              {
+                value: 'nature landscape',
+                label: 'nature landscape',
+                count: 1,
+                children: [],
+              },
+              {
+                value: 'sunrises sunsets',
+                label: 'sunrises sunsets',
+                count: 1,
+                children: [],
+              },
+              {
+                value: 'cars vehicles',
+                label: 'cars vehicles',
+                count: 2,
+                children: [],
+              },
+              {
+                value: 'beaches seaside',
+                label: 'beaches seaside',
+                count: 4,
+                children: [],
+              },
+              {
+                value: 'paintings art',
+                label: 'paintings art',
+                count: 2,
+                children: [],
+              },
+            ],
+          },
+          {
+            value: 'size',
+            label: 'size',
+            count: 28,
+            children: [
+              {
+                value: 'Extra large',
+                label: 'Extra large',
+                count: 25,
+                children: [],
+              },
+              {
+                value: 'Small',
+                label: 'Small',
+                count: 3,
+                children: [],
+              },
+            ],
+          },
+          {
+            value: 'layout',
+            label: 'layout',
+            count: 28,
+            children: [
+              {
+                value: 'Wide',
+                label: 'Wide',
+                count: 21,
+                children: [],
+              },
+              {
+                value: 'Tall',
+                label: 'Tall',
+                count: 7,
+                children: [],
+              },
+            ],
+          },
+          {
+            value: 'group',
+            label: 'group',
+            count: 22,
+            children: [
+              {
+                value: '葛昱琛 葛维冬',
+                label: '葛昱琛 葛维冬',
+                count: 10,
+                children: [],
+              },
+              {
+                value: '葛昱琛 葛昱琛 葛维冬 葛维冬',
+                label: '葛昱琛 葛昱琛 葛维冬 葛维冬',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '葛丰炳 葛昱琛 葛菊英',
+                label: '葛丰炳 葛昱琛 葛菊英',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '葛维冬 葛菊英',
+                label: '葛维冬 葛菊英',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '葛昱琛 葛维冬 葛菊英',
+                label: '葛昱琛 葛维冬 葛菊英',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '张立华 韩莉',
+                label: '张立华 韩莉',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '葛昱琛 葛菊英',
+                label: '葛昱琛 葛菊英',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '葛维冬 韩莉',
+                label: '葛维冬 韩莉',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '叶四妹 葛顺法',
+                label: '叶四妹 葛顺法',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '葛丰炳 葛昱琛',
+                label: '葛丰炳 葛昱琛',
+                count: 2,
+                children: [],
+              },
+              {
+                value: '葛昱琛 葛维冬 韩莉',
+                label: '葛昱琛 葛维冬 韩莉',
+                count: 1,
+                children: [],
+              },
+              {
+                value: '张立华 葛昱琛 葛菊英 韩莉',
+                label: '张立华 葛昱琛 葛菊英 韩莉',
+                count: 1,
+                children: [],
+              },
+            ],
+          },
+        ],
+
         filterList: {
+          categories: [],
           fc_nums: [0, 1, 2, 3, 4, 6, 10],
           fc_name: [
             {
@@ -414,261 +975,8 @@
               name: 'allison',
               value: 7,
             },
-            {
-              name: 'blue',
-              value: 5,
-            },
-            {
-              name: 'Joey',
-              value: 4,
-            },
-            {
-              name: 'Rachel',
-              value: 4,
-            },
-            {
-              name: 'Ross',
-              value: 4,
-            },
-            {
-              name: 'Chandler',
-              value: 3,
-            },
-            {
-              name: 'Monica',
-              value: 3,
-            },
-            {
-              name: 'Phoebe',
-              value: 3,
-            },
-            {
-              name: '奶奶',
-              value: 3,
-            },
-            {
-              name: '爷爷',
-              value: 3,
-            },
-            {
-              name: 'susan',
-              value: 2,
-            },
-            {
-              name: 'unknown_CDfE6',
-              value: 2,
-            },
-            {
-              name: '老爸',
-              value: 2,
-            },
-            {
-              name: 'girl1',
-              value: 1,
-            },
-            {
-              name: 'mothers',
-              value: 1,
-            },
-            {
-              name: 'mum',
-              value: 1,
-            },
-            {
-              name: 'unknown_cgtk6',
-              value: 1,
-            },
-            {
-              name: 'unknown_f9jyo',
-              value: 1,
-            },
-            {
-              name: 'unknown_jwZk2',
-              value: 1,
-            },
-            {
-              name: 'unknown_n1E6q',
-              value: 1,
-            },
-            {
-              name: 'unknown_PXtHh',
-              value: 1,
-            },
-            {
-              name: 'unknown_tNySj',
-              value: 1,
-            },
-            {
-              name: 'unknown_zDoyW',
-              value: 1,
-            },
-            {
-              name: 'woman',
-              value: 1,
-            },
-            {
-              name: '老妈',
-              value: 1,
-            },
           ],
-          tags: [
-            '210321',
-            '210823',
-            'abbess',
-            'adorable',
-            'adult',
-            'affection',
-            'allison',
-            'attractive',
-            'baby',
-            'bath linen',
-            'bath towel',
-            'bed',
-            'bedroom',
-            'black',
-            'blanket',
-            'blond',
-            'blue',
-            'boy',
-            'breakfast',
-            'brother',
-            'brunette',
-            'buddy',
-            'care',
-            'cheerful',
-            'child',
-            'childhood',
-            'children',
-            'closeup',
-            'container',
-            'couple',
-            'cover girl',
-            'cute',
-            'dad',
-            'daughter',
-            'deity',
-            'dessert',
-            'dinner',
-            'doll',
-            'eating',
-            'elderly',
-            'erotic',
-            'expression',
-            'eyes',
-            'face',
-            'family',
-            'fashion',
-            'father',
-            'food',
-            'friends',
-            'friendship',
-            'frozen dessert',
-            'fun',
-            'girls',
-            'gorgeous',
-            'grandfather',
-            'grandma',
-            'grandmother',
-            'group',
-            'hair',
-            'hair spray',
-            'haircut',
-            'hairstyle',
-            'happiness',
-            'happy',
-            'home',
-            'hospital',
-            'human',
-            'husband',
-            'ice lolly',
-            'import date',
-            'infant',
-            'innocence',
-            'innocent',
-            'joy',
-            'kid',
-            'kids',
-            'kin',
-            'lady',
-            'lifestyle',
-            'linen',
-            'lingerie',
-            'lips',
-            'little',
-            'lock',
-            'long',
-            'look',
-            'looking',
-            'love',
-            'lovely',
-            'lunch',
-            'lying',
-            'make',
-            'makeup',
-            'male',
-            'man',
-            'married',
-            'mature',
-            'meal',
-            'microphone',
-            'model',
-            'mother',
-            'nurse',
-            'nutriment',
-            'offspring',
-            'old',
-            'one',
-            'oriental',
-            'outdoors',
-            'parent',
-            'park',
-            'people',
-            'person',
-            'piggy bank',
-            'pillow',
-            'plate',
-            'plaything',
-            'portrait',
-            'posing',
-            'pretty',
-            'quilt',
-            'restaurant',
-            'retired',
-            'retirement',
-            'saint',
-            'savings bank',
-            'school',
-            'senior',
-            'sensual',
-            'sensuality',
-            'sexy',
-            'shoulder',
-            'sibling',
-            'singer',
-            'sitting',
-            'skin',
-            'smasher',
-            'smile',
-            'smiling',
-            'son',
-            'studio',
-            'superior',
-            'susan',
-            'table',
-            'toddler',
-            'together',
-            'togetherness',
-            'toiletry',
-            'towel',
-            'wife',
-            'women',
-            'youth',
-            '奶奶',
-            '导入时间',
-            '爷爷',
-            '老妈',
-            '老爸',
-          ],
+          tags: ['abbess', 'adorable', 'adult'],
           c_img: [
             {
               name: 'beige',
@@ -678,172 +986,8 @@
               name: 'black',
               value: '#39373b',
             },
-            {
-              name: 'blue',
-              value: '#2f5e97',
-            },
-            {
-              name: 'brown',
-              value: '#574039',
-            },
-            {
-              name: 'dark green',
-              value: '#176352',
-            },
-            {
-              name: 'green',
-              value: '#359369',
-            },
-            {
-              name: 'grey',
-              value: '#8c8c8c',
-            },
-            {
-              name: 'lavender',
-              value: '#6a6378',
-            },
-            {
-              name: 'light blue',
-              value: '#99b1cb',
-            },
-            {
-              name: 'light brown',
-              value: '#ac8a64',
-            },
-            {
-              name: 'light grey',
-              value: '#bcb8b8',
-            },
-            {
-              name: 'light pink',
-              value: '#e6c1be',
-            },
-            {
-              name: 'maroon',
-              value: '#6c2135',
-            },
-            {
-              name: 'mauve',
-              value: '#ac6075',
-            },
-            {
-              name: 'navy blue',
-              value: '#2b2e43',
-            },
-            {
-              name: 'olive green',
-              value: '#7f8765',
-            },
-            {
-              name: 'pink',
-              value: '#e3768c',
-            },
-            {
-              name: 'purple',
-              value: '#875287',
-            },
-            {
-              name: 'red',
-              value: '#ae2935',
-            },
-            {
-              name: 'skin',
-              value: '#bd9769',
-            },
-            {
-              name: 'teal',
-              value: '#426972',
-            },
-            {
-              name: 'violet',
-              value: '#473854',
-            },
-            {
-              name: 'white',
-              value: '#f4f5f0',
-            },
-            {
-              name: 'yellow',
-              value: '#ebd07f',
-            },
           ],
           c_back: [
-            {
-              name: 'beige',
-              value: '#e0c4b2',
-            },
-            {
-              name: 'black',
-              value: '#39373b',
-            },
-            {
-              name: 'blue',
-              value: '#2f5e97',
-            },
-            {
-              name: 'brown',
-              value: '#574039',
-            },
-            {
-              name: 'grey',
-              value: '#8c8c8c',
-            },
-            {
-              name: 'lavender',
-              value: '#6a6378',
-            },
-            {
-              name: 'light blue',
-              value: '#99b1cb',
-            },
-            {
-              name: 'light brown',
-              value: '#ac8a64',
-            },
-            {
-              name: 'light green',
-              value: '#aec98e',
-            },
-            {
-              name: 'light grey',
-              value: '#bcb8b8',
-            },
-            {
-              name: 'light pink',
-              value: '#e6c1be',
-            },
-            {
-              name: 'maroon',
-              value: '#6c2135',
-            },
-            {
-              name: 'mauve',
-              value: '#ac6075',
-            },
-            {
-              name: 'navy blue',
-              value: '#2b2e43',
-            },
-            {
-              name: 'olive green',
-              value: '#7f8765',
-            },
-            {
-              name: 'orange',
-              value: '#e2855e',
-            },
-            {
-              name: 'pink',
-              value: '#e3768c',
-            },
-            {
-              name: 'skin',
-              value: '#bd9769',
-            },
-            {
-              name: 'violet',
-              value: '#473854',
-            },
             {
               name: 'white',
               value: '#f4f5f0',
@@ -855,74 +999,6 @@
           ],
           c_fore: [
             {
-              name: 'beige',
-              value: '#e0c4b2',
-            },
-            {
-              name: 'black',
-              value: '#39373b',
-            },
-            {
-              name: 'blue',
-              value: '#2f5e97',
-            },
-            {
-              name: 'brown',
-              value: '#574039',
-            },
-            {
-              name: 'grey',
-              value: '#8c8c8c',
-            },
-            {
-              name: 'lavender',
-              value: '#6a6378',
-            },
-            {
-              name: 'light blue',
-              value: '#99b1cb',
-            },
-            {
-              name: 'light brown',
-              value: '#ac8a64',
-            },
-            {
-              name: 'light green',
-              value: '#aec98e',
-            },
-            {
-              name: 'light grey',
-              value: '#bcb8b8',
-            },
-            {
-              name: 'light pink',
-              value: '#e6c1be',
-            },
-            {
-              name: 'maroon',
-              value: '#6c2135',
-            },
-            {
-              name: 'mauve',
-              value: '#ac6075',
-            },
-            {
-              name: 'navy blue',
-              value: '#2b2e43',
-            },
-            {
-              name: 'olive green',
-              value: '#7f8765',
-            },
-            {
-              name: 'plum',
-              value: '#58304e',
-            },
-            {
-              name: 'red',
-              value: '#ae2935',
-            },
-            {
               name: 'skin',
               value: '#bd9769',
             },
@@ -933,34 +1009,6 @@
           ],
           category: [
             {
-              name: 'events parties',
-              value: null,
-            },
-            {
-              name: 'food drinks',
-              value: null,
-            },
-            {
-              name: 'interior objects',
-              value: null,
-            },
-            {
-              name: 'nature landscape',
-              value: null,
-            },
-            {
-              name: 'paintings art',
-              value: null,
-            },
-            {
-              name: 'people portraits',
-              value: null,
-            },
-            {
-              name: 'pets animals',
-              value: null,
-            },
-            {
               name: 'streetview architecture',
               value: null,
             },
@@ -970,42 +1018,6 @@
             },
           ],
           group: [
-            {
-              name: 'allison,blue',
-              value: null,
-            },
-            {
-              name: 'allison,mothers,mum,susan',
-              value: null,
-            },
-            {
-              name: 'allison,老妈,老爸',
-              value: null,
-            },
-            {
-              name: 'blue,susan',
-              value: null,
-            },
-            {
-              name: 'blue,奶奶,爷爷',
-              value: null,
-            },
-            {
-              name: 'blue,奶奶,爷爷,老爸',
-              value: null,
-            },
-            {
-              name: 'Chandler,Joey,Monica,Phoebe,Rachel,Ross',
-              value: null,
-            },
-            {
-              name: 'Joey,Rachel,Ross',
-              value: null,
-            },
-            {
-              name: 'no face',
-              value: null,
-            },
             {
               name: 'single face',
               value: null,
@@ -1037,16 +1049,6 @@
             'Free to share and use commercially',
           ],
         },
-        checked_fcName: [],
-        checked_cImg: [],
-        checked_cFore: [],
-        checked_cBack: [],
-        checked_dateRange: [],
-        checked_tags: [],
-        checked_category: '',
-        checked_layout: '',
-        checked_fcGroup: '',
-        checked_rating: 0,
 
         list: [],
         loading: false,
@@ -1111,91 +1113,43 @@
     },
     methods: {
       onSearch() {
+        //当搜索时，让其它下拉列表失效，不然会进行2次不同的搜索，返回值会重叠
         this.imgQuery.page = 1
-        // this.fetchCategory()
-        this.$emit('handleImgSearch', this.imgQuery) //自定义事件  传递值“子向父组件传值”
+        // 将imgQuery中的所有数组元素转换为字符串，转换好的结果实用新的局部变量来保存
+        // 如果直接使用等号赋值，那就是引用，会改变原来的值
+        let imgQueryStr = Object.assign({}, this.imgQuery)
+        for (let key in this.imgQuery) {
+          if (Array.isArray(this.imgQuery[key])) {
+            // if (key === 'categories') {
+            //   console.log('this.imgQuery[key]', this.imgQuery[key])
+            //   imgQueryStr[key] = this.imgQuery[key]
+            // } else {
+            imgQueryStr[key] = this.imgQuery[key].toString()
+            // }
+          }
+        }
+        console.log('onCateSearch', this.imgQuery, imgQueryStr)
+        this.$emit('handleImgSearch', imgQueryStr) //自定义事件  传递值“子向父组件传值”
+        this.fetchCategory(imgQueryStr) // 重新获取category列表
       },
 
-      handelSearchChange(value) {
-        console.log(value)
-        // this.imgQuery.fc_nums = value // already binded
-        this.onSearch()
-      },
-      handleFaceNumsChange(value) {
-        // console.log(value)
-        // this.imgQuery.fc_nums = value // already binded
-        this.onSearch()
-      },
-      handleFaceAlbumChange(value) {
-        this.imgQuery.fc_name = value.toString()
-        this.onSearch()
-      },
-      handleTagsChange(value) {
-        this.imgQuery.tags = value.toString()
-        this.onSearch()
-      },
-      handleLayoutChange(value) {
-        this.imgQuery.layout = value.toString()
-        this.onSearch()
-      },
-      handleImgColorChange(value, type) {
-        // console.log('handleImgColorChange：' + value.toString(), type)
-        if (type === 'img_color') this.imgQuery.c_img = value.toString()
-        if (type === 'back_color') this.imgQuery.c_back = value.toString()
-        if (type === 'fore_color') this.imgQuery.c_fore = value.toString()
-        this.onSearch()
-      },
-      handleAddressChange(value) {
-        // console.log('handleAddressChange: ' + value)
-        // this.imgQuery.address__city = value // already binded
-        this.onSearch()
-      },
-      handleCategoryChange(value) {
-        // console.log('handleCategoryChange: ' + value)
-        // this.imgQuery.address__city = value // already binded
-        this.imgQuery.categories__name = value
-        this.onSearch()
-      },
-      handleGroupChange(value) {
-        // console.log('handleCategoryChange: ' + value)
-        // this.imgQuery.address__city = value // already binded
-        this.imgQuery.categories__name = value
-        this.onSearch()
-      },
-      handleRatingChange(value) {
-        // console.log('handleCategoryChange: ' + value)
-        this.imgQuery.evaluates__rating = value
-        this.onSearch()
+      // 这里独立一个函数出来，因为group 和category都是对Categery表的查询，只是查询的字段不同
+      onCateSearch(value) {
+        //当搜索时，让其它下拉列表失效，不然会进行2次不同的搜索，返回值会重叠
+        this.imgQuery.page = 1
+        // 将imgQuery中的所有数组元素转换为字符串，转换好的结果实用新的局部变量来保存
+        // 如果直接使用等号赋值，那就是引用，会改变原来的值
+        let imgQueryStr = Object.assign({}, this.imgQuery)
+        imgQueryStr.categories__name = value
+        this.$emit('handleImgSearch', imgQueryStr) //自定义事件  传递值“子向父组件传值”
+        this.fetchCategory(imgQueryStr) // 重新获取category列表
       },
 
-      handleDateRangeChange(value) {
-        // console.log('handleDateRangeChange: ' + value)
-        this.imgQuery.dates__capture_date__range = value.toString()
-        this.onSearch()
-      },
-      handleOrdingChange(value) {
-        // console.log('handleDateRangeChange: ' + value)
-        this.imgQuery.ordering = value.toString()
-        this.onSearch()
-      },
-
-      // remoteMethod(query) {
-      //   if (query !== '') {
-      //     this.loading = true
-      //     setTimeout(() => {
-      //       this.loading = false
-      //       this.opt_cImg = this.list.filter((item) => {
-      //         return item.label.toLowerCase().indexOf(query.toLowerCase()) > -1
-      //       })
-      //     }, 200)
-      //   } else {
-      //     this.opt_cImg = []
-      //   }
-      // },
-      async fetchCategory() {
+      async fetchCategory(imgQueryStr) {
         console.log('start to get the Category list...')
-        const { data } = await getFilterList(this.categoryQuery)
+        const { data } = await getFilterList(imgQueryStr)
         this.filterList = data
+        console.log('this.filterList', this.filterList, data)
       },
 
       reset_search() {

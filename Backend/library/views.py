@@ -7,6 +7,7 @@ from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from taggit.models import Tag
 
@@ -16,8 +17,8 @@ from library.models import Img, Category, Address, Stat, Evaluate, Date, ImgMcs,
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination, FacePageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
-from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer
-from library.task import ImgProces, check_img_info
+from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer, CategoryFilterListSerializer
+from library.task import ImgProces, check_img_info, check_all_img_info
 from user_info.models import Profile, ReContact
 from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerializer, ReContactGraphSerializer
 #
@@ -38,7 +39,7 @@ class ImgCategoryViewSet(viewsets.ModelViewSet):
 
 
 class ImgViewSet(viewsets.ModelViewSet):
-    queryset = Img.objects.all().order_by('-id')
+    queryset = Img.objects.all()
 
     serializer_class = ImgSerializer
     # permission_classes = (AllowAny,)
@@ -104,6 +105,28 @@ class ImgViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # ------------------------------------------------------------------------------
+        """Entity Recognition"""
+        """NLP Search"""
+        search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
+        if search_param:
+            print('search_param is enabled: ', search_param)
+            search_queryset = ImgProces.img_recognition(search_param)
+            # 将自然语言搜索跟原始搜索进行合并
+            queryset = search_queryset.union(queryset)
+        # ------------------------------------------------------------------------------
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def img_pre_process(self):
         # 从request中获取参数
         param = self.request.query_params
@@ -126,7 +149,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         if add_list_org == 'all':
             print('INFO:-> add_list_org == all')
             add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
-                        'add_colors_to_category']
+                        'add_colors_to_category', 'add_layout_to_category', 'add_size_to_category']
         print(f'INFO:-> param force: {force}')
         print(f'INFO:-> param get_list: {get_list_org}')
         print(f'INFO:-> param add_list: {add_list_org}')
@@ -148,7 +171,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         # img_process.get_all_img(img_process, func_list=get_list, force=force)
         # img_process.add_all_img_to_category(img_process, func_list=add_list)
 
-        check_img_info.delay(get_list=get_list, add_list=add_list, force=force)
+        check_all_img_info(get_list=get_list, add_list=add_list, force=force)
         return Response({"msg": "batch_img_test success"})
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
@@ -167,17 +190,13 @@ class ImgViewSet(viewsets.ModelViewSet):
         #
         # print('------------------img_process finished------------------')
 
-        check_img_info.delay(instance=instance, get_list=get_list, add_list=add_list, force=force)
+        check_img_info(instance=instance, get_list=get_list, add_list=add_list, force=force)
         return Response({"msg": 'img_process finished'})
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
     def upload_finished(self, request, pk=None):
         print('------------------upload_finished------------------')
-        print(self.request.query_params)
-        queryset = self.get_queryset()
-        print(len(queryset))
-        filteref_queryset = self.filter_queryset(queryset)
-        print(len(filteref_queryset))
+
         # TODO do something after uploading the image
         data = {
             "data": '',
@@ -185,6 +204,73 @@ class ImgViewSet(viewsets.ModelViewSet):
             'msg': 'All the images have been uploaded successfully'
         }
         return Response(data)
+
+    @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
+    def get_filtered_list(self, request, pk=None):
+        queryset = self.filter_queryset(self.get_queryset())
+        # print(len(queryset))
+
+        # ------------------------------------------------------------------------------
+        """Entity Recognition"""
+        """NLP Search"""
+        search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
+        if search_param:
+            search_queryset = ImgProces.img_recognition(search_param)
+            # 将自然语言搜索跟原始搜索进行合并
+            queryset = search_queryset.union(queryset)
+        # ------------------------------------------------------------------------------
+
+        # 2. 统计每个Profile在img_queryset出现的次数，记作value
+        profile_list = Profile.objects.filter(
+            face_imgs__in=queryset
+        ).annotate(value=Count('face_imgs')).distinct().values('name', 'value').order_by('-value')
+
+        # TODO , 如下的serializer，返回的是全部结果，并非基于查询集的结果 , imgs__in=queryset
+        categories = Category.objects.filter(is_root=True).distinct()  # 这里不加.distinct()巨慢无比
+        # for cate in categories:
+        #     print(cate.name, cate.imgs.count())
+        # print(len(categories))
+        serializer = CategoryFilterListSerializer(categories, many=True)
+
+        data = {
+            'categories': serializer.data,  # filter(imgs__in=queryset),
+            'fc_nums': Img.get_filtered_attr_nums(queryset, 'faces'),  # 这张照片包含的人脸数量
+            'fc_name': profile_list,
+
+            'tags': Tag.objects.filter(imgs__in=queryset).annotate(value=Count('imgs')).distinct().order_by(
+                '-value').values('name',
+                                 'value'),
+
+            'c_img': [{**item, 'color': calib['color_palette'][item['name']]} for item in
+                      Category.get_filtered_cate_children(queryset, name='img_color')],
+            # 'c_back': [],
+            # 'c_fore': [],
+            #
+            # # 'scene': Category.get_cate_children(name='scene'), # TODO: haven't done yet
+            'scene': Category.get_filtered_cate_children(queryset, name='scene'),
+            'classification': Category.get_filtered_cate_children(queryset, name='clip_categories'),
+            'group': Category.get_filtered_cate_children(queryset, name='group'),  # the queryset represent the imgs
+
+            'country': Category.get_filtered_cate_children(queryset, name='location', level=1),
+            'province': Category.get_filtered_cate_children(queryset, name='location', level=2),
+            'city': Category.get_filtered_cate_children(queryset, name='location', level=3),
+            # # 'city': Category.get_cate_children_loop('location', level=0).annotate(value=Count('imgs')).values('name',
+            # #                                                                                                      'value').distinct().order_by(
+            # # '-value'),
+            'layout': Category.get_filtered_cate_children(queryset, name='layout'),
+            'size': Category.get_filtered_cate_children(queryset, name='size'),
+            # 'license': ['Public domain', 'Free to share and use', 'Free to share and use commercially'],
+            # 'ordering': ['id', '-id', 'dates__capture_date', '-dates__capture_date']
+
+        }
+        # data['tags'] = list(data['tags'])
+        # data['tags'].insert(0, 'All')
+        # # 循环判断是否有all字段，如果没有，则转换成列表并插入
+        return Response({
+            'msg': 'success to get_filtered_list',
+            'code': 200,
+            'data': data,
+        })
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def graph(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
@@ -257,6 +343,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def get_filter_list(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
         data = {
+
             'fc_nums': Img.get_attr_nums('faces'),
             'fc_name': Profile.get_attr_nums('face_imgs'),
 
@@ -294,7 +381,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return CategoryBriefSerializer
+            return CategoryFilterListSerializer  # CategoryBriefSerializer
         else:
             return CategorySerializer
 

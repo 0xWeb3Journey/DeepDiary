@@ -60,7 +60,7 @@ export const asyncRoutes = [
     redirect: '/gallery',
     name: 'index',
     alwaysShow: true,
-    meta: { title: 'Deep Diary', icon: 'box-open' },
+    meta: { title: 'Deep Diary', icon: 'camera' },
     children: [
       // {
       //   path: 'index',
@@ -79,7 +79,7 @@ export const asyncRoutes = [
         component: () => import('@/views/project/gallery'),
         meta: {
           title: 'Gallery',
-          icon: 'marker',
+          icon: 'image',
           permissions: ['admin'],
         },
       },
@@ -89,7 +89,7 @@ export const asyncRoutes = [
         component: () => import('@/views/project/album'),
         meta: {
           title: 'Album',
-          icon: 'marker',
+          icon: 'images',
           permissions: ['admin'],
           noKeepAlive: false,
         },
@@ -113,7 +113,7 @@ export const asyncRoutes = [
         // component: EmptyLayout,
         meta: {
           title: 'People',
-          icon: 'marker',
+          icon: 'grin-alt',
           permissions: ['admin'],
         },
       },
@@ -145,7 +145,7 @@ export const asyncRoutes = [
         component: () => import('@/views/project/amap'),
         meta: {
           title: 'Address',
-          icon: 'marker',
+          icon: 'map-marker-alt',
           permissions: ['admin'],
         },
       },
@@ -165,11 +165,32 @@ export const asyncRoutes = [
         component: () => import('@/views/project/graph'),
         meta: {
           title: 'Graph',
-          icon: 'marker',
+          icon: 'code-branch',
           permissions: ['admin'],
         },
       },
     ],
+  },
+  {
+    path: 'https://blog.deep-diary.com',
+    name: 'Blog',
+    meta: {
+      title: 'Blog',
+      target: '_blank',
+      icon: 'blog',
+      permissions: ['admin', 'editor'],
+      badge: 'New',
+    },
+  },
+  {
+    path: 'https://blog.deep-diary.com/Guide/DeepDiary.html',
+    name: 'About',
+    meta: {
+      title: 'About',
+      target: '_blank',
+      icon: 'question-circle',
+      permissions: ['admin', 'editor'],
+    },
   },
 
   // {
@@ -362,11 +383,12 @@ export const asyncRoutes = [
   //       meta: { title: '错误日志模拟', permissions: ['admin'] },
   //     },
   //     {
-  //       path: 'https://github.com/chuzhixin/vue-admin-beautiful?utm_source=gold_browser_extension',
+  //       path: 'https://blog.deep-diary.com',
   //       name: 'ExternalLink',
   //       meta: {
-  //         title: '外链',
+  //         title: 'Blog',
   //         target: '_blank',
+  //         icon: 'blog',
   //         permissions: ['admin', 'editor'],
   //         badge: 'New',
   //       },

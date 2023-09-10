@@ -9,3 +9,4 @@ accept_content = ['json', 'pickle']
 task_serializer = 'pickle'
 result_serializer = 'pickle'
 
+# JSON 或者 msgpack

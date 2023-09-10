@@ -113,6 +113,8 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     # events = models.ManyToManyField('Event', through='Participation')  # will be used in diary
 
     name = models.CharField(max_length=30, null=True, blank=True, verbose_name="真实姓名", help_text="真实姓名")
+    full_pinyin = models.CharField(max_length=20, null=True, blank=True, verbose_name="真实姓名全拼", help_text="真实姓名全拼")
+    lazy_pinyin = models.CharField(max_length=20, null=True, blank=True, verbose_name="真实姓名首拼", help_text="真实姓名首拼")
     tel = models.CharField(max_length=20, blank=True, verbose_name="电话号码", help_text="用户手机号码")
     avatar = models.ImageField(upload_to=user_directory_path,
                                verbose_name="头像",
@@ -173,6 +175,13 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     def get_attr_nums(name):
         # 这里如果不加rst[0]，则返回有2个中括号[[]]
         rst = Profile.objects.annotate(value=Count(name)).values('name', 'value').distinct().order_by(
+            '-value'),  # 这里的-是降序，如果不加-则是升序
+        return rst[0]
+
+    @staticmethod
+    def get_filtered_attr_nums(queryset, name):
+        # 这里如果不加rst[0]，则返回有2个中括号[[]]
+        rst = queryset.annotate(value=Count(name)).values('name', 'value').distinct().order_by(
             '-value'),  # 这里的-是降序，如果不加-则是升序
         return rst[0]
 

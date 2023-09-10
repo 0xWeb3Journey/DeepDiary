@@ -209,7 +209,7 @@ class ImgSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Img
-        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name', 'img']  # 'faces', 'names','mcs', 'categories'
+        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name', 'img', 'caption']  # 'faces', 'names','mcs', 'categories'
 
     def to_representation(self, value):
         rst = {}

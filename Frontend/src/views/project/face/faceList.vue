@@ -39,7 +39,7 @@
           FaceQueryForm: {
             page: 1,
             size: 25,
-            // profile__isnull: true,
+            // profile__isnull: true,l
             profile: 30,
             det_score__gt: 0.8,
             // det_score__lt: 0.6,

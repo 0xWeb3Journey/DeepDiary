@@ -16,12 +16,17 @@
         @click="onClick($event, index, item)"
         @dblclick="onDoubleClick($event, index, item)"
       >
-        <img
-          className="img-responsive"
-          :class="checkedIndex === index ? 'img-checked' : 'img-unchecked'"
-          :src="item.thumb"
-          :alt="item.name"
-        />
+        <el-tooltip
+          :content="item.caption ? item.caption : 'No Caption'"
+          placement="top"
+        >
+          <img
+            className="img-responsive"
+            :class="checkedIndex === index ? 'img-checked' : 'img-unchecked'"
+            :src="item.thumb"
+            :alt="item.name"
+          />
+        </el-tooltip>
 
         <div class="jg-caption">
           <el-badge :value="item.value" :max="99" class="item" type="primary">

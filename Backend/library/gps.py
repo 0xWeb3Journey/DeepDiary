@@ -27,17 +27,17 @@ def GPS_format(data):
     # 替换分秒的值
     data_tmp = data_list[1].split('/')
     temp_min = int(data_tmp[0]) / int(data_tmp[1])
-    print(f'original GPS temp_min string: {temp_min}')
+    # print(f'original GPS temp_min string: {temp_min}')
     # 秒的值  单位为度
     data_tmp = data_list[2].split('/')
     temp_sec = int(data_tmp[0]) / int(data_tmp[1])
-    print(f'original GPS temp_sec string: {temp_sec}')
+    # print(f'original GPS temp_sec string: {temp_sec}')
 
     # original GPS string: 121/1 8249816/1000000 0/1
     # original GPS string: 121/1 7/1 55350952/1000000
     # need combine those 2 format, so need to change degree together
     data_degree = temp_degree + temp_min / 60 + temp_sec / 3600
-    print(f'original GPS data_degree value: {data_degree}')
+    # print(f'original GPS data_degree value: {data_degree}')
     # 由于高德API只能识别到小数点后的6位
     # 需要转换为浮点数，并保留为6位小数
     result = "%.6f" % data_degree  # 单位为度

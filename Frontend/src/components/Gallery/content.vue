@@ -26,7 +26,12 @@
           :data-src="item.img"
           :data-sub-html="item.desc"
         >
-          <img className="img-responsive" :src="item.thumb" />
+          <el-tooltip
+            :content="item.caption ? item.caption : 'No Caption'"
+            placement="top"
+          >
+            <img className="img-responsive" :src="item.thumb" />
+          </el-tooltip>
         </a>
       </div>
       <div v-show="busy" class="loading">
@@ -94,6 +99,10 @@
         } else {
           this.msg = '正在加载... ' + newVal.length + '/' + this.total
         }
+        if (newVal.length === 0) {
+          this.msg = '没有找到任何资源'
+        }
+
         this.$nextTick(() => {
           console.log('gallery have been changed')
           window.gallery.refresh()

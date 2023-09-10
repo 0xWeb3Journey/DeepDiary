@@ -38,7 +38,10 @@ class FaceFilter(FilterSet):
             'det_score': ['gt', 'lt'],
             'face_score': ['gt', 'lt'],  #
             'age': ['gt', 'lt'],
-            'gender': ['exact']
+            'gender': ['exact'],
+            'pose_x': ['gt', 'lt'],
+            'pose_y': ['gt', 'lt'],
+            'pose_z': ['gt', 'lt'],
         }
 
     def filter(self, qs, value):
@@ -132,6 +135,8 @@ class CategoryFilter(FilterSet):
 
 
 class ImgFilter(FilterSet):
+    categories = django_filters.CharFilter('categories', method='filter_categories')
+
     tags = TagsFilter(field_name="tags", method='filter_tags')  # method 1
     # tags = django_filters.CharFilter('tags', method='filter_tags')  # method 2
 
@@ -261,23 +266,20 @@ class ImgFilter(FilterSet):
 
         return queryset
 
-    # def filter_fc_nums(self, qs, name, value):
-    #     # print(f'filter_fc_nums--> the original qs count is : {qs.count()}')
-    #     # print(qs.values_list('id', flat=True))
-    #     # annotate will be wrong if without this code, the reason is the qs already using the distinct
-    #     qs=Img.objects.filter(id__in=qs.values_list('id', flat=True))
-    #     # print(value)
-    #     if value is None:
-    #         qs = qs
-    #     elif value < 0:
-    #         qs = qs
-    #     # elif value <= 6:
-    #     #     qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct()
-    #         # print(qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).values('id','fc_nums'))
-    #     else:
-    #         qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct().order_by('id')
-    #         # qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums__gte=value).distinct()
-    #     return qs
+    def filter_categories(self, queryset, name, value):
+        print('INFO: filter_categories--> start---------', name, value, type(value))
+        if value:
+            categories = [cate.strip() for cate in value.split(',')]  # strip()去除首尾空格
+
+            # 方法一：通过filter实现
+            for item in categories:
+                # print('INFO: filter_categories-->', item, len(queryset))
+                queryset = queryset.filter(categories__name=item)
+
+            queryset = queryset.distinct()
+
+        return queryset
+
     def filter_fc_nums(self, qs, name, value):
         if value is not None and value >= 0:
             qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value).distinct()
