@@ -327,17 +327,6 @@
     },
     data() {
       return {
-        // categoryQuery: {
-        //   page: 1,
-        //   size: 20,
-        //   name: '',
-        //   type: '',
-        //   value: '',
-        //   // imgs: '',
-        //   c_img: '',
-        //   c_fore: '',
-        //   c_back: '',
-        // },
         imgQuery: {
           page: 1,
           size: 20,
