@@ -130,6 +130,7 @@ class KpsSerializer(serializers.ModelSerializer):
 
 class FaceSerializer(serializers.ModelSerializer):
     face_url = serializers.HyperlinkedIdentityField(view_name='face-detail')
+    name = serializers.CharField(source="profile.name", read_only=True)
     # img = serializers.HyperlinkedRelatedField(view_name='img-detail', read_only=True)  # 替换为与视图中指定的查询字段一致
     # profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')  # 此行代码有问题，待解决
 

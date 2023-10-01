@@ -1,14 +1,15 @@
 <template>
   <div>
     <ImgSearch @handleImgSearch="onImgSearch"></ImgSearch>
-    <div v-show="imgs.loading" class="loading">
+    <!-- <div v-show="imgs.loading" class="loading">
       <h2>Loading...</h2>
-    </div>
+    </div> -->
     <AlbumContainer
       :items="imgs.data"
       :total="imgs.totalCnt"
       :title="imgs.title"
       :busy="imgs.loading"
+      :finished="imgs.finished"
       @albumClick="onRouteJump"
       @load="onLoad"
     />
@@ -36,6 +37,7 @@
         imgs: {
           title: 'Img List',
           loading: false,
+          finished: false,
           checkedId: -1,
           checkedIndex: -1,
           totalCnt: 0,
@@ -51,7 +53,10 @@
             c_img: '',
             c_fore: '',
             c_back: '',
+            address__is_located: '',
             address__city: '',
+            address__longitude__range: '',
+            address__latitude__range: '',
             user__username: store.getters['user/username'],
           },
         },
@@ -69,7 +74,7 @@
     created() {},
     mounted() {
       console.log('Gallery Index: mounted', this.imgs.queryForm)
-      this.imgs = store.getters['img/imgs']
+      // this.imgs.queryForm = store.getters['img/queryForm']
       this.fetchImg()
     },
     methods: {
@@ -90,6 +95,7 @@
       async fetchImg() {
         console.log('Gallery Index: fetchImg')
         this.imgs.loading = true
+        this.imgs.finished = false
         await getImg(this.imgs.queryForm).then((response) => {
           console.log('Gallery Index: getImg', response)
           const { data, totalCnt, links } = response
@@ -97,6 +103,7 @@
           this.imgs.curCnt = this.imgs.data.length
           this.imgs.totalCnt = totalCnt
           this.imgs.links = links
+          if (this.imgs.links.next === null) this.imgs.finished = true
           console.log('Gallery Index: emit imgData')
           this.$emit('imgData', this.imgs.data)
           setTimeout(() => {
@@ -110,9 +117,9 @@
           'Gallery Index: onLoad, this.imgs.loading',
           this.imgs.loading
         )
-        if (this.imgs.loading) return
+        // if (this.imgs.loading) return 子组件已经处理了
         // deal with some logic that data is not enough
-        if (this.imgs.links.next == null) {
+        if (this.imgs.finished) {
           // no more data
           setTimeout(() => {
             this.imgs.loading = false

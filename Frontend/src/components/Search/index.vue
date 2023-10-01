@@ -13,11 +13,33 @@
         class="el-input__icon el-icon-search"
         @click="advancedSearch"
       ></i>
-      <el-button
-        slot="append"
-        icon="el-icon-delete"
-        @click="reset_search"
-      ></el-button>
+      <el-dropdown slot="append" icon="el-icon-delete" @command="handleCommand">
+        <span class="el-dropdown-link">
+          <i class="el-icon-menu el-icon--right"></i>
+        </span>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item command="edit">
+            <i class="el-icon-edit"></i>
+            Edit
+          </el-dropdown-item>
+          <el-dropdown-item command="view">
+            <i class="el-icon-view"></i>
+            View
+          </el-dropdown-item>
+          <el-dropdown-item command="delete">
+            <i class="el-icon-delete"></i>
+            Reset
+          </el-dropdown-item>
+          <el-dropdown-item command="upload">
+            <i class="el-icon-upload"></i>
+            Upload
+          </el-dropdown-item>
+          <el-dropdown-item command="setting">
+            <i class="el-icon-setting"></i>
+            Setting
+          </el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
     </el-input>
 
     <!-- advance search -->
@@ -1151,6 +1173,14 @@
       advancedSearch() {
         console.log('advancedSearch')
         this.advanced = !this.advanced
+      },
+      handleCommand(command) {
+        this.$message('click on item ' + command)
+        if (command === 'reset') {
+          this.reset_search()
+        } else {
+          this.$emit('command', command) //自定义事件  传递值“子向父组件传值” command could be 'edit' or 'remove'
+        }
       },
     },
   }

@@ -12,7 +12,7 @@ from library.models import Img, Category, Address, Face
 from django.db import models
 import django_filters
 
-from user_info.models import Profile
+from user_info.models import Profile, string_to_int_mapping, ReContact
 
 
 class TagsFilter(django_filters.CharFilter):
@@ -29,11 +29,15 @@ class TagsFilter(django_filters.CharFilter):
 
 
 class FaceFilter(FilterSet):
+
+    relation = django_filters.CharFilter('profile', method='relation_filter')
     class Meta:
         model = Face  # 模型名
 
         fields = {
             'profile__id': ['exact'],  #
+            'profile__name': ['exact', 'icontains'],
+            'profile__re_to_relations__relation': ['exact'],
             'profile': ['exact', 'isnull'],  #
             'det_score': ['gt', 'lt'],
             'face_score': ['gt', 'lt'],  #
@@ -42,7 +46,22 @@ class FaceFilter(FilterSet):
             'pose_x': ['gt', 'lt'],
             'pose_y': ['gt', 'lt'],
             'pose_z': ['gt', 'lt'],
+            'wid': ['gt', 'lt'],
+            'state': ['exact'],
         }
+
+    def relation_filter(self, qs, name, value):
+        relation = string_to_int_mapping.get(value, None)
+        user=self.request.user
+
+        if not relation:
+            return qs
+        print('relation_filter: ', name, value, relation)
+        profile_ids = ReContact.objects.filter(relation=relation, re_to=user).values_list('re_from', flat=True)
+        print(profile_ids)
+        qs = qs.filter(profile__id__in=profile_ids)
+
+        return qs
 
     def filter(self, qs, value):
         print(f'the value in FacesFilter is {qs}, value is {value}')

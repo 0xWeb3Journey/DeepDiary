@@ -46,3 +46,11 @@ export function clear_face_album(params) {
     method: 'get',
   })
 }
+
+export function getFilterList(params) {
+  return request({
+    url: '/api/profile/get_filtered_list/',
+    method: 'get',
+    params,
+  })
+}

@@ -75,6 +75,7 @@
       },
       async fetchImg() {
         var queryForm = this.$store.state.img.queryForm
+        console.log('queryForm is: %o', queryForm)
         const { data, totalCnt } = await getImg(queryForm)
         this.imgs = data
         this.totalCnt = totalCnt

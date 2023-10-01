@@ -59,9 +59,9 @@ class ColorBriefSerializer(serializers.ModelSerializer):
 
 
 class CategoryBriefSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='category-detail')
+    # url = serializers.HyperlinkedIdentityField(view_name='category-detail')
     thumb = serializers.ImageField(source="avatar_thumb", read_only=True)
-    src = serializers.ImageField(source="avatar", read_only=True)
+    # src = serializers.ImageField(source="avatar", read_only=True)
     # # imgs = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
     # value = serializers.IntegerField()
     value = serializers.SerializerMethodField()  # method 2: through method
@@ -72,19 +72,49 @@ class CategoryBriefSerializer(serializers.ModelSerializer):
         value = ins.imgs.count()  # return the img counts
         return value
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # 检查 'children' 字段是否为空
+        if not data['children']:
+            # 如果为空，从字典中删除 'children' 字段
+            del data['children']
+        # print(data)
+        # if instance.is_leaf_node():
+        #     if not instance.children.exists():
+        #         data.pop('children', None)  # Remove 'children' key if it's empty
+        return data
+
     class Meta:
         model = Category
-        fields = ['id', 'name', 'url', 'children', 'src', 'thumb', 'value']
+        fields = ['id', 'name', 'thumb', 'value','children']
+
 
 
 class CategoryFilterListSerializer(serializers.ModelSerializer):
     value = serializers.CharField(source="name", read_only=True)
     label = serializers.CharField(source="name", read_only=True)
     count = serializers.SerializerMethodField()  # method 2: through method
-    children = RecursiveField(many=True, required=False)
+    # Category模型有个外键imgs的查询集合，期望将此序列化器的结果，限制在这个查询集中，而不是所有的Img模型实例
+    # children = RecursiveField(many=True, required=False)
+
+    children = serializers.SerializerMethodField()  # 使用 SerializerMethodField 处理 children
+
+    def get_children(self, instance):
+        # 获取子类别，仅包括在 imgs_queryset 内的子类别
+        qs = self.context.get('imgs', None)
+        if qs is None:
+            children = instance.get_children()
+        else:
+            children = instance.get_children().filter(imgs__in=qs).distinct()
+
+        # 递归处理子类别
+        serializer = CategoryFilterListSerializer(children, many=True, context=self.context)
+        return serializer.data
 
     def get_count(self, ins):
         value = ins.imgs.count()  # return the img counts
+        # value = 10  # return the img counts
+        # value = ins.img_count  # 我们假设 Category 模型具有一个名为 img_count 的字段，该字段存储了与该类别相关的图像数量
         return value
 
     class Meta:
@@ -93,8 +123,14 @@ class CategoryFilterListSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if not instance.children.exists():
-            data.pop('children', None)  # Remove 'children' key if it's empty
+        # 检查 'children' 字段是否为空
+        if not data['children']:
+            # 如果为空，从字典中删除 'children' 字段
+            del data['children']
+        # print(data)
+        # if instance.is_leaf_node():
+        #     if not instance.children.exists():
+        #         data.pop('children', None)  # Remove 'children' key if it's empty
         return data
 
 

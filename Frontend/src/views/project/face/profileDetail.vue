@@ -8,16 +8,10 @@
     <Carosel v-if="isShowCarosel" title="照片" :items="faces.data"></Carosel>
     <FaceListGallery
       v-if="isGetRoutePrarms"
-      :query="faces.query"
+      :id="profileDetail.query.id"
+      :searchable="false"
       @faceData="onFaceData"
     ></FaceListGallery>
-    <!-- <Gallery
-      ref="face"
-      :name="$route.query.title"
-      :items="faces"
-      :total="faces.length"
-      disp-type="face"
-    ></Gallery> -->
 
     <ProfileEdit
       :profile="profileDetail.data"
@@ -57,7 +51,7 @@
             // age__gt: 35,
             // age__lt: 35,
             // gender: 0,
-            pose_x__gt: 0,
+            // pose_x__gt: 0,
             // pose_x__lt: 0,
             // pose_y__gt: 0,
             // pose_y__lt: 0,
@@ -95,7 +89,6 @@
     },
     mounted() {
       console.log('component have been mounted --')
-      // this.fetchProfileDetail()
     },
     activated() {
       // change string format to int
@@ -103,13 +96,15 @@
       this.faces.query.profile = this.profileDetail.query.id
       this.faces.query.page = 1
       this.isGetRoutePrarms = true
+
       console.log(
         'ProfileDetail: the face component is activated',
         this.faces.query.profile
       )
     },
     deactivated() {
-      console.log('the face component is deactivated')
+      this.faces.data = [] //退出之前清空缓存，防止下次进入的时候，先显示上次的数据，再显示新的数据
+      console.log('profileDetail: the face component is deactivated')
     },
     methods: {
       async fetchProfileDetail() {
@@ -142,7 +137,7 @@
         this.isDoEdit = false
       },
       onFaceData(data) {
-        console.log('ProfileDetail: onFaceData', data)
+        // console.log('ProfileDetail: onFaceData', data)
         this.faces.data = data
         this.isShowCarosel = true
       },

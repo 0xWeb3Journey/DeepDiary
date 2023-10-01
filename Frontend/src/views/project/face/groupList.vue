@@ -5,6 +5,7 @@
       :total="groups.totalCnt"
       :title="groups.title"
       :busy="groups.loading"
+      :finished="groups.finished"
       @albumClick="onRouteJump"
       @load="onLoad"
     />
@@ -30,6 +31,7 @@
         groups: {
           title: 'Profile List',
           loading: false,
+          finished: false,
           checkedId: -1,
           checkedIndex: -1,
           totalCnt: 0,
@@ -79,13 +81,19 @@
       async fetchGroup() {
         console.log('GroupList: fetchGroup')
         this.groups.loading = true
+        this.groups.finished = false
         await getGroup(this.groups.groupQueryForm).then((response) => {
           console.log('GroupList: ', response)
           const { data, totalCnt, links } = response
           this.groups.data = [...this.groups.data, ...data[0]['children']]
           this.groups.curCnt = this.groups.data.length
-          this.groups.totalCnt = totalCnt
+          // this.groups.totalCnt = totalCnt
+          this.groups.totalCnt = this.groups.data.length
           this.groups.links = links
+          if (this.groups.links.next === null) {
+            // no more data
+            this.groups.finished = true
+          }
           this.$emit('groupData', this.groups.data)
           setTimeout(() => {
             this.groups.loading = false
@@ -97,7 +105,7 @@
         console.log('GroupList: onLoad')
         this.groups.loading = true
         // deal with some logic that data is not enough
-        if (this.groups.links.next == null) {
+        if (this.groups.finished) {
           // no more data
           setTimeout(() => {
             this.groups.loading = false

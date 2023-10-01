@@ -8,11 +8,16 @@
         :disable-transitions="false"
         @close="onTagDelete(selectedTag)"
       >
+        <!-- {{ dynamicTags[selectedTag] }} -->
         {{ selectedTag }}
       </el-tag>
     </div>
     <el-radio-group v-model="selectedTag" @input="onRelationChoosed">
-      <el-radio-button v-for="tag in dynamicTags" :key="tag" :label="tag">
+      <el-radio-button
+        v-for="(tag, index) in dynamicTags"
+        :key="index"
+        :label="tag"
+      >
         {{ tag }}
       </el-radio-button>
     </el-radio-group>
@@ -82,7 +87,8 @@
     watch: {
       relation(newVal, oldVal) {
         console.log('ProfileRelationTags: relation', newVal, oldVal)
-        this.selectedTag = newVal
+        // this.selectedTag = this.dynamicTags.indexOf(newVal) // 使用序号
+        this.selectedTag = newVal //直接使用字符串，相关逻辑，都在后端统一处理
       },
     },
     mounted() {
@@ -91,7 +97,7 @@
         this.isHaveTag = false
       } else {
         this.isHaveTag = true
-        this.selectedTag = this.relation
+        this.selectedTag = this.relation //直接使用字符串，相关逻辑，都在后端统一处理
       }
 
       console.log('ProfileRelationTags: mounted', this.selectedTag)
@@ -120,11 +126,11 @@
         console.log('ProfileRelationTags: onTagDelete', tag)
         this.isHaveTag = false
       },
-      onRelationChoosed(value) {
+      onRelationChoosed(key) {
         console.log(
           'ProfileRelationTags: onRelationChoosed',
           this.selectedTag,
-          value
+          key
         )
         this.isHaveTag = true
         this.$emit('relationChoosed', this.selectedTag) // value and this.selectedTag are the same

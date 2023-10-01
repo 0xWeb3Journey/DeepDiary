@@ -42,8 +42,22 @@
           </el-badge>
         </div>
       </div>
+      <div>
+        <el-button
+          v-show="!finished"
+          :loading="busy"
+          type="primary"
+          icon="el-icon-download"
+          @click="load"
+        >
+          {{ busy ? `Loading ...${items.length}/${total}` : 'More' }}
+        </el-button>
+      </div>
+
+      <div v-show="finished" class="finished">
+        <h3>-------------No More Resources!-------------</h3>
+      </div>
     </div>
-    <el-divider v-show="finished"><i class="el-icon-finished"></i></el-divider>
   </div>
 </template>
 
@@ -88,26 +102,31 @@
     data() {
       return {
         msg: '正在加载...',
-        intervalId: null, // Variable to hold the interval ID
+
         checkedIndex: -1, //if set this default value to 0, then the album will auto checked once enter this page
         checkedId: 0,
       }
     },
     watch: {
       items(newVal, oldVal) {
+        // if (newVal.length === this.total) {
+        //   this.msg = '已经加载完毕, 资源总数量为：' + this.total
+        //   this.finished = true
+        // } else {
+        //   this.msg = '正在加载... ' + newVal.length + '/' + this.total
+        //   this.finished = false
+        // }
         console.log(
           'Album.content: Album numbers have been changed',
           newVal.length,
           this.total,
           this.msg
         )
-
         this.$nextTick(() => {
           // window.album.refresh()
           $('#album_container').justifiedGallery()
           // $('#album').justifiedGallery('norewind')
         })
-        this.checkDivHeight() // 内容更新后，需要检查下div的高度
       },
     },
     created() {
@@ -164,50 +183,6 @@
         if (this.busy) return
 
         this.$emit('load') //自定义事件  传递值“子向父组件传值”load
-      },
-      checkDivHeight() {
-        // if this.intervalId is null, then return
-        if (this.intervalId !== null) {
-          console.log('Gallery content: checkDivHeight: intervalId is not null')
-          return
-        }
-        var divElement = this.$refs.album_container
-        // Check if the div element exists
-        if (divElement) {
-          // Create an interval to check the div's height every 1 second
-          this.intervalId = setInterval(() => {
-            // Check if the component is busy
-            if (this.busy === false) {
-              // Get the current scroll height of the div
-              var scrollHeight = divElement.scrollHeight
-
-              // Get the current scrollTop of the div
-              var scrollTop = divElement.scrollTop
-
-              // Get the client height of the div
-              var divHeight = 800 //divElement.clientHeight  //800
-
-              console.log(
-                'Gallery Contetn: checkDivHeight:divElement: The div is not filled.',
-                scrollTop,
-                scrollHeight,
-                divHeight,
-                this.finished
-              )
-              // Check if the div's height is greater than or equal to the screen height
-              if (scrollHeight > divHeight || this.finished) {
-                // The div is filled, so clear the interval
-                clearInterval(this.intervalId)
-                this.intervalId = null // Reset the interval ID
-                console.log('timer has been closed')
-              } else {
-                // The div is not filled, continue monitoring
-
-                this.$emit('load') //自定义事件  传递值“子向父组件传值”load  //content.vue:204  Uncaught TypeError: this.$emit is not a function
-              }
-            }
-          }, 1000) // Check every 1 second
-        }
       },
     },
   }

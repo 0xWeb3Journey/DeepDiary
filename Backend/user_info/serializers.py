@@ -50,7 +50,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['username', 'password', 'relation', 'tel', 'avatar', 'introduction', 'roles', 'profile_url',
+        fields = ['id','username', 'password', 'relation', 'tel', 'avatar', 'introduction', 'roles', 'profile_url',
                   'resources', 'demands']  #
         extra_kwargs = {
             'password': {'write_only': True},
@@ -137,7 +137,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     # faces = FaceBriefSerializer(many=True, read_only=True)
     demands = DemandSerializer(many=True, read_only=True)
     resources = ResourceSerializer(many=True, read_only=True)
-    experiences = ExperienceSerializer(many=True, read_only=True)
+    experiences = ExperienceSerializer(many=True)  # , read_only=True
     relation = serializers.SerializerMethodField()
 
     def get_relation(self, instance):

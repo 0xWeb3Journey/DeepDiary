@@ -1,6 +1,7 @@
 <template>
   <div class="gallery-container">
     <!-- 照片墙展示 -->
+
     <div
       id="gallery_container"
       ref="gallery_container"
@@ -14,7 +15,6 @@
       <div
         id="gallery"
         ref="gallery"
-        v-infinite-scroll="load"
         class="infinite-list"
         style="overflow: auto"
       >
@@ -34,10 +34,12 @@
           </el-tooltip>
         </a>
       </div>
+
       <div v-show="busy" class="loading">
-        <h2>{{ msg }}</h2>
+        <h3>{{ msg }}</h3>
       </div>
     </div>
+    <el-divider v-show="finished"><i class="el-icon-finished"></i></el-divider>
   </div>
 </template>
 
@@ -85,24 +87,30 @@
         default: false, // model field name
         required: true,
       },
+      finished: {
+        type: Boolean,
+        default: false, // model field name
+        required: false,
+      },
     },
     data() {
       return {
-        msg: '正在加载...',
+        msg: 'Loading...',
+        intervalId: null, // Variable to hold the interval ID
       }
     },
     computed: {},
     watch: {
       items(newVal, oldVal) {
-        if (newVal.length === this.total) {
-          this.msg = '已经加载完毕, 资源总数量为：' + this.total
-        } else {
-          this.msg = '正在加载... ' + newVal.length + '/' + this.total
-        }
-        if (newVal.length === 0) {
-          this.msg = '没有找到任何资源'
-        }
-
+        // if (newVal.length === this.total) {
+        //   this.msg = '已经加载完毕, 资源总数量为：' + this.total
+        // } else {
+        //   this.msg = '正在加载... ' + newVal.length + '/' + this.total
+        // }
+        // if (newVal.length === 0) {
+        //   this.msg = '没有找到任何资源'
+        // }
+        this.checkDivHeight() // 内容更新后，需要检查下div的高度
         this.$nextTick(() => {
           console.log('gallery have been changed')
           window.gallery.refresh()
@@ -110,19 +118,12 @@
           $('#gallery').justifiedGallery()
         })
       },
-      busy(newVal, oldVal) {
-        console.log('GalleryContainer: busy have been changed', newVal)
-        if (newVal) {
-          this.msg = '正在加载...'
-        } else {
-          this.msg = '已经加载完毕, 资源总数量为：' + this.total
-        }
-      },
     },
     created() {},
     mounted() {
       this.lgInit()
       this.justifyInit()
+      // this.checkDivHeight()
     },
     methods: {
       justifyInit: function () {
@@ -173,8 +174,54 @@
       },
       load() {
         console.log('infinite loading... ', this.busy)
-        // if (this.busy) return
+        if (this.busy) return
         this.$emit('load') //自定义事件  传递值“子向父组件传值”load
+      },
+
+      checkDivHeight() {
+        // if this.intervalId is null, then return
+        if (this.intervalId !== null) {
+          console.log('Gallery content: checkDivHeight: intervalId is not null')
+          return
+        }
+        // Get a reference to the div element
+        var divElement = this.$refs.gallery_container
+        // Check if the div element exists
+        if (divElement) {
+          // Create an interval to check the div's height every 1 second
+          this.intervalId = setInterval(() => {
+            // Check if the component is busy
+            if (this.busy === false) {
+              // Get the current scroll height of the div
+              var scrollHeight = divElement.scrollHeight
+
+              // Get the current scrollTop of the div
+              var scrollTop = divElement.scrollTop
+
+              // Get the client height of the div
+              var divHeight = divElement.clientHeight
+
+              console.log(
+                'Gallery content: checkDivHeight:divElement: The div is not filled.',
+                scrollTop,
+                scrollHeight,
+                divHeight,
+                this.finished
+              )
+              // Check if the div's height is greater than or equal to the screen height
+              if (scrollHeight > divHeight || this.finished) {
+                // The div is filled, so clear the interval
+                clearInterval(this.intervalId)
+                this.intervalId = null // Reset the interval ID
+                console.log('timer has been closed')
+              } else {
+                // The div is not filled, continue monitoring
+
+                this.$emit('load') //自定义事件  传递值“子向父组件传值”load  //content.vue:204  Uncaught TypeError: this.$emit is not a function
+              }
+            }
+          }, 1000) // Check every 1 second
+        }
       },
     },
   }
@@ -182,7 +229,7 @@
 
 <style lang="css" scoped>
   .gallery_container {
-    height: 500px; /* Set a fixed height to the container */
+    height: 800px;
     overflow-y: auto;
   }
 </style>

@@ -298,10 +298,10 @@ class ImgProces:
         with torch.no_grad():
             text_features = model.encode_text(text)
             image_features = torch.tensor(embeddings, dtype=torch.float16).to(device)
-            print(text_features.shape)
-            print(image_features.shape)
-            print(type(text_features))
-            print(type(image_features))
+            # print(text_features.shape)
+            # print(image_features.shape)
+            # print(type(text_features))
+            # print(type(image_features))
 
         # Pick the top 5 most similar labels for the image
         image_features /= image_features.norm(dim=-1, keepdim=True)
@@ -317,7 +317,7 @@ class ImgProces:
         imgs = Img.objects.all()
         # 方法二: 根据索引值直接获取id列表
         topk_ids = [imgs[i].id for i in indices.cpu().numpy().tolist()]
-        print('方法二: 根据索引值直接获取id列表', topk_ids)
+        # print('方法二: 根据索引值直接获取id列表', topk_ids)
 
         from django.db.models import Case, When, IntegerField
         # 创建一个排序表达式
@@ -334,8 +334,8 @@ class ImgProces:
 
         # Print the result
         print("\nTop predictions:\n")
-        for value, index in zip(values, indices):
-            print(f"{index}: {100 * value.item():.2f}%")
+        for value, id in zip(values, topk_ids):
+            print(f"{id}: {100 * value.item():.2f}%")
 
         return filtered_data
 

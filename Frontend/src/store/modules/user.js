@@ -15,12 +15,14 @@ import { title, tokenName } from '@/config'
 
 const state = () => ({
   accessToken: getAccessToken(),
+  id: '',
   username: '',
   avatar: '',
   permissions: [],
 })
 const getters = {
   accessToken: (state) => state.accessToken,
+  id: (state) => state.id,
   username: (state) => state.username,
   avatar: (state) => state.avatar,
   permissions: (state) => state.permissions,
@@ -30,6 +32,9 @@ const mutations = {
     console.log('here is the mutations, to set the accessToken')
     state.accessToken = accessToken
     setAccessToken(accessToken)
+  },
+  setId(state, id) {
+    state.id = id
   },
   setUsername(state, username) {
     state.username = username
@@ -78,9 +83,10 @@ const actions = {
       Vue.prototype.$baseMessage('验证失败，请重新登录...', 'error')
       return false
     }
-    let { roles, username, avatar } = data
+    let { roles, id, username, avatar } = data
     if (roles && username && Array.isArray(roles)) {
       commit('setPermissions', roles)
+      commit('setId', id)
       commit('setUsername', username)
       commit('setAvatar', avatar)
       return roles

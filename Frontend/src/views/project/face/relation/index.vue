@@ -4,6 +4,8 @@
       v-if="searchable"
       @handleProfileSearch="onProfileSearch"
     ></ProfileSearch>
+    <Transfer :profiles="profiles.data"></Transfer>
+
     <AlbumContainer
       :items="profiles.data"
       :total="profiles.totalCnt"
@@ -20,18 +22,13 @@
   import AlbumContainer from '@/components/Album/content.vue'
   import { getProfile } from '@/api/profile'
   import ProfileSearch from '@/components/Search/profile'
+  import Transfer from './transfer.vue'
   export default {
-    name: 'ProfileList',
-    components: { ProfileSearch, AlbumContainer },
+    name: 'Relation',
+    components: { AlbumContainer, ProfileSearch, Transfer },
     directives: {},
-    props: {
-      query: {
-        type: Object,
-        default: null, // model field name
-        required: false,
-      },
-    },
-    data: function () {
+    props: {},
+    data() {
       return {
         profiles: {
           title: 'Profile List',
@@ -51,38 +48,22 @@
         searchable: true,
       }
     },
-    watch: {
-      // query: {
-      //   handler(newVal, oldVal) {
-      //     console.log('ProfileList: query', newVal)
-      //     this.profiles.queryForm = newVal
-      //     this.profiles.data = []
-      //     this.fetchProfile()
-      //   },
-      //   deep: true,
-      // },
+    watch: {},
+    created() {
+      console.log('Relation: created')
     },
-    created() {},
     mounted() {
+      console.log('Relation: mounted')
       this.profiles.queryForm.page = 1
       this.fetchProfile()
     },
+    activated() {
+      console.log('Relation: activated')
+    },
+    deactivated() {
+      console.log('Relation: deactivated')
+    },
     methods: {
-      onRouteJump(index, item) {
-        console.log('recieved the child component value %d,%o', index, item)
-        // 声明这个函数，便于子组件调用
-        this.profiles.checkedIndex = index
-        this.profiles.checkedId = item.id || 0 // if return unexpected id, then set the id to default 1
-        this.$router.push({
-          // name: 'GroupDetail',
-          name: 'ProfileDetail',
-          query: {
-            id: item.id,
-            title: item.name,
-          },
-        })
-      },
-
       async fetchProfile() {
         console.log('ProfileList: fetchProfile')
         this.profiles.loading = true
@@ -105,6 +86,9 @@
           this.profiles.loading = false
         }, 300)
       },
+      onRouteJump(index, item) {
+        console.log('recieved the child component value %d,%o', index, item)
+      },
 
       onLoad() {
         console.log('ProfileList: onLoad')
@@ -120,6 +104,7 @@
         this.profiles.queryForm.page++
         this.fetchProfile()
       },
+
       onProfileSearch(queryForm) {
         console.log('recieve the queryForm info from the search component')
         console.log(queryForm)

@@ -16,3 +16,12 @@ export function changeFaceName(params) {
     data: params,
   })
 }
+
+export function getFilterList(params) {
+  console.log(params)
+  return request({
+    url: '/api/face/get_filtered_list/',
+    method: 'get',
+    params,
+  })
+}

@@ -42,8 +42,12 @@
           </el-badge>
         </div>
       </div>
+
+      <el-divider></el-divider>
+      <div v-show="finished" class="finished">
+        <h3>-------------No More Resources!-------------</h3>
+      </div>
     </div>
-    <el-divider v-show="finished"><i class="el-icon-finished"></i></el-divider>
   </div>
 </template>
 
@@ -123,7 +127,7 @@
           .justifiedGallery({
             captions: true,
             lastRow: 'left',
-            rowHeight: 150,
+            rowHeight: 200,
             margins: 5,
           })
           .on('jg.complete', function () {
@@ -185,7 +189,7 @@
               var scrollTop = divElement.scrollTop
 
               // Get the client height of the div
-              var divHeight = 800 //divElement.clientHeight  //800
+              var divHeight = divElement.clientHeight
 
               console.log(
                 'Gallery Contetn: checkDivHeight:divElement: The div is not filled.',

@@ -54,22 +54,22 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (config) => {
-    // console.log('here is interceptors.request %o', config)
     if (store.getters['user/accessToken']) {
       // config.headers[tokenName] = store.getters['user/accessToken'] // 增加这句话，就会报Request header field access is not allowed by Access-Control-Allow-Headers in preflight response
       config.headers['Authorization'] =
         'Bearer ' + store.getters['user/accessToken'] // 参考postman 请求头信息, 这里的Bearer后面需要带一个空格
     }
-    // console.log('here is interceptors.request %o', config)
+
     //这里会过滤所有为空、0、false的key，如果不需要请自行注释
     if (config.data) {
-      // console.log('config data is null %o', config)
+      // console.log('config data is  %o', config.data)
       config.data = Vue.prototype.$baseLodash.pickBy(
         config.data,
         Vue.prototype.$baseLodash.identity
       )
     }
 
+    // console.log('config data is  %o', config.data)
     if (
       config.data &&
       config.headers['Content-Type'] ===
@@ -79,11 +79,13 @@ instance.interceptors.request.use(
       config.data = qs.stringify(config.data)
       // console.log(' after stringify %o', config)
     }
+    // console.log('config data is  %o', config.data)
 
     if (debounce.some((item) => config.url.includes(item))) {
       // console.log('this is the third condition %o', config)
       loadingInstance = Vue.prototype.$baseLoading()
     }
+    // console.log('config data is  %o', config.data)
 
     return config
   },
@@ -94,25 +96,26 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (response) => {
-    // console.log('actually, the frontend got the response data, %o', response)
     if (loadingInstance) loadingInstance.close()
-
     const { data, config } = response
-    const { code, msg } = data
-    // 操作正常Code数组
-    const codeVerificationArray = isArray(successCode)
-      ? [...successCode]
-      : [...[successCode]]
-    // 是否操作正常
-    if (codeVerificationArray.includes(code)) {
-      return data
-    } else {
-      handleCode(code, msg)
-      return Promise.reject(
-        'vue-admin-beautiful请求异常拦截:' +
-          JSON.stringify({ url: config.url, code, msg }) || 'Error'
-      )
-    }
+    // const { code, msg } = data
+    // // 操作正常Code数组
+    // const codeVerificationArray = isArray(successCode)
+    //   ? [...successCode]
+    //   : [...[successCode]]
+    // // 是否操作正常
+    // if (codeVerificationArray.includes(code)) {
+    //   return data
+    // } else {
+    //   handleCode(code, msg)
+    //   return Promise.reject(
+    //     'vue-admin-beautiful请求异常拦截:' +
+    //       JSON.stringify({ url: config.url, code, msg }) || 'Error'
+    //   )
+    // }
+
+    // console.log('this is response %o', response)
+    return data
   },
   (error) => {
     if (loadingInstance) loadingInstance.close()

@@ -241,7 +241,7 @@
         var latMin = 90
         var latMax = 0
         e.clusterData.forEach((element) => {
-          console.log(element.lnglat.lng, element.lnglat.lat)
+          // console.log(element.lnglat.lng, element.lnglat.lat)
 
           if (element.lnglat.lng > lngMax) {
             lngMax = element.lnglat.lng
@@ -262,6 +262,7 @@
         console.log(this.$store.state.map.isShowSwiper)
 
         var imgQuery = this.$store.state.img.queryForm
+        console.log('map.vue_clickMarker: imgQuery is: ', imgQuery)
         imgQuery.address__longitude__range = `${lngMin},${lngMax}`
         imgQuery.address__latitude__range = `${latMin},${latMax}`
         this.$store.commit('img/setQuery', imgQuery)

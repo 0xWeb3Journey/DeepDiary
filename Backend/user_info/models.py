@@ -52,14 +52,14 @@ POSITION_OPTION = (
 )
 
 # 原始字符串列表
-strings = [
+relation_strings = [
     '我', '妻子', '丈夫', '儿子', '女儿', '爸爸', '妈妈', '爷爷', '奶奶', '外公', '外婆',
     '家人', '哥哥', '姐姐', '弟弟', '妹妹', '亲戚', '男朋友', '女朋友', '同事', '朋友',
     '同学', '闺蜜', '客户', '供应商', '合作伙伴', '其他'
 ]
 
 # 创建字符串到整数的映射
-string_to_int_mapping = {s: i for i, s in enumerate(strings)}
+string_to_int_mapping = {s: i for i, s in enumerate(relation_strings)}
 
 # 根据映射生成格式模板
 RELATION_OPTION = tuple((i, s) for s, i in string_to_int_mapping.items())
@@ -192,10 +192,10 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
 
 # 本模型主要记录朋友之间的关系，备注，描述等信息
 class ReContact(models.Model):
-    re_from = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='re_from_relations')
-    re_to = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='re_to_relations')
-    relation = models.SmallIntegerField(choices=RELATION_OPTION, blank=True, default='friend',
-                                        verbose_name="关系", help_text="re_from和re_to的关系")
+    re_from = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True, related_name='re_from_relations')
+    re_to = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True, related_name='re_to_relations')
+    relation = models.SmallIntegerField(choices=RELATION_OPTION, blank=True, default=26,
+                                        verbose_name="关系", help_text="re_from和re_to的关系")  # 26 mean 其他
     nickname = models.CharField(max_length=20, blank=True, verbose_name="re_from的真实名字",
                                 help_text="re_from的真实名字")
     PyInitial = models.CharField(max_length=20, blank=True, verbose_name="re_from的拼音首字母",
@@ -217,6 +217,7 @@ class ReContact(models.Model):
     class Meta:
         ordering = ('re_from',)
         get_latest_by = 'id'
+        unique_together = ('re_from', 're_to', 'relation')
 
 
 class Resource(models.Model):

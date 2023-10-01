@@ -14,7 +14,7 @@
     >
       <FaceList
         v-if="isMounted"
-        :query="FaceQueryForm"
+        :id="FaceQueryForm.profile"
         @choosed="onChoosed"
       ></FaceList>
       <span slot="footer" class="dialog-footer">

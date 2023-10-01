@@ -146,12 +146,9 @@ class Img(models.Model):
         return rst[0]
 
     @staticmethod
-    def get_filtered_attr_nums(queryset, name):
-        # rst = queryset.annotate(value=Count(name)).values_list('value', flat=True).distinct().order_by(
-        #     '-value'),
-        # return rst[0]
-        rst = queryset.annotate(value=Count(name)).values('value').distinct().order_by(
-        # rst = Img.objects.annotate(value=Count(name)).values('value').distinct().order_by(
+    def get_filtered_attr_nums(qs, name):
+        # qs = Img.objects.filter(id__in=qs)
+        rst = qs.annotate(value=Count(name)).values('value').distinct().order_by(
             '-value'),
         # 这里如果不加rst[0]，则返回有2个中括号[[]]
         return rst[0]
@@ -296,7 +293,7 @@ class Category(MPTTModel):
                 value=Count('imgs')).values('name',
                                             'value').distinct().order_by('-value'),
         # 这里如果不加rst[0]，则返回有2个中括号[[]]
-        # print(rst[0])
+        # print('get_filtered_cate_children:', len(rst))
         return rst[0]  # or rst[0]
 
     def get_cate_children_loop(self, name, level=0):
@@ -550,7 +547,7 @@ class Face(models.Model):
     age = models.SmallIntegerField(null=True, blank=True, verbose_name="人脸的年龄，用于训练",
                                    help_text='人脸的年龄，用于训练')
     gender = models.SmallIntegerField(choices=SEX_OPTION, default=2, blank=True, verbose_name="性别",
-                                      help_text="0:男，1：女, 2： 保密")
+                                      help_text="0:女，1：男, 2： 保密")
     embedding = models.BinaryField(null=True, blank=True, verbose_name='人脸特征',
                                    help_text='已识别的人脸特征向量')
     src = models.ImageField(upload_to=face_directory_path,

@@ -19,7 +19,7 @@ from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategoryS
     CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
 from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer, CategoryFilterListSerializer
 from library.task import ImgProces, check_img_info, check_all_img_info
-from user_info.models import Profile, ReContact
+from user_info.models import Profile, ReContact, relation_strings, RELATION_OPTION
 from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerializer, ReContactGraphSerializer
 #
 # class CategoryViewSet(viewsets.ModelViewSet):
@@ -107,7 +107,7 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
+        norm_len = len(queryset)
         # ------------------------------------------------------------------------------
         """Entity Recognition"""
         """NLP Search"""
@@ -115,8 +115,15 @@ class ImgViewSet(viewsets.ModelViewSet):
         if search_param:
             print('search_param is enabled: ', search_param)
             search_queryset = ImgProces.img_recognition(search_param)
+            print('search_result is: ', len(search_queryset))
+
             # 将自然语言搜索跟原始搜索进行合并
-            queryset = search_queryset.union(queryset)
+            if norm_len > 0:
+                queryset = search_queryset.union(queryset)
+                ids = [qs.id for qs in queryset]
+                queryset = Img.objects.filter(id__in=ids)
+            else:
+                queryset = search_queryset
         # ------------------------------------------------------------------------------
 
         page = self.paginate_queryset(queryset)
@@ -207,31 +214,40 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
     def get_filtered_list(self, request, pk=None):
-        queryset = self.filter_queryset(self.get_queryset())
-        # print(len(queryset))
+        qs = self.filter_queryset(self.get_queryset())
+        norm_len = len(qs)
+        print(len(qs))
 
+        queryset=qs
         # ------------------------------------------------------------------------------
         """Entity Recognition"""
         """NLP Search"""
         search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
         if search_param:
-            search_queryset = ImgProces.img_recognition(search_param)
+            search_qs = ImgProces.img_recognition(search_param)
             # 将自然语言搜索跟原始搜索进行合并
-            queryset = search_queryset.union(queryset)
+            if norm_len > 0:
+                queryset = search_qs.union(qs)
+                ids = [qs.id for qs in queryset]
+                queryset = Img.objects.filter(id__in=ids)
+                print(len(queryset), type(queryset))
+            else:
+                queryset = search_qs
+
         # ------------------------------------------------------------------------------
 
         # 2. 统计每个Profile在img_queryset出现的次数，记作value
         profile_list = Profile.objects.filter(
             face_imgs__in=queryset
         ).annotate(value=Count('face_imgs')).distinct().values('name', 'value').order_by('-value')
-
+        #
         # TODO , 如下的serializer，返回的是全部结果，并非基于查询集的结果 , imgs__in=queryset
         categories = Category.objects.filter(is_root=True).distinct()  # 这里不加.distinct()巨慢无比
         # for cate in categories:
         #     print(cate.name, cate.imgs.count())
         # print(len(categories))
-        serializer = CategoryFilterListSerializer(categories, many=True)
-
+        serializer = CategoryFilterListSerializer(categories, many=True, context={'imgs': queryset})
+        #
         data = {
             'categories': serializer.data,  # filter(imgs__in=queryset),
             'fc_nums': Img.get_filtered_attr_nums(queryset, 'faces'),  # 这张照片包含的人脸数量
@@ -245,8 +261,6 @@ class ImgViewSet(viewsets.ModelViewSet):
                       Category.get_filtered_cate_children(queryset, name='img_color')],
             # 'c_back': [],
             # 'c_fore': [],
-            #
-            # # 'scene': Category.get_cate_children(name='scene'), # TODO: haven't done yet
             'scene': Category.get_filtered_cate_children(queryset, name='scene'),
             'classification': Category.get_filtered_cate_children(queryset, name='clip_categories'),
             'group': Category.get_filtered_cate_children(queryset, name='group'),  # the queryset represent the imgs
@@ -254,9 +268,6 @@ class ImgViewSet(viewsets.ModelViewSet):
             'country': Category.get_filtered_cate_children(queryset, name='location', level=1),
             'province': Category.get_filtered_cate_children(queryset, name='location', level=2),
             'city': Category.get_filtered_cate_children(queryset, name='location', level=3),
-            # # 'city': Category.get_cate_children_loop('location', level=0).annotate(value=Count('imgs')).values('name',
-            # #                                                                                                      'value').distinct().order_by(
-            # # '-value'),
             'layout': Category.get_filtered_cate_children(queryset, name='layout'),
             'size': Category.get_filtered_cate_children(queryset, name='size'),
             # 'license': ['Public domain', 'Free to share and use', 'Free to share and use commercially'],
@@ -271,6 +282,12 @@ class ImgViewSet(viewsets.ModelViewSet):
             'code': 200,
             'data': data,
         })
+
+        # return Response({
+        #     'msg': 'success to get_filtered_list',
+        #     'code': 200,
+        #     # 'data': data,
+        # })
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def graph(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
@@ -381,7 +398,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return CategoryFilterListSerializer  # CategoryBriefSerializer
+            return CategoryBriefSerializer  # CategoryBriefSerializer， CategoryFilterListSerializer
         else:
             return CategorySerializer
 
@@ -427,10 +444,9 @@ class FaceViewSet(viewsets.ModelViewSet):
 
         fc = self.get_object()
         process = ImgProces()
-        faces = process.face_rename(fc, self.request.data.get('name', None))
-        # change_face_name.delay(fc, serializer)  # 如果执行了改名，则返回真，人脸改名后，确认状态自动为True
-        # if not change_face_name(fc, serializer):  # 如果执行了改名，则返回真，人脸改名后，确认状态自动为True
-        #     change_confirm_state(fc, serializer)  # 人名已经是识别出来的名字，进行确认后，同样要计算人脸特征
+        profile, fc_instance = process.face_rename(fc, self.request.data.get('name', None))
+
+        serializer.save()  # 保存更新的实例对象
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -438,3 +454,76 @@ class FaceViewSet(viewsets.ModelViewSet):
             return FaceBriefSerializer
         else:
             return FaceSerializer
+
+    @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
+    def get_filtered_list(self, request, pk=None):
+        user = self.request.user  # 获取当前登录用户的实例
+        qs = self.filter_queryset(self.get_queryset())
+        norm_len = len(qs)
+        print(len(qs))
+
+        queryset=qs
+
+        related_str=[]
+        # 获取跟当前用户相关的人脸
+        if user.is_authenticated:
+            print('user is authenticated: ', user.name)
+            # 如下的relation ,得到的数字，期望得到对应的字符串
+            # related = user.re_to_relations.all()
+            # related_str=[relation_strings[item.relation] for item in related]
+            # related_str = set(related_str)
+
+            related_id=user.re_to_relations.all().values_list('relation', flat=True)
+            related_str = [relation_strings[id] for id in set(related_id)]
+
+            print('related_str: ', related_str)
+
+            # queryset = queryset.filter(profile__re_to_relations__owner=user)
+        else:
+            print('user is not authenticated')
+            # queryset = queryset.filter(profile__recontact__owner__isnull=True)
+
+
+        # 2. 统计每个Profile在img_queryset出现的次数，记作value
+        profile_list = Profile.objects.annotate(value=Count('faces')).distinct().values('name', 'value').order_by('-value')
+
+        data = {
+
+            'profile__name': profile_list,
+            'profile__isnull': [
+                {'name': 'Named', 'value': 0},
+                {'name': 'Unnamed', 'value': 1},
+            ],
+            'det_score__gt': [0.9,0.8,0.7,0.6,0.5],
+            'det_score__lt': [0.4, 0.5,0.6,0.7,0.8],
+            'face_score__gt': [0.9, 0.8, 0.7, 0.6, 0.5],
+            'face_score__lt': [0.4, 0.5, 0.6, 0.7, 0.8],
+            'gender': [
+                {'name': 'Female', 'value': 0},
+                {'name': 'Male', 'value': 1},  # logical of insightface
+            ],
+            'pose_x__gt': [-20, -10, 0, 10, 20],
+            'pose_x__lt': [-20, -10, 0, 10, 20],
+            'pose_y__gt': [-20, -10, 0, 10, 20],
+            'pose_y__lt': [-20, -10, 0, 10, 20],
+            'pose_z__gt': [-20, -10, 0, 10, 20],
+            'pose_z__lt': [-20, -10, 0, 10, 20],
+            'wid__gt': [1000, 800, 600, 400, 200],
+            'wid__lt': [1000, 800, 600, 400, 200],
+            'state': [
+                {'name': 'Normal', 'value': 0},
+                {'name': 'Forbidden', 'value': 1},
+                {'name': 'Deleted', 'value': 9},
+            ],
+            'relation':related_str,
+
+
+
+        }
+
+        return Response({
+            'msg': 'success to get the face filter list',
+            'code': 200,
+            'data': data,
+        })
+

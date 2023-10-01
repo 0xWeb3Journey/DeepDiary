@@ -80,7 +80,8 @@
         fetchParams: {
           id: 0,
           name: '',
-          // relation: '',
+          re_from: '',
+          relation: '',
         },
       }
     },
@@ -137,6 +138,8 @@
       onRelationChoosed(tag) {
         this.newRelation = tag
         this.isHaveTag = true
+        this.fetchParams.re_from = this.profile.id
+        this.fetchParams.relation = tag
         console.log(
           'ProfileEdit: onRelationChoosed, newRelation ',
           this.newRelation
@@ -169,7 +172,7 @@
             this.fetchParams.name = '' // 修改成功后，新名称重新置为空
             this.$emit('close')
             this.$message({
-              message: `修改成功，修改后的名称是：${response.data.name}`,
+              message: `修改成功，修改后的名称是：${response.data.name}, 修改后的关系是：${response.data.relation}`,
               type: 'success',
             })
           }

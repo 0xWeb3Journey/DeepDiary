@@ -8,16 +8,16 @@
         <GroupList v-if="activeName === 'groups'"></GroupList>
       </el-tab-pane>
       <el-tab-pane label="Faces" name="faces">
-        <FaceList
-          v-if="activeName === 'faces'"
-          :query="FaceQueryForm"
-        ></FaceList>
+        <FaceList v-if="activeName === 'faces'"></FaceList>
       </el-tab-pane>
       <el-tab-pane label="FacesGallery" name="faces-gallery">
         <FaceListGallery
           v-if="activeName === 'faces-gallery'"
-          :query="FaceQueryForm"
         ></FaceListGallery>
+      </el-tab-pane>
+
+      <el-tab-pane label="Relation" name="relation">
+        <Relation v-if="activeName === 'relation'"></Relation>
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -28,28 +28,29 @@
   import GroupList from './groupList.vue'
   import FaceList from './faceList.vue'
   import FaceListGallery from './faceListGallery.vue'
+  import Relation from './relation/index.vue'
 
   export default {
     name: 'Face',
-    components: { ProfileList, GroupList, FaceList, FaceListGallery },
+    components: { ProfileList, GroupList, FaceList, FaceListGallery, Relation },
 
     directives: {},
     data: function () {
       return {
-        activeName: 'profiles',
-        FaceQueryForm: {
-          page: 1,
-          size: 20,
-          // profile__isnull: true,
-          // profile: 30,
-          det_score__gt: 0.7,
-          // det_score__lt: 0.6,
-          // face_score__gt: 0.8,
-          // face_score__lt: 0.6,
-          // age__gt: 35,
-          // age__lt: 35,
-          // gender: 0,
-        },
+        activeName: 'profiles', // 'profiles',
+        // FaceQueryForm: {
+        //   page: 1,
+        //   size: 20,
+        //   // profile__isnull: true,
+        //   // profile: 30,
+        //   det_score__gt: 0.7,
+        //   // det_score__lt: 0.6,
+        //   // face_score__gt: 0.8,
+        //   // face_score__lt: 0.6,
+        //   // age__gt: 35,
+        //   // age__lt: 35,
+        //   // gender: 0,
+        // },
       }
     },
     watch: {},
