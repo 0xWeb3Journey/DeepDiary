@@ -36,7 +36,7 @@
       },
       id: {
         type: Number,
-        default: 0, // model field name
+        default: null, // model field name
         required: false,
       },
     },

@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from taggit.models import Tag
 
 from deep_diary.settings import calib
-from library.filters import ImgFilter, CategoryFilter, AddressFilter, FaceFilter
+from library.filters import ImgFilter, CategoryFilter, AddressFilter, FaceFilter, search_fields_face, search_fields_img
 from library.models import Img, Category, Address, Stat, Evaluate, Date, ImgMcs, Face
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination, FacePageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
@@ -59,7 +59,7 @@ class ImgViewSet(viewsets.ModelViewSet):
     # such as CharField or TextField.
     # The search parameter may contain multiple search terms, which should be whitespace and/or comma separated
 
-    search_fields = filter_class.search_fields
+    search_fields = search_fields_img
 
     ordering_fields = ['id', 'dates__capture_date']  # 这里的字段，需要总上面定义字段中选择
 
@@ -430,11 +430,9 @@ class FaceViewSet(viewsets.ModelViewSet):
     # permission_classes = (AllowAny,)
     # pagination_class = FacePageNumberPagination  # 增加了这句代码，就无法显示filter,不过效果还是有的
 
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
 
-    # filterset_fields = ['profile__id', 'img__id']  # 外键需要增加2个下划线
-    # # filterset_fields = ['img', 'name', 'is_confirmed', 'face_score']
-    # search_fields = ['profile__id', 'img__id']
+    search_fields = search_fields_face
     # ordering_fields = ['img__id']  # 这里的字段，需要总上面定义字段中选择
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
@@ -454,6 +452,34 @@ class FaceViewSet(viewsets.ModelViewSet):
             return FaceBriefSerializer
         else:
             return FaceSerializer
+
+    # TODO: combine the following function with the original function   filter_queryset
+    # def filter_queryset(self, queryset):
+    #     qs=self.get_queryset()
+    #     print(len(qs))
+    #     def get_search_terms(request):
+    #         """
+    #         Search terms are set by a ?search=... query parameter,
+    #         and may be comma and/or whitespace delimited.
+    #         """
+    #         params = request.query_params.get('search', '')
+    #         params = params.replace('\x00', '')  # strip null characters
+    #         params = params.replace(',', ' ')
+    #         return params.split()
+    #
+    #     search_param = get_search_terms(self.request)
+    #     print('search_param: ', search_param)
+    #     if search_param:
+    #         # 在这里执行根据 choices 中的字符串值进行搜索的逻辑
+    #         re_list = [choice[0] for choice in RELATION_OPTION if choice[1] in search_param]
+    #         print('re_list: ', re_list)
+    #         qs = qs.filter(profile__re_from_relations__relation__in=re_list).distinct() if re_list else qs
+    #     print(len(qs))
+    #
+    #     # queryset = super().filter_queryset(qs)
+    #     queryset = qs
+    #
+    #     return queryset
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
     def get_filtered_list(self, request, pk=None):

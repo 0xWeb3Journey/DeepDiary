@@ -15,6 +15,15 @@ import django_filters
 from user_info.models import Profile, ReContact, string_to_int_mapping
 
 
+# only for text search
+search_fields_profile = {
+    'id': ['exact'],  #
+    'name': ['exact', 'icontains'],
+    'full_pinyin': ['exact', 'icontains'],
+    'lazy_pinyin': ['exact', 'icontains'],
+}
+
+
 class ProfileFilter(FilterSet):
     relation = django_filters.CharFilter('profile', method='relation_filter')
 

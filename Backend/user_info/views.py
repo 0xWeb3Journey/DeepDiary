@@ -9,12 +9,13 @@ from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from user_info.filters import ProfileFilter, RelationFilter
+from user_info.filters import ProfileFilter, RelationFilter, search_fields_profile
 from user_info.models import Profile, Company, ReContact, relation_strings, string_to_int_mapping
 from user_info.serializers import UserRegisterSerializer, ProfileSerializer, CompanySerializer, \
     UserDetailSerializer
 from user_info.serializers_out import ProfileBriefSerializer, ReContactGraphSerializer, ReContactBriefSerializer, \
     ReContactListSerializer
+from user_info.task import ProfileProcess
 # class UserRegisterViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()
 #     serializer_class = UserRegisterSerializer
@@ -110,7 +111,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
     # permission_classes = (AllowAny,)
     # pagination_class = FacePageNumberPagination  # 增加了这句代码，就无法显示filter,不过效果还是有的
 
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter,
+                       filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+    search_fields = search_fields_profile
 
     def perform_update(self, serializer):
         print('------------------Profile Perform_update------------------')
@@ -144,7 +147,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         relation = string_to_int_mapping.get(relation, None)
         print(f'人物更新：relation =  {profile_id},{user.id}, {relation}')
         # 4. 获取当前实例的relation_id
-        re_obj, created  = ReContact.objects.get_or_create(re_from=instance, re_to=user, defaults={'relation': relation})
+        re_obj, created = ReContact.objects.get_or_create(re_from=instance, re_to=user, defaults={'relation': relation})
         if not created:
             re_obj.relation = relation
             re_obj.save()
@@ -227,6 +230,48 @@ class ProfileViewSet(viewsets.ModelViewSet):
             'data': data,
         })
 
+    def profile_pre_process(self):
+        # 从request中获取参数
+        param = self.request.query_params
+        print(f'INFO:-> param: {param}')
+
+        force = param.get("force", None)
+        get_list_org = param.get("get_list", None)
+
+        # get_exif_info 必须第一个，因为是这个函数创建了stat实例
+        # param得到的都是字符类型，需要转换成bool类型
+        force = True if force == '1' else False  # force = 1, True, force = 0, False
+        get_list = [item.strip() for item in get_list_org.split(',') if item != '']  # 去掉空字符串
+
+        if get_list_org == 'all':
+            print('INFO:-> get_list_org == all')
+            get_list = ['get_pinyin']
+
+        print(f'INFO:-> param force: {force}')
+        print(f'INFO:-> param get_list: {get_list_org}')
+        return force, get_list
+
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def batch_profile_process(self, request, pk=None):
+        print('------------------batch_img_test------------------')
+        force, get_list = self.profile_pre_process()
+
+        profile_process = ProfileProcess()
+        profile_process.get_all_profile(profile_process, func_list=get_list, force=force)
+        return Response({"msg": "batch_img_test success"})
+
+    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def profile_process(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        print('------------------profile_process------------------')
+        instance = self.get_object()  # 获取详情的实例对象
+        print(f'INFO:-> instance: {instance.id}, {instance.name}')
+
+        force, get_list = self.profile_pre_process()
+
+        prof_process = ProfileProcess()
+        prof_process.get_profile(prof_process, instance=instance, func_list=get_list, force=force)
+        return Response({"msg": 'profile_process finished'})
+
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
@@ -246,7 +291,7 @@ class ReContactViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
 
     def get_serializer_class(self):
-        print(self.action , self.request.method)
+        print(self.action, self.request.method)
 
         # if self.request.method == 'POST':
         # if self.action == 'create' and self.request.method == 'POST' and self.request.data:

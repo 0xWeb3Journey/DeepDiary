@@ -14,6 +14,44 @@ import django_filters
 
 from user_info.models import Profile, string_to_int_mapping, ReContact
 
+# only for text search
+search_fields_img = {
+    # color
+    'colors__image__closest_palette_color_parent': ['exact'],
+
+    # category
+    'categories__name': ['exact'],  #
+    # address
+    'address__country': ['exact', 'contains'],
+    'address__province': ['exact', 'contains'],
+    'address__city': ['exact', 'contains'],
+    'address__district': ['exact', 'contains'],
+    'address__location': ['icontains'],
+    # profile
+    'user__name': ['exact'],  #
+    'user__username': ['exact'],  #
+    # date
+    'dates__year': ['exact', 'contains'],  #
+    'dates__month': ['exact', 'contains'],  #
+    'dates__day': ['exact', 'contains'],  #
+    'dates__capture_date': ['exact', 'contains'],  #
+
+    '$tags__name': ['exact', 'icontains'],  #
+    # img
+    'name': ['exact', 'icontains'],  #
+    'title': ['exact', 'icontains'],  #
+    'caption': ['exact', 'icontains'],  #
+    "type": ['exact'],
+}
+
+# only for text search
+search_fields_face = {
+    'profile__id': ['exact'],  #
+    'profile__name': ['exact', 'icontains'],
+    'profile__full_pinyin': ['exact', 'icontains'],
+    'profile__lazy_pinyin': ['exact', 'icontains'],
+}
+
 
 class TagsFilter(django_filters.CharFilter):
 
@@ -29,8 +67,8 @@ class TagsFilter(django_filters.CharFilter):
 
 
 class FaceFilter(FilterSet):
-
     relation = django_filters.CharFilter('profile', method='relation_filter')
+
     class Meta:
         model = Face  # 模型名
 
@@ -52,26 +90,28 @@ class FaceFilter(FilterSet):
 
     def relation_filter(self, qs, name, value):
         relation = string_to_int_mapping.get(value, None)
-        user=self.request.user
+        user = self.request.user
 
         if not relation:
             return qs
         print('relation_filter: ', name, value, relation)
+        # find the profile ids based on the relation string
         profile_ids = ReContact.objects.filter(relation=relation, re_to=user).values_list('re_from', flat=True)
         print(profile_ids)
+        # filter the related faces based on the profile ids
         qs = qs.filter(profile__id__in=profile_ids)
 
         return qs
 
-    def filter(self, qs, value):
-        print(f'the value in FacesFilter is {qs}, value is {value}')
-        if value is None:
-            qs = qs
-        elif value <= 6:
-            qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value)
-        else:
-            qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums__gte=value)
-        return qs
+    # def filter(self, qs, value):
+    #     print(f'the value in FacesFilter is {qs}, value is {value}')
+    #     if value is None:
+    #         qs = qs
+    #     elif value <= 6:
+    #         qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums=value)
+    #     else:
+    #         qs = qs.annotate(fc_nums=Count('faces')).filter(fc_nums__gte=value)
+    #     return qs
 
 
 class CategoryFilter(FilterSet):
@@ -171,35 +211,6 @@ class ImgFilter(FilterSet):
 
     layout = django_filters.CharFilter('aspect_ratio', method='filter_layout')
 
-    # only for text search
-    search_fields = {
-        # color
-        'colors__image__closest_palette_color_parent': ['exact'],
-
-        # category
-        'categories__name': ['exact'],  #
-        # address
-        'address__country': ['exact', 'contains'],
-        'address__province': ['exact', 'contains'],
-        'address__city': ['exact', 'contains'],
-        'address__district': ['exact', 'contains'],
-        'address__location': ['icontains'],
-        # profile
-        'user__name': ['exact'],  #
-        'user__username': ['exact'],  #
-        # date
-        'dates__year': ['exact', 'contains'],  #
-        'dates__month': ['exact', 'contains'],  #
-        'dates__day': ['exact', 'contains'],  #
-        'dates__capture_date': ['exact', 'contains'],  #
-
-        '$tags__name': ['exact', 'icontains'],  #
-        # img
-        'name': ['exact', 'icontains'],  #
-        'title': ['exact', 'icontains'],  #
-        'caption': ['exact', 'icontains'],  #
-        "type": ['exact'],
-    }
 
     class Meta:
         model = Img  # 模型名

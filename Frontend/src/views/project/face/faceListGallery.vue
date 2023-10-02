@@ -42,7 +42,7 @@
       },
       id: {
         type: Number,
-        default: 0, // model field name
+        default: null, // 如果默认设置为0，会导致id=0的情况下，后端无响应，应为不存在id=0对应的profile
         required: false,
       },
     },

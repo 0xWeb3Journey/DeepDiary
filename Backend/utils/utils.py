@@ -10,7 +10,7 @@ def get_pinyin(name):
 
 
 # 示例
-chinese_name = "葛维冬"
-full_pinyin, lazy_pinyin_str = get_pinyin(chinese_name)
-print("Full Pinyin:", full_pinyin)  # 输出：geweidong
-print("Lazy Pinyin:", lazy_pinyin_str)  # 输出：gwd
+# chinese_name = "葛维冬"
+# full_pinyin, lazy_pinyin_str = get_pinyin(chinese_name)
+# print("Full Pinyin:", full_pinyin)  # 输出：geweidong
+# print("Lazy Pinyin:", lazy_pinyin_str)  # 输出：gwd
