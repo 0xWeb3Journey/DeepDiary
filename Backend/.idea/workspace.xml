@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/user_info/task.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
@@ -1482,13 +1481,11 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/filters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/filters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/faceList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/faceList.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/Gallery/content.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/Gallery/content.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/faceListGallery.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/faceListGallery.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail.vue" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1756,7 +1753,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/user_info/serializers.py</url>
-          <line>137</line>
+          <line>159</line>
           <option name="timeStamp" value="77" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -1771,7 +1768,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/user_info/models.py</url>
-          <line>54</line>
+          <line>56</line>
           <option name="timeStamp" value="90" />
         </line-breakpoint>
       </breakpoints>

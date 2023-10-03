@@ -3,7 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework import serializers
 from library.serializers_out import FaceBriefSerializer
 from tags.serializers import TagSerializerField
-from user_info.models import Profile, Company, ROLES_OPTION, Demand, Resource, Experience, RELATION_OPTION
+from user_info.models import Profile, Company, ROLES_OPTION, Demand, Resource, Experience, RELATION_OPTION, Image
 from utils.serializers import DisplayChoiceField
 
 
@@ -50,7 +50,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id','username', 'password', 'relation', 'tel', 'avatar', 'introduction', 'roles', 'profile_url',
+        fields = ['id', 'username', 'password', 'relation', 'tel', 'avatar', 'introduction', 'roles', 'profile_url',
                   'resources', 'demands']  #
         extra_kwargs = {
             'password': {'write_only': True},
@@ -84,25 +84,47 @@ class UserDetailSerializer(serializers.ModelSerializer):
         return rst
 
 
+class ImageSerializer(serializers.ModelSerializer):
+    thumb = serializers.ImageField(read_only=True)
+    class Meta:
+        model = Image
+        fields = ['id', 'src', 'thumb']
+
+    # def to_representation(self, instance):
+    #     rst = []
+    #     # 调用父类获取当前序列化数据，value代表每个对象实例ob
+    #     data = super().to_representation(instance)
+    #     if data is None:
+    #         rst.append({
+    #             # 其中id设置成4位的随机数
+    #             'id': 1000,
+    #             'src': 'https://deep-diary.oss-accelerate.aliyuncs.com/media/lg_logo.png',
+    #             'thumb': 'https://deep-diary.oss-accelerate.aliyuncs.com/media/lg_logo.png',
+    #         })
+    #     return rst
+
+
 class DemandSerializer(serializers.ModelSerializer):
     # 本级属性
     # demand_url = serializers.HyperlinkedIdentityField(view_name='demand-detail')
+    images = ImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Demand
-        # fields = ['name', 'addr', 'desc', 'company_url']
-        fields = '__all__'
+        fields = ['id', 'name', 'desc', 'images']
+        # fields = '__all__'
         # exclude = ['created_at', 'updated_at']
 
 
 class ResourceSerializer(serializers.ModelSerializer):
     # 本级属性
     # resource_url = serializers.HyperlinkedIdentityField(view_name='resource-detail')
+    images = ImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Resource
-        # fields = ['name', 'addr', 'desc', 'company_url']
-        fields = '__all__'
+        fields = ['id', 'name', 'desc', 'images']
+        # fields = '__all__'
         # exclude = ['created_at', 'updated_at']
 
 
@@ -161,7 +183,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'name', 'relation', 'avatar', 'introduction', 'roles', 'profile_url',  'demands', 'resources',
+        fields = ['id', 'name', 'relation', 'avatar', 'introduction', 'roles', 'profile_url', 'demands', 'resources',
                   'experiences']
         # fields = '__all__'
 

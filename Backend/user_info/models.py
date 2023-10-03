@@ -9,6 +9,8 @@ from django.db.models import Count
 from django.db.models.signals import post_save
 # 引入信号接收器的装饰器
 from django.dispatch import receiver
+from imagekit.models import ImageSpecField
+from pilkit.processors import ResizeToFit
 from taggit.managers import TaggableManager
 
 SEX_OPTION = (
@@ -64,6 +66,7 @@ string_to_int_mapping = {s: i for i, s in enumerate(relation_strings)}
 # 根据映射生成格式模板
 RELATION_OPTION = tuple((i, s) for s, i in string_to_int_mapping.items())
 
+
 # print(RELATION_OPTION)
 
 
@@ -77,13 +80,13 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
 def user_upload_img(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "user_info_img"
     # user_fold = os.path.join(instance.user.username, sub_folder, filename)
-    user_fold = os.path.join(instance.username, sub_folder, filename)
+    user_fold = os.path.join(sub_folder, filename)
     return user_fold
 
 
 def user_upload_file(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "user_info_file"
-    user_fold = os.path.join(instance.user.username, sub_folder, filename)
+    user_fold = os.path.join(sub_folder, filename)
     return user_fold
 
 
@@ -106,6 +109,43 @@ class Company(models.Model):
         get_latest_by = 'id'
 
 
+class Address(models.Model):
+    company = models.OneToOneField(
+        Company,
+        related_name='address',
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    ## 地点属性:location
+    is_located = models.BooleanField(default=False, blank=True, verbose_name="是否有GPS 信息",
+                                     help_text='是否有GPS 信息')
+    longitude_ref = models.CharField(default='E', max_length=5, null=True, blank=True, verbose_name="东西经",
+                                     help_text='东西经')
+    longitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="经度",
+                                  help_text='经度')
+    latitude_ref = models.CharField(default='N', max_length=5, null=True, blank=True, verbose_name="南北纬",
+                                    help_text='南北纬')
+    latitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="纬度",
+                                 help_text='纬度')
+    altitude_ref = models.FloatField(default=0.0, max_length=5, null=True, blank=True, verbose_name="参考高度",
+                                     help_text='参考高度')
+    altitude = models.FloatField(default=0.0, max_length=20, null=True, blank=True, verbose_name="高度",
+                                 help_text='高度')
+    location = models.CharField(default='No GPS', max_length=50, null=True, blank=True, verbose_name="拍摄地",
+                                help_text='拍摄地')
+    district = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄区县",
+                                help_text='拍摄区县')
+    city = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄城市",
+                            help_text='拍摄城市')
+    province = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄省份",
+                                help_text='拍摄省份')
+    country = models.CharField(default='No GPS', max_length=20, null=True, blank=True, verbose_name="拍摄国家",
+                               help_text='拍摄国家')
+
+    def __str__(self):
+        return self.img.name
+
+
 class Profile(AbstractUser):  # 直接继承django默认用户信息
     #  many to many field
     # imgs = models.ManyToManyField('Img', through='Face', related_name='profiles')
@@ -113,8 +153,10 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     # events = models.ManyToManyField('Event', through='Participation')  # will be used in diary
 
     name = models.CharField(max_length=30, null=True, blank=True, verbose_name="真实姓名", help_text="真实姓名")
-    full_pinyin = models.CharField(max_length=20, null=True, blank=True, verbose_name="真实姓名全拼", help_text="真实姓名全拼")
-    lazy_pinyin = models.CharField(max_length=20, null=True, blank=True, verbose_name="真实姓名首拼", help_text="真实姓名首拼")
+    full_pinyin = models.CharField(max_length=20, null=True, blank=True, verbose_name="真实姓名全拼",
+                                   help_text="真实姓名全拼")
+    lazy_pinyin = models.CharField(max_length=20, null=True, blank=True, verbose_name="真实姓名首拼",
+                                   help_text="真实姓名首拼")
     tel = models.CharField(max_length=20, blank=True, verbose_name="电话号码", help_text="用户手机号码")
     avatar = models.ImageField(upload_to=user_directory_path,
                                verbose_name="头像",
@@ -228,9 +270,11 @@ class Resource(models.Model):
         on_delete=models.CASCADE,
         related_name='resources'
     )
-    desc = models.TextField(blank=True, verbose_name="Detail of SupplyDemand", help_text="Detail of SupplyDemand")
+    name = models.CharField(blank=True, max_length=30, verbose_name="title of Resource",
+                            help_text="title of Resource")
+    desc = models.TextField(blank=True, verbose_name="Detail of Resource", help_text="Detail of Resource")
     tags = TaggableManager(blank=True, verbose_name="Tags",
-                           help_text="keyword of Detail of SupplyDemand，seperated by ','")
+                           help_text="keyword of Detail of Resource，separated by ','")
     # 数据库更新日期
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
@@ -251,7 +295,7 @@ class Demand(models.Model):
                             help_text="title of demand")
     desc = models.TextField(blank=True, verbose_name="Detail of Demand", help_text="description of Demand")
     tags = TaggableManager(blank=True, verbose_name="Tags",
-                           help_text="keyword of Detail of SupplyDemand，separated by ','")
+                           help_text="keyword of Detail of Demand，separated by ','")
 
     # 数据库更新日期
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
@@ -283,19 +327,32 @@ class Experience(models.Model):
 
 
 class Image(models.Model):
-    experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='images')
-    demand = models.ForeignKey(Demand, on_delete=models.CASCADE, related_name='images')
-    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to=user_upload_img, verbose_name="图片",
-                              help_text='请上传图片',
-                              null=True, blank=True,
-                              default='sys_img/logo_lg.png')
+    experience = models.ForeignKey(Experience, null=True, blank=True, on_delete=models.CASCADE, related_name='images',
+                                   verbose_name='工作经验', help_text="the images of this experience")
+    demand = models.ForeignKey(Demand, null=True, blank=True, on_delete=models.CASCADE, related_name='images',
+                               verbose_name='需求', help_text="the images of this demand")
+    resource = models.ForeignKey(Resource, null=True, blank=True, on_delete=models.CASCADE, related_name='images',
+                                 verbose_name='资源', help_text="the images of this resource")
+    src = models.ImageField(upload_to=user_upload_img, verbose_name="图片",
+                            help_text='请上传图片',
+                            null=True, blank=True,
+                            default='sys_img/logo_lg.png')
+    thumb = ImageSpecField(source='src',
+                           # processors=[ResizeToFill(300, 300)],
+                           processors=[ResizeToFit(width=500, height=500)],
+                           # processors=[Thumbnail(width=300, height=300, anchor=None, crop=None, upscale=None)],
+                           format='JPEG',
+                           options={'quality': 80},
+                           )
 
 
 class File(models.Model):
-    experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='files')
-    demand = models.ForeignKey(Demand, on_delete=models.CASCADE, related_name='files')
-    resource = models.ForeignKey(Resource, on_delete=models.CASCADE, related_name='files')
+    experience = models.ForeignKey(Experience, null=True, blank=True, on_delete=models.CASCADE, related_name='files',
+                                   verbose_name='工作经验', help_text="the files of this experience")
+    demand = models.ForeignKey(Demand, null=True, blank=True, on_delete=models.CASCADE, related_name='files',
+                               verbose_name='需求', help_text="the files of this demand")
+    resource = models.ForeignKey(Resource, null=True, blank=True, on_delete=models.CASCADE, related_name='files',
+                                 verbose_name='资源', help_text="the files of this resource")
     file = models.FileField(upload_to=user_upload_file, verbose_name="文件",
                             help_text='请上传文件',
                             null=True, blank=True,

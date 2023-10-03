@@ -138,7 +138,7 @@
             )
           }
           console.log('FaceListGallery: emit faceData')
-          this.$emit('faceData', this.faces.data)
+          this.$emit('faceData', this.faces)
         })
 
         setTimeout(() => {

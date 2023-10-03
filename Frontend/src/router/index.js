@@ -123,7 +123,7 @@ export const asyncRoutes = [
         hidden: true,
         component: () => import('@/views/project/face/profileDetail'),
         meta: {
-          title: 'Face Person',
+          title: 'Profile Detail',
           icon: 'marker',
           permissions: ['admin'],
         },
@@ -134,7 +134,7 @@ export const asyncRoutes = [
         hidden: true,
         component: () => import('@/views/project/face/groupDetail'),
         meta: {
-          title: 'Face Group',
+          title: 'Group Detail',
           icon: 'marker',
           permissions: ['admin'],
         },

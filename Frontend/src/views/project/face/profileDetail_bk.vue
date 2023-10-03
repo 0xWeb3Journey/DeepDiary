@@ -1,7 +1,7 @@
 <template>
   <div>
     <DetailHead
-      content="人脸详情"
+      :content="`人物详情 | ${profileDetail.data.name} | ${profileDetail.data.relation} | 共计${faces.totalCnt}张照片 `"
       @edit="onEdit"
       @remove="onRemove"
     ></DetailHead>
@@ -39,25 +39,6 @@
         isShowCarosel: false,
         isDoEdit: false,
         faces: {
-          query: {
-            page: 1,
-            size: 40,
-            // profile__isnull: true,
-            profile: 30,
-            det_score__gt: 0.7,
-            // det_score__lt: 0.6,
-            // face_score__gt: 0.8,
-            // face_score__lt: 0.6,
-            // age__gt: 35,
-            // age__lt: 35,
-            // gender: 0,
-            // pose_x__gt: 0,
-            // pose_x__lt: 0,
-            // pose_y__gt: 0,
-            // pose_y__lt: 0,
-            // pose_z__gt: 10,
-            // pose_z__lt: -5,
-          },
           data: [],
         },
         profileDetail: {
@@ -85,22 +66,17 @@
       },
     },
     created() {
-      console.log('component have been created --')
+      console.log('profileDetail component have been created --')
     },
     mounted() {
-      console.log('component have been mounted --')
+      console.log('profileDetail component have been mounted --')
     },
     activated() {
+      console.log('profileDetail component have been activated --')
       // change string format to int
       this.profileDetail.query.id = parseInt(this.$route.query.id)
-      this.faces.query.profile = this.profileDetail.query.id
-      this.faces.query.page = 1
-      this.isGetRoutePrarms = true
 
-      console.log(
-        'ProfileDetail: the face component is activated',
-        this.faces.query.profile
-      )
+      this.isGetRoutePrarms = true
     },
     deactivated() {
       this.faces.data = [] //退出之前清空缓存，防止下次进入的时候，先显示上次的数据，再显示新的数据
@@ -138,7 +114,7 @@
       },
       onFaceData(data) {
         // console.log('ProfileDetail: onFaceData', data)
-        this.faces.data = data
+        this.faces = data
         this.isShowCarosel = true
       },
     },

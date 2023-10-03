@@ -190,6 +190,8 @@
         if (divElement) {
           // Create an interval to check the div's height every 1 second
           this.intervalId = setInterval(() => {
+            //init the height
+            this.$refs.gallery_container.style.height = 600 + 'px'
             // Check if the component is busy
             if (this.busy === false) {
               // Get the current scroll height of the div
@@ -199,26 +201,50 @@
               var scrollTop = divElement.scrollTop
 
               // Get the client height of the div
-              var divHeight = divElement.clientHeight
+              // var divHeight = divElement.clientHeight
+              var divHeight = 600
 
-              console.log(
-                'Gallery content: checkDivHeight:divElement: The div is not filled.',
-                scrollTop,
-                scrollHeight,
-                divHeight,
-                this.finished
-              )
-              // Check if the div's height is greater than or equal to the screen height
-              if (scrollHeight > divHeight || this.finished) {
+              // check if all the data has been loaded
+
+              if (scrollHeight > divHeight) {
                 // The div is filled, so clear the interval
                 clearInterval(this.intervalId)
                 this.intervalId = null // Reset the interval ID
-                console.log('timer has been closed')
+                console.log('timer has been closed', scrollHeight, divHeight)
               } else {
-                // The div is not filled, continue monitoring
+                if (this.finished) {
+                  clearInterval(this.intervalId)
+                  this.intervalId = null // Reset the interval ID
+                  // set the gallery_container div to scrollHeight
 
-                this.$emit('load') //自定义事件  传递值“子向父组件传值”load  //content.vue:204  Uncaught TypeError: this.$emit is not a function
+                  const contentHeight = this.$refs.gallery.scrollHeight
+
+                  // const scrollHeight = content.scrollHeight
+                  this.$refs.gallery_container.style.height =
+                    contentHeight + 'px'
+
+                  console.log(
+                    'Set the divHeight to match content height:',
+                    this.$refs.gallery_container.style.height
+                  )
+                } else {
+                  // The div is not filled, continue monitoring
+
+                  this.$emit('load') //自定义事件  传递值“子向父组件传值”load  //content.vue:204  Uncaught TypeError: this.$emit is not a function
+                }
               }
+
+              // // Check if the div's height is greater than or equal to the screen height
+              // if (scrollHeight > divHeight || this.finished) {
+              //   // The div is filled, so clear the interval
+              //   clearInterval(this.intervalId)
+              //   this.intervalId = null // Reset the interval ID
+              //   console.log('timer has been closed')
+              // } else {
+              //   // The div is not filled, continue monitoring
+
+              //   this.$emit('load') //自定义事件  传递值“子向父组件传值”load  //content.vue:204  Uncaught TypeError: this.$emit is not a function
+              // }
             }
           }, 1000) // Check every 1 second
         }
@@ -229,7 +255,7 @@
 
 <style lang="css" scoped>
   .gallery_container {
-    height: 800px;
+    height: 600px;
     overflow-y: auto;
   }
 </style>
