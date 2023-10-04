@@ -17,10 +17,12 @@ from library.models import Img, Category, Address, Stat, Evaluate, Date, ImgMcs,
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination, FacePageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
-from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer, CategoryFilterListSerializer
-from library.task import ImgProces, check_img_info, check_all_img_info
-from user_info.models import Profile, ReContact, relation_strings, RELATION_OPTION
-from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerializer, ReContactGraphSerializer
+from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer, CategoryFilterListSerializer, \
+    FaceGraphSerializer
+from library.task import ImgProces, check_img_info, check_all_img_info, IMG_FUC_LIST, IMG_ADD_LIST
+from user_info.models import Profile, ReContact, relation_strings, RELATION_OPTION, Experience, Company
+from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerializer, ReContactGraphSerializer, \
+    ExperienceGraphSerializer, CompanyGraphSerializer
 #
 # class CategoryViewSet(viewsets.ModelViewSet):
 #     queryset = Category.objects.all()
@@ -151,12 +153,10 @@ class ImgViewSet(viewsets.ModelViewSet):
 
         if get_list_org == 'all':
             print('INFO:-> get_list_org == all')
-            get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
-                        'get_faces']
+            get_list = IMG_FUC_LIST
         if add_list_org == 'all':
             print('INFO:-> add_list_org == all')
-            add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
-                        'add_colors_to_category', 'add_layout_to_category', 'add_size_to_category']
+            add_list = IMG_ADD_LIST
         print(f'INFO:-> param force: {force}')
         print(f'INFO:-> param get_list: {get_list_org}')
         print(f'INFO:-> param add_list: {add_list_org}')
@@ -218,7 +218,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         norm_len = len(qs)
         print(len(qs))
 
-        queryset=qs
+        queryset = qs
         # ------------------------------------------------------------------------------
         """Entity Recognition"""
         """NLP Search"""
@@ -291,17 +291,26 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
     def graph(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
-        # objs = FaceAlbum.objects.annotate(value=Count('faces')).order_by('-value')
-        # serializer = FaceAlbumGraphSerializer(self.queryset.exclude(name__startswith='unknown'), many=True, context={'request': request})  # 不报错
-        # person_node = serializer.data
-        img_serializer = ImgGraphSerializer(self.queryset, many=True, context={'request': request})
-        img_node = img_serializer.data
-        person_searilaizer = ProfileGraphSerializer(Profile.objects.all(), many=True,
-                                                    context={'request': request})  # 这里需要传入查询集
-        persion_node = person_searilaizer.data
-        edges_img_profile = self.get_relation_of_img_profile()
-        edges_profile_profile = self.get_relation_of_profile_profile()
-        # print(json.dumps(edges, indent=4, ensure_ascii=False))
+
+        # get the original id
+        node_img = ImgGraphSerializer(self.queryset.filter(faces__isnull=False), many=True, context={'request': request}).data
+        node_profile = ProfileGraphSerializer(Profile.objects.all(), many=True,
+                                              context={'request': request}).data  # 这里需要传入查询集
+        node_company = CompanyGraphSerializer(Company.objects.all(), many=True).data
+
+        edges_img_profile = FaceGraphSerializer(Face.objects.filter(profile__isnull=False), many=True).data
+        edges_profile_profile = ReContactGraphSerializer(ReContact.objects.all(), many=True).data
+        edges_profile_company = ExperienceGraphSerializer(Experience.objects.all(), many=True).data
+
+        # update the related id based on model name
+        node_img = self.update_graph_node_id(node_img, 'img')
+        node_profile = self.update_graph_node_id(node_profile, 'profile')
+        node_company = self.update_graph_node_id(node_company, 'company')
+
+
+        edges_img_profile = self.update_graph_edge_id(edges_img_profile, 'img', 'profile')
+        edges_profile_profile = self.update_graph_edge_id(edges_profile_profile, 'profile', 'profile')
+        edges_profile_company = self.update_graph_edge_id(edges_profile_company, 'profile', 'company')
 
         graph = {
             "categories": {
@@ -315,29 +324,48 @@ class ImgViewSet(viewsets.ModelViewSet):
                 "company": "公司",
             },
             "data": {
-                "nodes": img_node + persion_node,
-                "edges": edges_img_profile + edges_profile_profile
+                "nodes": node_img +
+                         node_profile +
+                         node_company,
+                "edges": edges_img_profile +
+                         edges_profile_profile +
+                         edges_profile_company
             }
         }
 
         return Response(graph)
 
-    def get_relation_of_img_profile(self):
-        # faces = Face.objects.filter(profile__isnull=False)
-        faces = Face.objects.select_related('img', 'profile').filter(profile__isnull=False)
-        edges = [{
-            "from": face.img_id,
-            "to": face.profile_id,
-            "label": "include"}
-            for face in faces]
+    @staticmethod
+    def update_graph_node_id(nodes, prefix):
+        """
+        目的： 考虑到不同模块节点的id可能会一样，因此需要更新图谱中的id，将原来的id替换成新的id， 可以实现模块前缀+id的形式
+              e.g. img node 中有 id = 1， profile中也有id= 1, 那对应的edge中的from_id 和 to_id 都需要更新
+        param: nodes:更新前的 nodes 列表
+        param: prefix: 模块前缀
+        return: nodes 更新后的nodes
+        example: nodes = self.update_graph_node_id(nodes, prefix='img')
+        """
+        # nodes_updated = [{'id': prefix + str(node['id']), **node} for node in nodes]
+        nodes_updated = [{**node, 'id': prefix + str(node['id'])} for node in nodes]  # 改动的需要在后面，不然会被后面覆盖
+
+        return nodes_updated
+
+    @staticmethod
+    def update_graph_edge_id(edges, prefix_from, prefix_to):
+        """
+        目的： 考虑到不同模块节点的id可能会一样，因此需要更新图谱中的id，将原来的id替换成新的id， 可以实现模块前缀+id的形式
+              e.g. img node 中有 id = 1， profile中也有id= 1, 那对应的edge中的from_id 和 to_id 都需要更新
+        param: edges:更新前的edges 列表
+        param: prefix_from: from模块前缀
+        param: prefix_to: to模块前缀
+        return: edge 更新后的edge
+        example: node = self.update_graph_edge_id(edge, 'img', 'profile')
+        """
+        # 改动的需要在后面，不然会被后面覆盖
+        edges = [{**edge, 'from': prefix_from + str(edge['from']), 'to': prefix_to + str(edge['to'])} for edge in edges]
+
         return edges
 
-    def get_relation_of_profile_profile(self):
-        recontact = ReContact.objects.all()
-        edges = ReContactGraphSerializer(recontact, many=True).data
-        # print(json.dumps(edges, indent=4, ensure_ascii=False))
-
-        return edges
 
 
 class ImgMcsViewSet(viewsets.ModelViewSet):
@@ -430,9 +458,11 @@ class FaceViewSet(viewsets.ModelViewSet):
     # permission_classes = (AllowAny,)
     # pagination_class = FacePageNumberPagination  # 增加了这句代码，就无法显示filter,不过效果还是有的
 
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter,
+                       filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
 
     search_fields = search_fields_face
+
     # ordering_fields = ['img__id']  # 这里的字段，需要总上面定义字段中选择
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
@@ -443,7 +473,7 @@ class FaceViewSet(viewsets.ModelViewSet):
         fc = self.get_object()
         process = ImgProces()
         profile, fc_instance = process.face_rename(fc, self.request.data.get('name', None))
-
+        serializer.validated_data["profile"] = profile
         serializer.save()  # 保存更新的实例对象
 
     def get_serializer_class(self):
@@ -488,9 +518,9 @@ class FaceViewSet(viewsets.ModelViewSet):
         norm_len = len(qs)
         print(len(qs))
 
-        queryset=qs
+        queryset = qs
 
-        related_str=[]
+        related_str = []
         # 获取跟当前用户相关的人脸
         if user.is_authenticated:
             print('user is authenticated: ', user.name)
@@ -499,7 +529,7 @@ class FaceViewSet(viewsets.ModelViewSet):
             # related_str=[relation_strings[item.relation] for item in related]
             # related_str = set(related_str)
 
-            related_id=user.re_to_relations.all().values_list('relation', flat=True)
+            related_id = user.re_to_relations.all().values_list('relation', flat=True)
             related_str = [relation_strings[id] for id in set(related_id)]
 
             print('related_str: ', related_str)
@@ -509,9 +539,9 @@ class FaceViewSet(viewsets.ModelViewSet):
             print('user is not authenticated')
             # queryset = queryset.filter(profile__recontact__owner__isnull=True)
 
-
         # 2. 统计每个Profile在img_queryset出现的次数，记作value
-        profile_list = Profile.objects.annotate(value=Count('faces')).distinct().values('name', 'value').order_by('-value')
+        profile_list = Profile.objects.annotate(value=Count('faces')).distinct().values('name', 'value').order_by(
+            '-value')
 
         data = {
 
@@ -520,8 +550,8 @@ class FaceViewSet(viewsets.ModelViewSet):
                 {'name': 'Named', 'value': 0},
                 {'name': 'Unnamed', 'value': 1},
             ],
-            'det_score__gt': [0.9,0.8,0.7,0.6,0.5],
-            'det_score__lt': [0.4, 0.5,0.6,0.7,0.8],
+            'det_score__gt': [0.9, 0.8, 0.7, 0.6, 0.5],
+            'det_score__lt': [0.4, 0.5, 0.6, 0.7, 0.8],
             'face_score__gt': [0.9, 0.8, 0.7, 0.6, 0.5],
             'face_score__lt': [0.4, 0.5, 0.6, 0.7, 0.8],
             'gender': [
@@ -541,9 +571,7 @@ class FaceViewSet(viewsets.ModelViewSet):
                 {'name': 'Forbidden', 'value': 1},
                 {'name': 'Deleted', 'value': 9},
             ],
-            'relation':related_str,
-
-
+            'relation': related_str,
 
         }
 
@@ -552,4 +580,3 @@ class FaceViewSet(viewsets.ModelViewSet):
             'code': 200,
             'data': data,
         })
-

@@ -10,18 +10,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from user_info.filters import ProfileFilter, RelationFilter, search_fields_profile
-from user_info.models import Profile, Company, ReContact, relation_strings, string_to_int_mapping
+from user_info.models import Profile, Company, ReContact, relation_strings, string_to_int_mapping, Experience
 from user_info.serializers import UserRegisterSerializer, ProfileSerializer, CompanySerializer, \
     UserDetailSerializer
 from user_info.serializers_out import ProfileBriefSerializer, ReContactGraphSerializer, ReContactBriefSerializer, \
-    ReContactListSerializer
-from user_info.task import ProfileProcess
+    ReContactListSerializer, ExperienceGraphSerializer
+from user_info.task import ProfileProcess, CompanyProcess
 # class UserRegisterViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()
 #     serializer_class = UserRegisterSerializer
 #     lookup_field = 'username'  # 要和序列化器中对应起来
 from utils.pagination import GeneralPageNumberPagination
 from utils.permissions import get_user_info
+from utils.utils import get_pinyin
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -135,6 +136,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
             print("未找到匹配的face_ins")
 
         # --------------------------update profile, which include name------------
+        name = self.request.data.get("name", None)
+        if name:
+            print(f'人物更新：name =  {name}')
+            serializer.validated_data["full_pinyin"], serializer.validated_data["lazy_pinyin"] = get_pinyin(name)
         serializer.save()
 
         # --------------------------update relation------------
@@ -276,6 +281,49 @@ class ProfileViewSet(viewsets.ModelViewSet):
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+    pagination_class = GeneralPageNumberPagination
+
+    def request_pre_process(self):
+        # 从request中获取参数
+        param = self.request.query_params
+        print(f'INFO:-> param: {param}')
+
+        force = param.get("force", None)
+        get_list_org = param.get("get_list", None)
+
+        # get_exif_info 必须第一个，因为是这个函数创建了stat实例
+        # param得到的都是字符类型，需要转换成bool类型
+        force = True if force == '1' else False  # force = 1, True, force = 0, False
+        get_list = [item.strip() for item in get_list_org.split(',') if item != '']  # 去掉空字符串
+
+        if get_list_org == 'all':
+            print('INFO:-> get_list_org == all')
+            get_list = ['get_pinyin']
+
+        print(f'INFO:-> param force: {force}')
+        print(f'INFO:-> param get_list: {get_list_org}')
+        return force, get_list
+
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def batch_company_process(self, request, pk=None):
+        print('------------------batch_img_test------------------')
+        force, get_list = self.request_pre_process()
+
+        company_process = CompanyProcess()
+        company_process.get_all_company(company_process, func_list=get_list, force=force)
+        return Response({"msg": "batch_img_test success"})
+
+    @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def company_process(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        print('------------------company_process------------------')
+        instance = self.get_object()  # 获取详情的实例对象
+        print(f'INFO:-> instance: {instance.id}, {instance.name}')
+
+        force, get_list = self.request_pre_process()
+
+        prof_process = CompanyProcess()
+        prof_process.get_company(prof_process, instance=instance, func_list=get_list, force=force)
+        return Response({"msg": 'company_process finished'})
 
 
 class ReContactViewSet(viewsets.ModelViewSet):
@@ -300,3 +348,9 @@ class ReContactViewSet(viewsets.ModelViewSet):
             # 如果请求的数据是列表，使用ListSerializer来处理
             return ReContactListSerializer
         return ReContactBriefSerializer
+
+
+class ExperienceViewSet(viewsets.ModelViewSet):
+    queryset = Experience.objects.all()
+    serializer_class = ExperienceGraphSerializer
+    pagination_class = GeneralPageNumberPagination

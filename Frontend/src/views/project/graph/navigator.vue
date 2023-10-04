@@ -106,18 +106,18 @@
                 }
                 <b>${node.label}</b> [${node.id}]
                 ${
-                  node.caption !== null
-                    ? `<p align="left">the caption is: ${node.caption}</p>`
+                  node.caption !== undefined
+                    ? `<p align="left">Caption: ${node.caption}</p>`
                     : ''
                 }
                 ${
-                  node.desc !== null
-                    ? `<p align="left">the description is: ${node.desc}</p>`
+                  node.desc !== undefined
+                    ? `<p align="left">Desc: ${node.desc}</p>`
                     : ''
                 }
                 ${
-                  node.tags !== null
-                    ? `<p align="left">the tags is: ${node.tags}</p>`
+                  node.tags !== undefined
+                    ? `<p align="left">Tag: ${node.tags}</p>`
                     : ''
                 }
               </div>

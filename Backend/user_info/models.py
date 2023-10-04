@@ -92,8 +92,14 @@ def user_upload_file(instance, filename):  # dir struct MEDIA/user/subfolder/fil
 
 # 公司 model
 class Company(models.Model):
-    employees = models.ManyToManyField('Profile', through='Experience')
+    employees = models.ManyToManyField('Profile', through='Experience', related_name='companies')
     name = models.CharField(max_length=30, blank=True, verbose_name="公司名称", help_text="公司名称")
+    name_PyFull = models.CharField(max_length=60, blank=True, null=True, verbose_name="公司名称全拼", help_text="公司名称全拼")
+    name_PyInitial = models.CharField(max_length=20, blank=True, null=True, verbose_name="公司名称拼音首字母", help_text="公司名称拼音首字母")
+    avatar = models.ImageField(upload_to=user_upload_img, verbose_name="图片",
+                               help_text='请上传图片',
+                               null=True, blank=True,
+                               default='sys_img/logo_lg.png')
     addr = models.CharField(max_length=50, blank=True, verbose_name="公司地址", help_text="公司地址")
     desc = models.TextField(blank=True, verbose_name="公司描述", help_text="公司描述")
     tags = TaggableManager(blank=True, verbose_name="公司标签", help_text="可以在这里给公司打上关键字，用','隔开")
@@ -316,14 +322,18 @@ class Experience(models.Model):
     end_date = models.DateField(null=True, blank=True, verbose_name="end_date",
                                 help_text="when is this experience end_date")
     name = models.CharField(max_length=30, verbose_name="name", help_text="the title of this experience")
-    desc = models.CharField(max_length=300, verbose_name="description", help_text="the detail of this experience")
-    achievement = models.CharField(max_length=100, verbose_name="achievement", help_text="fill the achievement you got")
+    desc = models.CharField(max_length=300, verbose_name="description", null=True,
+                            help_text="the brief description of this experience")
+    duty = models.CharField(max_length=300, verbose_name="responsibility", null=True,
+                            help_text="the duty of this experience")
+    achievement = models.CharField(max_length=100, blank=True, null=True, verbose_name="achievement",
+                                   help_text="fill the achievement you got")
     # 数据库更新日期
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text="首次创建的时间")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text="最后更新的时间")
 
     def __str__(self):
-        return f"{self.profile.name} worked at {self.company.name}"
+        return f"{self.profile.name} worked at {self.company.name} in charge of {self.name} from {self.start_date} to {self.end_date}"
 
 
 class Image(models.Model):

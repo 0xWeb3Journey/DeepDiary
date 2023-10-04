@@ -6,6 +6,7 @@
       @remove="onRemove"
     ></DetailHead>
     <Carosel v-if="isShowCarosel" title="照片" :items="faces.data"></Carosel>
+    <el-divider><i class="el-icon-finished"></i></el-divider>
     <FaceListGallery
       v-if="isGetRoutePrarms"
       :id="profileDetail.query.id"
@@ -15,6 +16,9 @@
 
     <ResourceDemand :items="profileDetail.data.resources"></ResourceDemand>
     <ResourceDemand :items="profileDetail.data.demands"></ResourceDemand>
+    <el-divider><i class="el-icon-finished"></i></el-divider>
+    <Experience :items="profileDetail.data.experiences"></Experience>
+    <el-divider><i class="el-icon-finished"></i></el-divider>
 
     <ProfileEdit
       :profile="profileDetail.data"
@@ -34,6 +38,7 @@
   import ProfileEdit from '../profileEdit.vue'
   import FaceListGallery from '../faceListGallery.vue'
   import ResourceDemand from './resourceDemand.vue'
+  import Experience from './experience.vue'
   export default {
     name: 'ProfileDetail',
     components: {
@@ -42,6 +47,7 @@
       Carosel,
       ProfileEdit,
       ResourceDemand,
+      Experience,
     },
     data() {
       return {
@@ -72,6 +78,7 @@
           oldVal,
           newVal
         )
+        this.faces.data = [] //获取新id数据之前清空缓存，防止下次进入的时候，先显示上次的数据，再显示新的数据
         this.fetchProfileDetail()
       },
     },
@@ -89,7 +96,6 @@
       this.isGetRoutePrarms = true
     },
     deactivated() {
-      this.faces.data = [] //退出之前清空缓存，防止下次进入的时候，先显示上次的数据，再显示新的数据
       console.log('profileDetail: the face component is deactivated')
     },
     methods: {

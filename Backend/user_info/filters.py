@@ -21,6 +21,11 @@ search_fields_profile = {
     'name': ['exact', 'icontains'],
     'full_pinyin': ['exact', 'icontains'],
     'lazy_pinyin': ['exact', 'icontains'],
+    'companies__name': ['exact', 'icontains'],
+    'companies__name_PyFull': ['exact', 'icontains'],
+    'companies__name_PyInitial': ['exact', 'icontains'],
+
+
 }
 
 

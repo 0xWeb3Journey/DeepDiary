@@ -48,50 +48,55 @@
 
 <script>
   export default {
-    name: 'ResourceDemandItem',
+    name: 'ExperienceItem',
     components: {},
     props: {
       item: {
         type: Object,
         default: () => ({
           id: 1,
-          name: '英语',
-          desc: 'TEM8, 英语可以作为工作语言',
+          company: '宁波福尔达智能科技股份有限公司',
+          company_PyInitial: 'nbfedznkjgfyxgs',
           images: [
             {
-              id: 1,
-              src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/user_info_img/%E5%9C%B0%E5%9B%BE%E6%98%BE%E7%A4%BA.png',
+              id: 6,
+              src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/user_info_img/avatar.jpg',
               thumb:
-                'https://deep-diary.oss-accelerate.aliyuncs.com/media/CACHE/images/user_info_img/%E5%9C%B0%E5%9B%BE%E6%98%BE%E7%A4%BA/1ed8b21aca917ed0e325c8571f207821.jpg',
+                'https://deep-diary.oss-accelerate.aliyuncs.com/media/CACHE/images/user_info_img/avatar/d5e22908141f1dca9b7144e4d08c25d8.jpg',
             },
             {
-              id: 5,
-              src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/user_info_img/deep-diary_cover.png',
+              id: 7,
+              src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/user_info_img/IMG_20210909_194805.jpg',
               thumb:
-                'https://deep-diary.oss-accelerate.aliyuncs.com/media/CACHE/images/user_info_img/deep-diary_cover/69e150672e13b78f12fc3edb4ed1c43c.jpg',
+                'https://deep-diary.oss-accelerate.aliyuncs.com/media/CACHE/images/user_info_img/IMG_20210909_194805/409854c23b91bb02ca91b98ff4114721.jpg',
             },
           ],
+          position: '项目经理',
+          start_date: '2021-10-08',
+          end_date: '2023-09-27',
+          name: 'SE336出风口',
+          desc: '内叶片自动关风为导向传统出风口,出口安通林与HBPO终端客户为西班牙西亚特',
+          duty: '1.全面主持项目日常管理工作，按照计划组织日常工作，同时进行全面管理及过程监督， \t\t保证进度，质量，控成本完成项目 \t2.参加设计评审会议，模具工装等评审会议，主持日常技术交流会议 \t3.基于公司经营项目制定的目标预算，利用产线合并，降低费用支出，严控预算使用风险 4.跟踪把控产品质量，外购标准件采购进度等，有效实施过程质量监控 5．根据进度节点制定上报计划及设置进度提醒机制，审核工、模、检等进度计划，对各个模块定期检查、分析进度完成情况',
+          achievement:
+            '1. 通过TR交流赢得客户认可，促进项目定点；2. 按时完成客户要求的节点并按时完成第一次产品交样',
         }),
         required: true,
       },
     },
     data() {
       return {
-        itemLocal: this.item, // 用于存储 item 的本地副本
+        itemLocal: this.item,
         srcList: [], // 用于存储所有图片的 src 的数组
       }
     },
     computed: {},
-
     watch: {
       item: {
         handler: function (newVal, oldVal) {
-          console.log('ResourceDemandItem: item has been changed -- ')
+          console.log('ExperienceItem: item has been changed -- ')
           this.itemLocal = newVal
-          console.log(this.itemLocal.images.length, '-------------------')
-          // if this.srcList is empty, then set it to default value
           if (this.itemLocal.images.length === 0) {
-            console.log('ResourceDemandItem: item.images is empty -- ')
+            console.log('ExperienceItem: item.images is empty -- ')
             this.itemLocal.images = [
               {
                 id: 1,
@@ -100,53 +105,49 @@
                   'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
               },
             ]
-            console.log(
-              'ResourceDemandItem: this.itemLocal.images is -- ',
-              this.itemLocal.images
-            )
           }
           this.srcList = this.itemLocal.images.map((image) => image.src)
         },
         deep: true,
       },
     },
+
     created() {
-      console.log('ResourceDemandItem: component has been created --')
+      console.log('ExperienceItem: component has been created --')
     },
     mounted() {
-      console.log('ResourceDemandItem: component has been mounted --')
-      this.itemLocal = this.item
-      // if this.srcList is empty, then set it to default value
-      if (this.itemLocal.images.length === 0) {
-        this.itemLocal.images = [
-          {
-            id: 1,
-            src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
-            thumb:
-              'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
-          },
-        ]
-      }
-      this.srcList = this.itemLocal.images.map((image) => image.src)
+      console.log('ExperienceItem: component has been mounted --')
+      // 创建 srcList，收集所有图片的 src
+      //   if this.srcList is empty, then set it to default value
+      console.log('ExperienceItem: item = ', this.item)
+      // if (this.item.images.length === 0) {
+      //   console.log('ExperienceItem: item.images is empty -- ')
+      // this.item.images = [
+      //   {
+      //     id: 1,
+      //     src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
+      //     thumb:
+      //       'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
+      //   },
+      // ]
+      // }
+
+      // this.srcList = this.item.images.map((image) => image.src)
     },
     activated() {
-      console.log('ResourceDemandItem: component has been activated --')
+      console.log('ExperienceItem: component has been activated --')
     },
     deactivated() {
-      console.log('ResourceDemandItem: component has been deactivated -- ')
+      console.log('ExperienceItem: component has been deactivated -- ')
     },
     methods: {
       //进入守卫：通过路由规则，进入该组件时被调用
       beforeRouteEnter(to, from, next) {
-        console.log(
-          'ResourceDemandItem: component has been beforeRouteEnter -- '
-        )
+        console.log('ExperienceItem: component has been beforeRouteEnter -- ')
       },
       //离开守卫：通过路由规则，离开该组件时被调用
       beforeRouteLeave(to, from, next) {
-        console.log(
-          'ResourceDemandItem: component has been beforeRouteLeave -- '
-        )
+        console.log('ExperienceItem: component has been beforeRouteLeave -- ')
       },
       handleCommand(command) {
         this.$message('click on item ' + command)

@@ -131,12 +131,14 @@ class ResourceSerializer(serializers.ModelSerializer):
 class ExperienceSerializer(serializers.ModelSerializer):
     # 本级属性
     # experience_url = serializers.HyperlinkedIdentityField(view_name='experience-detail')
-
+    company = serializers.CharField(source="company.name", read_only=True)
+    company_PyInitial = serializers.CharField(source="company.name_PyInitial", read_only=True)
+    images = ImageSerializer(many=True, read_only=True)
     class Meta:
         model = Experience
         # fields = ['name', 'addr', 'desc', 'company_url']
-        fields = '__all__'
-        # exclude = ['created_at', 'updated_at']
+        # fields = '__all__'
+        exclude = ['profile', 'created_at', 'updated_at']
 
 
 class CompanySerializer(serializers.ModelSerializer):

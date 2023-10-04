@@ -30,7 +30,7 @@ from library.views import ImgViewSet, ImgCategoryViewSet, ImgMcsViewSet, Categor
 from project.views import ProjectViewSet, ProductViewSet, ToolingViewSet, OutsourcingViewSet, PurchaseViewSet, \
     DeliveryViewSet, ResumeViewSet, IssueViewSet
 from tags.views import TagViewSet
-from user_info.views import UserViewSet, CompanyViewSet, ProfileViewSet, ReContactViewSet
+from user_info.views import UserViewSet, CompanyViewSet, ProfileViewSet, ReContactViewSet, ExperienceViewSet
 from utils.views import AdViewSet
 
 router = DefaultRouter()
@@ -57,7 +57,7 @@ router.register(r'mcs', ImgMcsViewSet)  # 新增
 router.register(r'ad', AdViewSet)  # 新增
 router.register(r'category', CategoryViewSet)  # 新增
 router.register(r'address', AddressViewSet)  # 新增
-
+router.register(r'experience', ExperienceViewSet)  # 新增
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -23,6 +23,19 @@ class FaceBriefSerializer(serializers.ModelSerializer):
         fields = ['id', 'face_url', 'img', 'thumb', 'name']
 
 
+class FaceGraphSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Face
+        fields = ['img', 'profile']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['from'] = representation.pop('img')
+        representation['to'] = representation.pop('profile')
+        representation['label'] = 'include'
+        return representation
+
+
 class ColorItemBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = ColorItem

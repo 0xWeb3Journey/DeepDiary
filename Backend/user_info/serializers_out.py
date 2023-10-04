@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import serializers
 
-from user_info.models import Profile, ReContact, RELATION_OPTION
+from user_info.models import Profile, ReContact, RELATION_OPTION, Experience, Company
 from utils.serializers import DisplayChoiceField
 
 
@@ -44,6 +44,19 @@ class ReContactGraphSerializer(serializers.ModelSerializer):
         return representation
 
 
+class ExperienceGraphSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experience
+        fields = ['profile', 'company']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['from'] = representation.pop('profile')
+        representation['to'] = representation.pop('company')
+        representation['label'] = 'work in'
+        return representation
+
+
 class ReContactBriefSerializer(serializers.ModelSerializer):
     # 本级属性
     # recontact_url = serializers.HyperlinkedIdentityField(view_name='recontact-detail')
@@ -53,7 +66,7 @@ class ReContactBriefSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReContact
-        fields = ['id', 're_from', 're_to', 'relation','re_from__name', 're_to__name', 'relation__name']
+        fields = ['id', 're_from', 're_to', 'relation', 're_from__name', 're_to__name', 'relation__name']
 
 
 class ProfileBriefSerializer(serializers.ModelSerializer):
@@ -78,7 +91,7 @@ class ProfileBriefSerializer(serializers.ModelSerializer):
     def get_relation(self, ins):
         user = self.context['request'].user
         # print('get_relation: ', user.id, ins.id)
-        relation = ReContact.objects.filter(re_from=ins.id, re_to=user.id).values('id','re_from','re_to','relation')
+        relation = ReContact.objects.filter(re_from=ins.id, re_to=user.id).values('id', 're_from', 're_to', 'relation')
         return [re for re in relation]
 
     class Meta:
@@ -108,3 +121,23 @@ class ProfileGraphSerializer(serializers.ModelSerializer):
 
 class ReContactListSerializer(serializers.ListSerializer):
     child = ReContactBriefSerializer()
+
+
+class CompanyGraphSerializer(serializers.ModelSerializer):
+    """于文章列表中引用的嵌套序列化器"""
+    # 本级属性
+    # company_url = serializers.HyperlinkedIdentityField(view_name='company-detail')
+    image = serializers.ImageField(source="avatar", read_only=True)
+    label = serializers.CharField(source="name", read_only=True)
+
+    class Meta:
+        model = Company
+        # fields = ['name', 'addr', 'desc', 'company_url']
+        # fields = '__all__'
+        exclude = ['created_at', 'updated_at']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['value'] = 60
+        data['categories'] = ['company']
+        return data

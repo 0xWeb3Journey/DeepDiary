@@ -50,6 +50,9 @@ search_fields_face = {
     'profile__name': ['exact', 'icontains'],
     'profile__full_pinyin': ['exact', 'icontains'],
     'profile__lazy_pinyin': ['exact', 'icontains'],
+    'profile__companies__name': ['exact', 'icontains'],
+    'profile__companies__name_PyFull': ['exact', 'icontains'],
+    'profile__companies__name_PyInitial': ['exact', 'icontains'],
 }
 
 

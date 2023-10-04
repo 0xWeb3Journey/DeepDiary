@@ -3,6 +3,8 @@ from pypinyin import lazy_pinyin, pinyin, Style
 
 
 def get_pinyin(name):
+    if name is None:
+        return None, None
     # full_pinyin = ''.join([item[0] for item in pinyin(name, style=Style.NORMAL)])
     full_pinyin = ''.join(lazy_pinyin(name))
     lazy_pinyin_str = ''.join(lazy_pinyin(name, style=Style.FIRST_LETTER))
@@ -10,7 +12,7 @@ def get_pinyin(name):
 
 
 # 示例
-# chinese_name = "葛维冬"
+# chinese_name = "宁波奥云德电器有限公司"
 # full_pinyin, lazy_pinyin_str = get_pinyin(chinese_name)
 # print("Full Pinyin:", full_pinyin)  # 输出：geweidong
 # print("Lazy Pinyin:", lazy_pinyin_str)  # 输出：gwd

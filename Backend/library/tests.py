@@ -1,21 +1,21 @@
-import io
-import mimetypes
-from operator import itemgetter
+# import io
+# import mimetypes
+# from operator import itemgetter
+#
+# import clip
+# import numpy as np
+# import torch
+# from django.test import TestCase
+# import django
+#
+# # Create your tests here.
+# import os
 
-import clip
-import numpy as np
-import torch
-from django.test import TestCase
-import django
-
-# Create your tests here.
-import os
 
 
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
-django.setup()
-from library.models import Img
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
+# django.setup()
+# from library.models import Img
 
 
 
@@ -65,3 +65,30 @@ from library.models import Img
 #     for pred in preds
 # ]
 # print(*preds, sep="\n")
+
+#
+# def update_graph_node_id(nodes, prefix):
+#     """
+#     目的： 考虑到不同模块节点的id可能会一样，因此需要更新图谱中的id，将原来的id替换成新的id， 可以实现模块前缀+id的形式
+#           e.g. img node 中有 id = 1， profile中也有id= 1, 那对应的edge中的from_id 和 to_id 都需要更新
+#     param: nodes:更新前的 nodes 列表
+#     param: prefix: 模块前缀
+#     return: nodes 更新后的nodes
+#     example: nodes = self.update_graph_node_id(nodes, prefix='img')
+#     """
+#     nodes_updated = [{**node, 'id': prefix + str(node['id'])} for node in nodes]
+#     # nodes_updated = [{**node, 'id': 'img'} for node in nodes]
+#     return nodes_updated
+#
+#
+# nodes=[
+#     {
+#         "id": 538,
+#     },
+#     {
+#         "id": 537,
+#     }
+# ]
+#
+# nodes_updated = update_graph_node_id(nodes, 'img')
+# print(nodes_updated)

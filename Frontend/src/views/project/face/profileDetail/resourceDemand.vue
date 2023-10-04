@@ -1,8 +1,16 @@
 <template>
   <div>
-    <el-row type="flex" class="row-bg" justify="space-around">
-      <el-col v-for="item in items" :key="item.id" :span="6">
-        <div><resourceDemandItem :item="item"></resourceDemandItem></div>
+    <el-row :gutter="12" type="flex" class="row-bg" justify="space-around">
+      <el-col
+        v-for="item in items"
+        :key="item.id"
+        :xs="24"
+        :sm="12"
+        :md="12"
+        :lg="8"
+        :xl="6"
+      >
+        <resourceDemandItem :item="item"></resourceDemandItem>
       </el-col>
     </el-row>
   </div>
@@ -20,7 +28,7 @@
           {
             id: 1,
             name: '英语',
-            desc: 'TEM8， 英语可以作为工作语言',
+            desc: 'TEM8, 英语可以作为工作语言',
             images: [
               {
                 id: 1,

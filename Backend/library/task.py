@@ -30,6 +30,7 @@ from library.serializers import McsDetailSerializer, ColorSerializer, ColorBackg
     ColorForegroundSerializer, ColorImgSerializer, FaceSerializer
 from user_info.models import Profile
 from utils.mcs_storage import upload_file_pay
+from utils.utils import get_pinyin
 
 color_palette = {
     "beige": '#e0c4b2',
@@ -65,6 +66,11 @@ color_palette = {
     "grey": '#8c8c8c',
     "light pink": '#e6c1be',
 }
+IMG_FUC_LIST = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories', 'get_faces', 'get_caption',
+                'get_feature']
+
+IMG_ADD_LIST = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+                'add_colors_to_category', 'add_layout_to_category', 'add_size_to_category']
 
 
 class ImgProces:
@@ -268,10 +274,13 @@ class ImgProces:
         except IntegrityError:
             print('ERROR: Failed to create a new profile. IntegrityError occurred.')
 
+        full_pinyin, lazy_pinyin = get_pinyin(face_name)
         creation_params = {
             'username': username,
             'password': make_password('deep-diary666'),
             'name': face_name,
+            'full_pinyin': full_pinyin,
+            'lazy_pinyin': lazy_pinyin,
             'avatar': self.face_crop(img_pil, bbox),  # 需要对avatar进行赋值
             'embedding': face.normed_embedding.astype(np.float16).tobytes(),
         }
@@ -293,7 +302,6 @@ class ImgProces:
         embeddings = [np.frombuffer(embedding, dtype=np.float32) for embedding in image_features if embedding]
         # 将所有的embedding转换为矩阵形式，大小为N* 512
         embeddings = np.stack(embeddings)
-
 
         with torch.no_grad():
             text_features = model.encode_text(text)
@@ -338,7 +346,6 @@ class ImgProces:
             print(f"{id}: {100 * value.item():.2f}%")
 
         return filtered_data
-
 
     @staticmethod
     def face_recognition(embedding):  # 'instance', serializers
@@ -390,7 +397,8 @@ class ImgProces:
 
         # 1. 获取人脸名字
         names = []
-        face_name = 'unknown'
+        face_name = 'unknown_' + ''.join(random.sample(string.ascii_letters + string.digits, 4))
+        face_score = 0
         enableLM = False  # 强制关闭LM方式
         if enableLM:  # 通过LM方式检测到了人脸
             names, bboxs = self.get_lm_face_info(img_ins)
@@ -406,9 +414,7 @@ class ImgProces:
             if ious[idx] > 0.3:  # 重合度超过30%
                 face_name = names[idx]
                 face_score = 1
-            else:
-                face_name = face_name + '_' + ''.join(random.sample(string.ascii_letters + string.digits, 4))
-                face_score = 0
+
             print(f"\033[1;32m INFO: estimated name is {face_name}, which is from LM \033[0m")
             # 检查Profile 数据库中是否包含此人脸名字
             profile, created = self.create_new_profile(img_ins, face, face_name)
@@ -1224,7 +1230,7 @@ class ImgProces:
         print(
             f'-------------INFO: start loop the  funcs, dealing with img --->{instance.id}, func_list is {func_list}---------------')
         if func_list is None:
-            func_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories', 'get_faces']
+            func_list = IMG_FUC_LIST
         # 1. get the instance
         instance = self.instance if instance is None else instance
         # 2. loop the function list
@@ -1491,6 +1497,8 @@ class ImgProces:
                 func_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category', 'add_colors_to_category']
                 :return:
                 """
+        if func_list is None:
+            func_list = IMG_ADD_LIST
         # 1. get the instance
         instance = self.instance if instance is None else instance
         # 2. loop the function list
@@ -1528,7 +1536,7 @@ class ImgProces:
             return
 
         profile = Profile.objects.filter(name=name).first()
-        if profile:
+        if profile:  # 如果存在匹配的Profile对象，则将其分配给Face模型的外键字段
             old_name = fc_instance.profile.name if fc_instance.profile else 'unknown'
             new_name = name
             print(f'人脸更新：新的人脸是 {old_name} --> {new_name}')
@@ -1540,9 +1548,12 @@ class ImgProces:
             if old_name != new_name:
                 # 如果存在匹配的Profile对象，则将其分配给Face模型的外键字段
                 print(f'INFO: this name of profile already existed: {new_name}')
+                print(f'INFO: fc_instance.profile before is {fc_instance.profile.id}')
                 fc_instance.profile = profile
                 fc_instance.save()
-        else:
+                print(f'INFO: fc_instance.profile after is {fc_instance.profile.id}')
+
+        else:  # 如果不存在匹配的Profile对象，则创建一个新的Profile对象
             try:
                 # 创建一个新用户profile对象，设定默认密码为666，加密保存，User中is_active设置为0， username设置成name，
                 # 如果username已经存在相同字段，则在name后面增加4位随机数，再次创建保存
@@ -1552,10 +1563,26 @@ class ImgProces:
                     random_suffix = str(random.randint(1000, 9999))
                     username = f'{name}{random_suffix}'
 
-                profile = Profile.objects.create_user(username=username, password=make_password('deep-diary666'),
+                full_pinyin, lazy_pinyin = get_pinyin(name)
+                # creation_params = {
+                #     'username': username,
+                #     'password': make_password('deep-diary666'),
+                #     'name': name,
+                #     'full_pinyin': full_pinyin,
+                #     'lazy_pinyin': lazy_pinyin,
+                #     'avatar': fc_instance.src,  # 需要对avatar进行赋值
+                #     'embedding': fc_instance.embedding,
+                # }
+                # profile, created = Profile.objects.get_or_create(name=username, defaults=creation_params)
+
+                profile = Profile.objects.create_user(username=username,
+                                                      password=make_password('deep-diary666'),
                                                       is_active=0,
                                                       name=name,
-                                                      embedding=fc_instance.embedding, avatar=fc_instance.src)
+                                                      full_pinyin=full_pinyin,
+                                                      lazy_pinyin=lazy_pinyin,
+                                                      embedding=fc_instance.embedding,
+                                                      avatar=fc_instance.src)
 
                 fc_instance.profile = profile
                 fc_instance.save()
@@ -1575,34 +1602,34 @@ class ImgProces:
 
 @shared_task
 def check_img_info(instance, get_list=None, add_list=None, force=False):
-    print('periodic task: check_all_img_info ...')
-    if get_list is None:
-        get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
-                    'get_faces']
-    if add_list is None:
-        add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
-                    'add_colors_to_category']
-    print(f'INFO:-> param force: {force}')
-    print(f'INFO:-> param get_list: {get_list}')
-    print(f'INFO:-> param add_list: {add_list}')
+    print('check_img_info ...')
+    # if get_list is None:
+    #     get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
+    #                 'get_faces']
+    # if add_list is None:
+    #     add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+    #                 'add_colors_to_category']
+    # print(f'INFO:-> param force: {force}')
+    # print(f'INFO:-> param get_list: {get_list}')
+    # print(f'INFO:-> param add_list: {add_list}')
 
     img_process = ImgProces()
     img_process.get_img(img_process, instance=instance, func_list=get_list, force=force)
-    img_process.add_img_to_category(img_process, func_list=add_list)
+    img_process.add_img_to_category(img_process, instance=instance, func_list=add_list)
 
 
 @shared_task
 def check_all_img_info(get_list=None, add_list=None, force=False):
-    print('periodic task: check_all_img_info ...')
-    if get_list is None:
-        get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
-                    'get_faces']
-    if add_list is None:
-        add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
-                    'add_colors_to_category']
-    print(f'INFO:-> param force: {force}')
-    print(f'INFO:-> param get_list: {get_list}')
-    print(f'INFO:-> param add_list: {add_list}')
+    # print('check_all_img_info ...')
+    # if get_list is None:
+    #     get_list = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories',
+    #                 'get_faces']
+    # if add_list is None:
+    #     add_list = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+    #                 'add_colors_to_category']
+    # print(f'INFO:-> param force: {force}')
+    # print(f'INFO:-> param get_list: {get_list}')
+    # print(f'INFO:-> param add_list: {add_list}')
 
     img_process = ImgProces()
     img_process.get_all_img(img_process, func_list=get_list, force=force)
