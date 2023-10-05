@@ -1,7 +1,7 @@
 <template>
   <div>
     <DetailHead
-      content="人脸详情"
+      content="合影详情"
       @edit="onEdit"
       @remove="onRemove"
     ></DetailHead>
@@ -19,7 +19,7 @@
 <script>
   import Gallery from '@/components/Gallery'
   import Carosel from '@/components/Carosel'
-  import { getGroupDetail } from '@/api/category'
+  import { getCategoryDetail } from '@/api/category'
   import DetailHead from './detailHead.vue'
   export default {
     name: 'GroupDetail',
@@ -66,7 +66,7 @@
 
         this.queryForm.id = this.$route.query.id
         // console.log('this.queryForm.id: ', this.queryForm.id)
-        const { data } = await getGroupDetail(this.$route.query.id)
+        const { data } = await getCategoryDetail(this.$route.query.id)
         console.log('fetchGroupDetail: ', data)
         this.groups = [...data.imgs]
       },

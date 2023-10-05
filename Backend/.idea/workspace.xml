@@ -1484,23 +1484,8 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/library/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/filters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/serializers_out.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers_out.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/tests.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/filters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/serializers_out.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/serializers_out.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/task.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/user_info/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/prettier.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/prettier.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail/index.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail/resourceDemand.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail/resourceDemand.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail/resourceDemandItem.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/face/profileDetail/resourceDemandItem.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/graph/explorer.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/graph/explorer.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/graph/finder.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/graph/finder.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/project/graph/navigator.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/project/graph/navigator.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

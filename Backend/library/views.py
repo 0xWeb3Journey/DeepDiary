@@ -433,7 +433,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.action == 'list':
             # only return the root category
-            return Category.objects.filter(is_root=True).annotate(value=Count('imgs')).order_by('-value')
+            return self.queryset
+            # return Category.objects.filter(is_root=True).annotate(value=Count('imgs')).order_by('-value')
+            # return Category.objects.all()
         else:
             # return all the category
             return self.queryset

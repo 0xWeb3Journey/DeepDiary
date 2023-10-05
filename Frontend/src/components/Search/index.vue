@@ -301,11 +301,8 @@
         ></el-option>
       </el-select>
       <!-- date -->
-      <el-row :gutter="10">
+      <!-- <el-row :gutter="10">
         <el-col :xs="24" :sm="12">
-          <!-- date filter -->
-          <!-- <div class="block">
-          <span class="demonstration">Date Range</span> -->
           <el-date-picker
             v-model="imgQuery.dates__capture_date__range"
             type="daterange"
@@ -317,9 +314,8 @@
             value-format="yyyy-MM-dd"
             @change="onSearch"
           ></el-date-picker>
-          <!-- </div> -->
         </el-col>
-      </el-row>
+      </el-row> -->
     </div>
   </div>
 </template>

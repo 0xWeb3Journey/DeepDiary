@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 // category api
-export function getGroup(params) {
+export function getCategory(params) {
   console.log(params)
   return request({
     url: '/api/category/',
@@ -10,7 +10,7 @@ export function getGroup(params) {
   })
 }
 
-export function getGroupDetail(id) {
+export function getCategoryDetail(id) {
   console.log(id)
   return request({
     url: '/api/category/' + id + '/',

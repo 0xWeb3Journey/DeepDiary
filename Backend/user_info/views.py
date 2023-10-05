@@ -4,15 +4,17 @@ import json
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from user_info.filters import ProfileFilter, RelationFilter, search_fields_profile
-from user_info.models import Profile, Company, ReContact, relation_strings, string_to_int_mapping, Experience
+from user_info.models import Profile, Company, ReContact, relation_strings, string_to_int_mapping, Experience, Resource, \
+    Demand, Image
 from user_info.serializers import UserRegisterSerializer, ProfileSerializer, CompanySerializer, \
-    UserDetailSerializer
+    UserDetailSerializer, ResourceSerializer, DemandSerializer, ExperienceSerializer, ImageSerializer
 from user_info.serializers_out import ProfileBriefSerializer, ReContactGraphSerializer, ReContactBriefSerializer, \
     ReContactListSerializer, ExperienceGraphSerializer
 from user_info.task import ProfileProcess, CompanyProcess
@@ -350,7 +352,66 @@ class ReContactViewSet(viewsets.ModelViewSet):
         return ReContactBriefSerializer
 
 
+class ResourceViewSet(viewsets.ModelViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    pagination_class = GeneralPageNumberPagination
+
+    def perform_create(self, serializer):
+        print(f"INFO:Img start perform_create, {self.request.data}")
+        print(f"INFO:Img start perform_create, {serializer.validated_data}")
+        print(f"INFO:Img file, {self.request.FILES}")
+        file = self.request.FILES.get("src", None)
+        # f_path = file.temporary_file_path()
+        # print(f"INFO:temporary_file_path, {f_path}")
+        profile_id = self.request.data.get('profile', None)  # 假设profile_id是整数
+
+        # 保存方式一
+        profile = get_object_or_404(Profile, id=profile_id)
+        instance = serializer.save(profile=profile)
+
+
+
+class DemandViewSet(viewsets.ModelViewSet):
+    queryset = Demand.objects.all()
+    serializer_class = DemandSerializer
+    pagination_class = GeneralPageNumberPagination
+
+    def perform_create(self, serializer):
+        print(f"INFO:Img start perform_create, {self.request.data}")
+        print(f"INFO:Img start perform_create, {serializer.validated_data}")
+        print(f"INFO:Img file, {self.request.FILES}")
+        file = self.request.FILES.get("src", None)
+        # f_path = file.temporary_file_path()
+        # print(f"INFO:temporary_file_path, {f_path}")
+        profile_id = self.request.data.get('profile', None)  # 假设profile_id是整数
+
+        # 保存方式一
+        profile = get_object_or_404(Profile, id=profile_id)
+        instance = serializer.save(profile=profile)
+
+
 class ExperienceViewSet(viewsets.ModelViewSet):
     queryset = Experience.objects.all()
-    serializer_class = ExperienceGraphSerializer
+    serializer_class = ExperienceSerializer
     pagination_class = GeneralPageNumberPagination
+
+
+class ImageViewSet(viewsets.ModelViewSet):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+    pagination_class = GeneralPageNumberPagination
+    def perform_create(self, serializer):
+        print(f"INFO:Img start perform_create, {self.request.data}")
+        print(f"INFO:Img start perform_create, {serializer.validated_data}")
+        print(f"INFO:Img file, {self.request.FILES}")
+        file = self.request.FILES.get("src", None)
+        # f_path = file.temporary_file_path()
+        # print(f"INFO:temporary_file_path, {f_path}")
+        resource_id = self.request.data.get('resource', None)  # 假设profile_id是整数
+
+        # 保存方式一
+        resource = get_object_or_404(Resource, id=resource_id)
+        instance = serializer.save(resource=resource)
+
+

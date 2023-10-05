@@ -6,7 +6,6 @@
       @remove="onRemove"
     ></DetailHead>
     <Carosel v-if="isShowCarosel" title="照片" :items="faces.data"></Carosel>
-    <el-divider><i class="el-icon-finished"></i></el-divider>
     <FaceListGallery
       v-if="isGetRoutePrarms"
       :id="profileDetail.query.id"
@@ -14,11 +13,30 @@
       @faceData="onFaceData"
     ></FaceListGallery>
 
-    <ResourceDemand :items="profileDetail.data.resources"></ResourceDemand>
-    <ResourceDemand :items="profileDetail.data.demands"></ResourceDemand>
-    <el-divider><i class="el-icon-finished"></i></el-divider>
-    <Experience :items="profileDetail.data.experiences"></Experience>
-    <el-divider><i class="el-icon-finished"></i></el-divider>
+    <el-collapse v-model="activeName" accordion>
+      <!-- <el-collapse-item name="carousel">
+        <template slot="title">跑马灯 Carousel</template>
+      </el-collapse-item>
+      <el-collapse-item title="人脸 Faces" name="faces"></el-collapse-item> -->
+      <el-collapse-item name="resources">
+        <template slot="title">三大资源 Resources</template>
+
+        <ResourceDemand
+          :items="profileDetail.data.resources"
+          type="resource"
+        ></ResourceDemand>
+      </el-collapse-item>
+      <el-collapse-item title="三大需求 Demands" name="demands">
+        <ResourceDemand
+          :items="profileDetail.data.demands"
+          type="demand"
+        ></ResourceDemand>
+      </el-collapse-item>
+
+      <el-collapse-item title="工作经历 Experiences" name="experience">
+        <Experience :items="profileDetail.data.experiences"></Experience>
+      </el-collapse-item>
+    </el-collapse>
 
     <ProfileEdit
       :profile="profileDetail.data"
@@ -30,15 +48,14 @@
 </template>
 
 <script>
-  import Gallery from '@/components/Gallery'
   import Carosel from '@/components/Carosel'
-  import { getGallery, getAlbum, getFaceGallery } from '@/api/gallery'
-  import { getProfile, getProfileDetail } from '@/api/profile'
+  import { getProfileDetail } from '@/api/profile'
   import DetailHead from '../detailHead.vue'
-  import ProfileEdit from '../profileEdit.vue'
+  import ProfileEdit from './profileEdit.vue'
   import FaceListGallery from '../faceListGallery.vue'
   import ResourceDemand from './resourceDemand.vue'
   import Experience from './experience.vue'
+  import Menu from '@/components/Menu'
   export default {
     name: 'ProfileDetail',
     components: {
@@ -63,6 +80,7 @@
             id: -1,
           },
         },
+        activeName: 'faces',
       }
     },
     computed: {

@@ -14,7 +14,7 @@
 
 <script>
   import AlbumContainer from '@/components/Album/content.vue'
-  import { getGroup } from '@/api/category'
+  import { getCategory } from '@/api/category'
   export default {
     name: 'GroupList',
     components: { AlbumContainer },
@@ -38,10 +38,11 @@
           links: null,
           curCnt: 0,
           data: [],
-          groupQueryForm: {
+          queryForm: {
             page: 1,
             size: 30,
-            name: 'group',
+            name: '',
+            parent__name: 'group',
           },
         },
       }
@@ -50,7 +51,7 @@
       // query: {
       //   handler(newVal, oldVal) {
       //     console.log('GroupList: query', newVal)
-      //     this.groups.groupQueryForm = newVal
+      //     this.groups.queryForm = newVal
       //     this.groups.data = []
       //     this.fetchGroup()
       //   },
@@ -59,7 +60,7 @@
     },
     created() {},
     mounted() {
-      this.groups.groupQueryForm.page = 1
+      this.groups.queryForm.page = 1
       this.fetchGroup()
     },
     methods: {
@@ -82,10 +83,11 @@
         console.log('GroupList: fetchGroup')
         this.groups.loading = true
         this.groups.finished = false
-        await getGroup(this.groups.groupQueryForm).then((response) => {
+        await getCategory(this.groups.queryForm).then((response) => {
           console.log('GroupList: ', response)
           const { data, totalCnt, links } = response
-          this.groups.data = [...this.groups.data, ...data[0]['children']]
+          // this.groups.data = [...this.groups.data, ...data[0]['children']]
+          this.groups.data = [...this.groups.data, ...data]
           this.groups.curCnt = this.groups.data.length
           // this.groups.totalCnt = totalCnt
           this.groups.totalCnt = this.groups.data.length
@@ -112,7 +114,7 @@
           }, 3000)
           return
         }
-        this.groups.groupQueryForm.page++
+        this.groups.queryForm.page++
         this.fetchGroup()
       },
     },

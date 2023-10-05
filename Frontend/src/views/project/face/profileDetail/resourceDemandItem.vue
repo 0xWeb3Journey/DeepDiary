@@ -1,32 +1,10 @@
 <template>
   <div>
     <el-card shadow="hover">
-      <div slot="header" class="clearfix">
+      <div slot="header" class="header">
         <span>{{ itemLocal.name }}</span>
 
-        <el-dropdown
-          style="float: right; padding: 3px 0"
-          icon="el-icon-delete"
-          @command="handleCommand"
-        >
-          <span class="el-dropdown-link">
-            <i class="el-icon-menu el-icon--right"></i>
-          </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="edit">
-              <i class="el-icon-edit"></i>
-              Edit
-            </el-dropdown-item>
-            <el-dropdown-item command="view">
-              <i class="el-icon-view"></i>
-              View
-            </el-dropdown-item>
-            <el-dropdown-item command="setting">
-              <i class="el-icon-setting"></i>
-              Setting
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
+        <Menu :menus="menus" class="menu-right" @command="handleCommand"></Menu>
       </div>
       <div class="text item">
         {{ itemLocal.desc }}
@@ -47,9 +25,10 @@
 </template>
 
 <script>
+  import Menu from '@/components/Menu'
   export default {
     name: 'ResourceDemandItem',
-    components: {},
+    components: { Menu },
     props: {
       item: {
         type: Object,
@@ -79,6 +58,27 @@
       return {
         itemLocal: this.item, // 用于存储 item 的本地副本
         srcList: [], // 用于存储所有图片的 src 的数组
+        menus: [
+          { icon: 'el-icon-circle-plus', text: 'Add' },
+          { icon: 'el-icon-remove', text: 'Remove' },
+          { icon: 'el-icon-edit', text: 'Edit' },
+          {
+            icon: 'el-icon-view',
+            text: 'View',
+          },
+          {
+            icon: 'el-icon-delete',
+            text: 'Reset',
+          },
+          {
+            icon: 'el-icon-upload',
+            text: 'Upload',
+          },
+          {
+            icon: 'el-icon-setting',
+            text: 'Setting',
+          },
+        ],
       }
     },
     computed: {},
@@ -151,7 +151,7 @@
       handleCommand(command) {
         this.$message('click on item ' + command)
 
-        this.$emit(command) //自定义事件  传递值“子向父组件传值” command could be 'edit' or 'remove'
+        this.$emit('command', command) //自定义事件  传递值“子向父组件传值” command could be 'edit' or 'remove'
       },
     },
   }
@@ -160,5 +160,10 @@
 <style>
   .text {
     font-size: 12px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between; /* 将内容向右对齐 */
   }
 </style>

@@ -118,24 +118,11 @@ class FaceFilter(FilterSet):
 
 
 class CategoryFilter(FilterSet):
-    # tags = TagsFilter(field_name="tags", method='filter_tags')  # method 1
-    # # tags = django_filters.CharFilter('tags', method='filter_tags')  # method 2
-    #
-    # # color
-    # c_img = django_filters.CharFilter('colors', method='filter_img_colors')
-    # c_fore = django_filters.CharFilter('colors', method='filter_fore_colors')
-    # c_back = django_filters.CharFilter('colors', method='filter_back_colors')
-    #
-    #
-    # # faces
-    # # faces = FacesFilter()
-    c_img = django_filters.CharFilter('img', method='filter_img_colors')
-    c_fore = django_filters.CharFilter('img', method='filter_fore_colors')
-    c_back = django_filters.CharFilter('img', method='filter_back_colors')
-    # c_name = django_filters.CharFilter('name', method='filter_c_name')
-    imgs = django_filters.CharFilter('img', method='filter_imgs')
-
-    # fc_name = django_filters.CharFilter('faces', method='filter_fc_name')
+    family = django_filters.CharFilter('name', method='filter_family')
+    ancestors = django_filters.CharFilter('name', method='filter_ancestors')
+    siblings = django_filters.CharFilter('name', method='filter_siblings')
+    children = django_filters.CharFilter('name', method='filter_children')
+    descendants = django_filters.CharFilter('name', method='filter_descendants')
 
     class Meta:
         model = Category  # 模型名
@@ -143,56 +130,46 @@ class CategoryFilter(FilterSet):
         fields = {
             # color
             'name': ['exact', 'icontains'],
-            # 'type': ['exact', 'icontains'],
-            # 'value': ['exact', 'icontains'],
-            'imgs': ['exact', 'icontains'],
+            'parent__name': ['exact', 'icontains'],
+            'is_leaf': ['exact'],
+            'is_root': ['exact'],
+            'owner': ['exact'],
         }
 
     # 自定义方法
-    def filter_imgs(self, qs, name, value):
-        # print(f'INFO: start filter the imgs: {value}')
-        # if value:
-        #     imgs = [img for img in value.split(',')]  # strip()去除首尾空格
-        #     # print(imgs)
-        #     qs = qs.filter(img__in=imgs).distinct()  # through or logical
+    def filter_children(self, qs, name, value):
+        print('INFO: filter_children--> start---------', name, value, type(value))
+        if value:
+            qs = qs.filter(
+                name=value).first().get_children()  # .annotate(value=Count('imgs')).distinct().order_by('-value')
         return qs
 
-    def filter_img_colors(self, qs, name, value):
-        #
-        # print(name)
-        # print(value)
+    def filter_family(self, qs, name, value):
+        print('INFO: filter_family--> start---------', name, value, type(value))
         if value:
-            names = [name.strip() for name in value.split(',')]  # strip()去除首尾空格
-            print(names)
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
-            for item in names:  # through and logical
-                # qs = qs.filter(img__colors__image__closest_palette_color_parent=item).distinct()
-                qs = qs.filter(img__categories__name=item).distinct()
-        # print(f'filter_fore_colors--> the original qs count is  {qs.count()}')
+            qs = qs.filter(
+                name=value).first().get_family()  # .annotate(value=Count('imgs')).distinct().order_by('-value')
         return qs
 
-    def filter_fore_colors(self, qs, name, value):
-
+    def filter_descendants(self, qs, name, value):
+        print('INFO: filter_descendants--> start---------', name, value, type(value))
         if value:
-            names = [name.strip() for name in value.split(',')]  # strip()去除首尾空格
-            print(names)
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
-            for item in names:  # through and logical
-                qs = qs.filter(img__categories__name=item).distinct()
-        # print(f'filter_fore_colors--> the original qs count is  {qs.count()}')
+            qs = qs.filter(
+                name=value).first().get_descendants(include_self=False) # .annotate(value=Count('imgs')).distinct().order_by('-value')
         return qs
 
-    def filter_back_colors(self, qs, name, value):
-
-        # print(name)
-        # print(value)
+    def filter_siblings(self, qs, name, value):
+        print('INFO: filter_siblings--> start---------', name, value, type(value))
         if value:
-            names = [name.strip() for name in value.split(',')]  # strip()去除首尾空格
+            qs = qs.filter(
+                name=value).first().get_siblings(include_self=True) # .annotate(value=Count('imgs')).distinct().order_by('-value')
+        return qs
 
-            # qs = qs.filter(tags__name__in=tags).distinct()  # through or logical
-            for item in names:  # through and logical
-                qs = qs.filter(img__categories__name=item).distinct()
-        # print(f'filter_back_colors--> the original qs count is {qs.count()}')
+    def filter_ancestors(self, qs, name, value):
+        print('INFO: filter_ancestors--> start---------', name, value, type(value))
+        if value:
+            qs = qs.filter(
+                name=value).first().get_ancestors(ascending=False, include_self=False) # .annotate(value=Count('imgs')).distinct().order_by('-value')
         return qs
 
 
@@ -213,7 +190,6 @@ class ImgFilter(FilterSet):
     fc_name = django_filters.CharFilter('faces', method='filter_fc_name')
 
     layout = django_filters.CharFilter('aspect_ratio', method='filter_layout')
-
 
     class Meta:
         model = Img  # 模型名

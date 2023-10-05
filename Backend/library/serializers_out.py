@@ -78,28 +78,28 @@ class CategoryBriefSerializer(serializers.ModelSerializer):
     # # imgs = ImgSerializer(many=True, read_only=True)  # this imgs must be the same as the related name in the model
     # value = serializers.IntegerField()
     value = serializers.SerializerMethodField()  # method 2: through method
-    children = RecursiveField(many=True, required=False)
+    # children = RecursiveField(many=True, required=False)
 
     @extend_schema_field(int)  # 提供额外的类型信息
     def get_value(self, ins):
         value = ins.imgs.count()  # return the img counts
         return value
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        # 检查 'children' 字段是否为空
-        if not data['children']:
-            # 如果为空，从字典中删除 'children' 字段
-            del data['children']
-        # print(data)
-        # if instance.is_leaf_node():
-        #     if not instance.children.exists():
-        #         data.pop('children', None)  # Remove 'children' key if it's empty
-        return data
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     # 检查 'children' 字段是否为空
+    #     if not data['children']:
+    #         # 如果为空，从字典中删除 'children' 字段
+    #         del data['children']
+    #     # print(data)
+    #     # if instance.is_leaf_node():
+    #     #     if not instance.children.exists():
+    #     #         data.pop('children', None)  # Remove 'children' key if it's empty
+    #     return data
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'thumb', 'value','children']
+        fields = ['id', 'name', 'thumb', 'value']  #,'children'
 
 
 
