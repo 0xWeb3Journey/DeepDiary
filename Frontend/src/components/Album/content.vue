@@ -42,6 +42,9 @@
           </el-badge>
         </div>
       </div>
+      <div v-show="busy" class="loading">
+        <h3>{{ msg }}</h3>
+      </div>
     </div>
     <el-divider v-show="finished"><i class="el-icon-finished"></i></el-divider>
   </div>

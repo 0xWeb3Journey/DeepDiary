@@ -202,7 +202,7 @@
 
               // Get the client height of the div
               // var divHeight = divElement.clientHeight
-              var divHeight = 600
+              var divHeight = 1000
 
               // check if all the data has been loaded
 
@@ -255,7 +255,7 @@
 
 <style lang="css" scoped>
   .gallery_container {
-    height: 600px;
+    height: 800px;
     overflow-y: auto;
   }
 </style>
