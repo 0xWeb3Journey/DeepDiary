@@ -66,11 +66,11 @@ color_palette = {
     "grey": '#8c8c8c',
     "light pink": '#e6c1be',
 }
-IMG_FUC_LIST = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories', 'get_faces', 'get_caption',
-                'get_feature']
-
-IMG_ADD_LIST = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
-                'add_colors_to_category', 'add_layout_to_category', 'add_size_to_category']
+# IMG_FUC_LIST = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories', 'get_faces', 'get_caption',
+#                 'get_feature']
+#
+# IMG_ADD_LIST = ['add_date_to_category', 'add_location_to_category', 'add_group_to_category',
+#                 'add_colors_to_category', 'add_layout_to_category', 'add_size_to_category']
 
 
 class ImgProces:
@@ -1230,7 +1230,7 @@ class ImgProces:
         print(
             f'-------------INFO: start loop the  funcs, dealing with img --->{instance.id}, func_list is {func_list}---------------')
         if func_list is None:
-            func_list = IMG_FUC_LIST
+            func_list = cfg["img"]["process_list"]
         # 1. get the instance
         instance = self.instance if instance is None else instance
         # 2. loop the function list
@@ -1337,12 +1337,14 @@ class ImgProces:
             return
         # 2. get the date
         dates = instance.dates
-
+        # 使用模型字段值构建日期对象
+        # print(type(dates.year), type(dates.month), type(dates.day))
+        date_obj = datetime(int(dates.year),int(dates.month),int(dates.day))
         field_list = [
             'date',
-            dates.year,
-            f'{dates.year:02d}-{dates.month:02d}',
-            f'{dates.year}-{dates.month:02d}-{dates.day:02d}',
+            date_obj.year,
+            f'{date_obj.year:02d}-{date_obj.month:02d}',
+            f'{date_obj.year}-{date_obj.month:02d}-{date_obj.day:02d}',
         ]
         self.__add_levels_to_category__(instance=instance,
                                         field_list=field_list)
@@ -1498,7 +1500,7 @@ class ImgProces:
                 :return:
                 """
         if func_list is None:
-            func_list = IMG_ADD_LIST
+            func_list = cfg["img"]["add_list"]
         # 1. get the instance
         instance = self.instance if instance is None else instance
         # 2. loop the function list

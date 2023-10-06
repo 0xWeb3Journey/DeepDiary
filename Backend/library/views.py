@@ -11,7 +11,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from taggit.models import Tag
 
-from deep_diary.settings import calib
+from deep_diary.settings import calib, cfg
 from library.filters import ImgFilter, CategoryFilter, AddressFilter, FaceFilter, search_fields_face, search_fields_img
 from library.models import Img, Category, Address, Stat, Evaluate, Date, ImgMcs, Face
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination, FacePageNumberPagination
@@ -19,7 +19,7 @@ from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategoryS
     CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
 from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer, CategoryFilterListSerializer, \
     FaceGraphSerializer
-from library.task import ImgProces, check_img_info, check_all_img_info, IMG_FUC_LIST, IMG_ADD_LIST
+from library.task import ImgProces, check_img_info, check_all_img_info
 from user_info.models import Profile, ReContact, relation_strings, RELATION_OPTION, Experience, Company
 from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerializer, ReContactGraphSerializer, \
     ExperienceGraphSerializer, CompanyGraphSerializer
@@ -153,10 +153,10 @@ class ImgViewSet(viewsets.ModelViewSet):
 
         if get_list_org == 'all':
             print('INFO:-> get_list_org == all')
-            get_list = IMG_FUC_LIST
+            get_list = cfg["img"]["process_list"]
         if add_list_org == 'all':
             print('INFO:-> add_list_org == all')
-            add_list = IMG_ADD_LIST
+            add_list = cfg["img"]["add_list"]
         print(f'INFO:-> param force: {force}')
         print(f'INFO:-> param get_list: {get_list_org}')
         print(f'INFO:-> param add_list: {add_list_org}')
