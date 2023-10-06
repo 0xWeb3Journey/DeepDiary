@@ -294,6 +294,7 @@ class ImgProces:
     def img_recognition(text):  # 'instance', serializers
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
+        # device = "cpu"  # 使用cpu 貌似就无法运行
         model, preprocess = clip.load("ViT-B/32", device=device)
 
         text = clip.tokenize(text).to(device)

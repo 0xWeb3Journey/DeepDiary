@@ -109,23 +109,25 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        norm_len = len(queryset)
+
         # ------------------------------------------------------------------------------
         """Entity Recognition"""
         """NLP Search"""
-        search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
-        if search_param:
-            print('search_param is enabled: ', search_param)
-            search_queryset = ImgProces.img_recognition(search_param)
-            print('search_result is: ', len(search_queryset))
+        if cfg["img"]["enable_nlp_search"]:  # 是否开启NLP search
+            search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
+            if search_param:
+                norm_len = len(queryset)
+                print('search_param is enabled: ', search_param)
+                search_queryset = ImgProces.img_recognition(search_param)
+                print('search_result is: ', len(search_queryset))
 
-            # 将自然语言搜索跟原始搜索进行合并
-            if norm_len > 0:
-                queryset = search_queryset.union(queryset)
-                ids = [qs.id for qs in queryset]
-                queryset = Img.objects.filter(id__in=ids)
-            else:
-                queryset = search_queryset
+                # 将自然语言搜索跟原始搜索进行合并
+                if norm_len > 0:
+                    queryset = search_queryset.union(queryset)
+                    ids = [qs.id for qs in queryset]
+                    queryset = Img.objects.filter(id__in=ids)
+                else:
+                    queryset = search_queryset
         # ------------------------------------------------------------------------------
 
         page = self.paginate_queryset(queryset)
@@ -222,17 +224,21 @@ class ImgViewSet(viewsets.ModelViewSet):
         # ------------------------------------------------------------------------------
         """Entity Recognition"""
         """NLP Search"""
-        search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
-        if search_param:
-            search_qs = ImgProces.img_recognition(search_param)
-            # 将自然语言搜索跟原始搜索进行合并
-            if norm_len > 0:
-                queryset = search_qs.union(qs)
-                ids = [qs.id for qs in queryset]
-                queryset = Img.objects.filter(id__in=ids)
-                print(len(queryset), type(queryset))
-            else:
-                queryset = search_qs
+        if cfg["img"]["enable_nlp_search"]:  # 是否开启NLP search
+            search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
+            if search_param:
+                norm_len = len(queryset)
+                print('search_param is enabled: ', search_param)
+                search_queryset = ImgProces.img_recognition(search_param)
+                print('search_result is: ', len(search_queryset))
+
+                # 将自然语言搜索跟原始搜索进行合并
+                if norm_len > 0:
+                    queryset = search_queryset.union(queryset)
+                    ids = [qs.id for qs in queryset]
+                    queryset = Img.objects.filter(id__in=ids)
+                else:
+                    queryset = search_queryset
 
         # ------------------------------------------------------------------------------
 
