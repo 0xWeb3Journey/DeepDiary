@@ -17,7 +17,7 @@
       ref="vabUpload"
       url="/api/img/"
       name="src"
-      :limit="50"
+      :limit="500"
       :size="8"
     ></vab-upload>
   </div>

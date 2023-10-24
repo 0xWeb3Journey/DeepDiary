@@ -16,6 +16,7 @@ from user_info.models import Profile, string_to_int_mapping, ReContact
 
 # only for text search
 search_fields_img = {
+    'id': ['exact', 'gte', 'lte'],
     # color
     'colors__image__closest_palette_color_parent': ['exact'],
 
@@ -71,11 +72,13 @@ class TagsFilter(django_filters.CharFilter):
 
 class FaceFilter(FilterSet):
     relation = django_filters.CharFilter('profile', method='relation_filter')
+    confirmed = django_filters.CharFilter('profile', method='confirmed_filter')
 
     class Meta:
         model = Face  # 模型名
 
         fields = {
+
             'profile__id': ['exact'],  #
             'profile__name': ['exact', 'icontains'],
             'profile__re_to_relations__relation': ['exact'],
@@ -103,6 +106,20 @@ class FaceFilter(FilterSet):
         print(profile_ids)
         # filter the related faces based on the profile ids
         qs = qs.filter(profile__id__in=profile_ids)
+
+        return qs
+
+    def confirmed_filter(self, qs, name, value):
+        print('confirmed_filter: ', name, value)
+        # 去掉那些name以'unknown'开头的记录
+        if value == '1':
+            print('confirmed_filter: exclude the unknown profile', name, value)
+            qs = qs.exclude(profile__name__startswith='unknown')
+        elif value == '0':
+            print('confirmed_filter: include the unknown profile', name, value)
+            qs = qs.filter(profile__name__startswith='unknown')
+        else:
+            qs = qs
 
         return qs
 

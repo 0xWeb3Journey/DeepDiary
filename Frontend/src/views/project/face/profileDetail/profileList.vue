@@ -45,7 +45,7 @@
           data: [],
           queryForm: {
             page: 1,
-            size: 30,
+            size: 10,
           },
         },
         searchable: true,

@@ -16,7 +16,7 @@ from user_info.models import Profile, Company, ReContact, relation_strings, stri
 from user_info.serializers import UserRegisterSerializer, ProfileSerializer, CompanySerializer, \
     UserDetailSerializer, ResourceSerializer, DemandSerializer, ExperienceSerializer, ImageSerializer
 from user_info.serializers_out import ProfileBriefSerializer, ReContactGraphSerializer, ReContactBriefSerializer, \
-    ReContactListSerializer, ExperienceGraphSerializer
+    ReContactListSerializer, ExperienceGraphSerializer, ExperienceListSerializer, ExperienceBriefSerializer
 from user_info.task import ProfileProcess, CompanyProcess
 # class UserRegisterViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()
@@ -107,16 +107,17 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all().annotate(value=Count('faces')).order_by('-value')
+    # queryset = Profile.objects.all().annotate(value=Count('faces')).order_by('-value')
+    queryset = Profile.objects.all()
     pagination_class = GeneralPageNumberPagination
     filter_class = ProfileFilter  # 过滤类
-    # serializer_class = FaceBriefSerializer
+    serializer_class = ProfileBriefSerializer
     # permission_classes = (AllowAny,)
-    # pagination_class = FacePageNumberPagination  # 增加了这句代码，就无法显示filter,不过效果还是有的
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter,
                        filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
     search_fields = search_fields_profile
+    ordering_fields = ['asserts__face_cnt', 'id', 'name']  # 这里的字段，需要总上面定义字段中选择
 
     def perform_update(self, serializer):
         print('------------------Profile Perform_update------------------')
@@ -151,6 +152,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile_id = instance.id
         # 3. 获取当前实例的relation
         relation = self.request.data.get("relation", None)
+        if not relation:
+            return  # 如果relation 为空，直接返回
         relation = string_to_int_mapping.get(relation, None)
         print(f'人物更新：relation =  {profile_id},{user.id}, {relation}')
         # 4. 获取当前实例的relation_id
@@ -165,6 +168,19 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return ProfileBriefSerializer
         else:
             return ProfileSerializer
+
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #
+    #     # Handle custom ordering on the 'value' field.
+    #     # ordering = self.request.query_params.get('ordering')
+    #     queryset = queryset.annotate(value=Count('faces'))
+    #     # if ordering == 'value':
+    #     #     queryset = queryset.order_by('value')
+    #     # if ordering == '-value':
+    #     #     queryset = queryset.order_by('-value')
+    #
+    #     return queryset
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
     def change_avatar(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
@@ -205,7 +221,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
             print('user is authenticated: ', user.name)
             related_id = user.re_to_relations.all().values_list('relation', flat=True)
             related_str = [relation_strings[id] for id in set(related_id)]
-
+            related_str.append('Undefined')
             print('related_str: ', related_str)
 
         else:
@@ -214,18 +230,32 @@ class ProfileViewSet(viewsets.ModelViewSet):
         # 2. 统计每个Profile在img_queryset出现的次数，记作value
         profile_list = Profile.objects.annotate(value=Count('faces')).distinct().values('name', 'value').order_by(
             '-value')
+        company_list = Company.objects.annotate(value=Count('employees')).distinct().values('name', 'value').order_by(
+            '-value')
 
         data = {
-
-            'name': profile_list,
-            're_from_relations__isnull': [
-                {'name': 'Defined', 'value': 0},
-                {'name': 'Undefined', 'value': 1},
+            'confirmed': [
+                {'name': 'Unconfirmed', 'value': 0},
+                {'name': 'Confirmed', 'value': 1},
             ],
+            'name': profile_list,
             'state': [
                 {'name': 'Normal', 'value': 0},
                 {'name': 'Forbidden', 'value': 1},
                 {'name': 'Deleted', 'value': 9},
+            ],
+            'companies__name': company_list,
+            'companies__isnull': [
+                {'name': 'Has Related Company Info', 'value': 0},
+                {'name': 'No Company Info', 'value': 1},
+            ],
+            'faces__isnull': [
+                {'name': 'Has Related Face Info', 'value': 0},
+                {'name': 'No Face Info', 'value': 1},
+            ],
+            're_from_relations__isnull': [
+                {'name': 'Defined', 'value': 0},
+                {'name': 'Undefined', 'value': 1},
             ],
             'relation': related_str,
 
@@ -278,6 +308,15 @@ class ProfileViewSet(viewsets.ModelViewSet):
         prof_process = ProfileProcess()
         prof_process.get_profile(prof_process, instance=instance, func_list=get_list, force=force)
         return Response({"msg": 'profile_process finished'})
+
+    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    def profile_delete(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
+        print('------------------profile_delete------------------')
+        ins_noface = Profile.objects.all().annotate(value=Count('faces')).filter(value=0)
+        print(len(ins_noface))
+        ins_noface.delete()
+
+        return Response({"msg": 'profile delete success, total is {}'.format(len(ins_noface))})
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
@@ -371,7 +410,6 @@ class ResourceViewSet(viewsets.ModelViewSet):
         instance = serializer.save(profile=profile)
 
 
-
 class DemandViewSet(viewsets.ModelViewSet):
     queryset = Demand.objects.all()
     serializer_class = DemandSerializer
@@ -393,14 +431,27 @@ class DemandViewSet(viewsets.ModelViewSet):
 
 class ExperienceViewSet(viewsets.ModelViewSet):
     queryset = Experience.objects.all()
-    serializer_class = ExperienceSerializer
+    serializer_class = ExperienceBriefSerializer
     pagination_class = GeneralPageNumberPagination
+
+    def perform_update(self, serializer):
+        print('------------------Experience Perform_update------------------')
+
+    def get_serializer_class(self):
+        print(self.action, self.request.method)
+
+        if isinstance(self.request.data, list):
+            print('INFO: request.data is list', self.request.data)
+            # 如果请求的数据是列表，使用ListSerializer来处理
+            return ExperienceListSerializer
+        return ExperienceBriefSerializer
 
 
 class ImageViewSet(viewsets.ModelViewSet):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
     pagination_class = GeneralPageNumberPagination
+
     def perform_create(self, serializer):
         print(f"INFO:Img start perform_create, {self.request.data}")
         print(f"INFO:Img start perform_create, {serializer.validated_data}")
@@ -413,5 +464,3 @@ class ImageViewSet(viewsets.ModelViewSet):
         # 保存方式一
         resource = get_object_or_404(Resource, id=resource_id)
         instance = serializer.save(resource=resource)
-
-

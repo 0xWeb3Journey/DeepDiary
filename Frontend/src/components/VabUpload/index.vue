@@ -94,7 +94,7 @@
       },
       limit: {
         type: Number,
-        default: 50,
+        default: 500,
         required: true,
       },
       size: {

@@ -180,7 +180,7 @@ class ImgViewSet(viewsets.ModelViewSet):
         # img_process.get_all_img(img_process, func_list=get_list, force=force)
         # img_process.add_all_img_to_category(img_process, func_list=add_list)
 
-        check_all_img_info(get_list=get_list, add_list=add_list, force=force)
+        check_all_img_info.delay(get_list=get_list, add_list=add_list, force=force)
         return Response({"msg": "batch_img_test success"})
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
@@ -552,11 +552,14 @@ class FaceViewSet(viewsets.ModelViewSet):
             '-value')
 
         data = {
-
+            'confirmed': [
+                {'name': 'Unconfirmed', 'value': 0},
+                {'name': 'Confirmed', 'value': 1},
+            ],
             'profile__name': profile_list,
             'profile__isnull': [
-                {'name': 'Named', 'value': 0},
-                {'name': 'Unnamed', 'value': 1},
+                {'name': 'Has Related Profile', 'value': 0},
+                {'name': 'No Related Profile', 'value': 1},
             ],
             'det_score__gt': [0.9, 0.8, 0.7, 0.6, 0.5],
             'det_score__lt': [0.4, 0.5, 0.6, 0.7, 0.8],

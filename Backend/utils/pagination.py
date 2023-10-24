@@ -9,6 +9,9 @@ class GeneralPageNumberPagination(PageNumberPagination):
     max_page_size = 50  # max page size
 
     def get_paginated_response(self, data):
+        # print(f'get_paginated_response: {len(data)}')
+        # data = set(data)
+        # print(f'get_paginated_response: {len(data)}')
         return Response({
             'links': {
                 'next': self.get_next_link(),

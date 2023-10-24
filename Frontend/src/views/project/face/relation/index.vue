@@ -4,7 +4,9 @@
       v-if="searchable"
       @handleProfileSearch="onProfileSearch"
     ></ProfileSearch>
-    <Transfer :profiles="profiles.data"></Transfer>
+    <RelationProfile :profiles="profiles.data"></RelationProfile>
+
+    <RelationCompany :profiles="profiles.data"></RelationCompany>
 
     <AlbumContainer
       :items="profiles.data"
@@ -21,17 +23,41 @@
 <script>
   import AlbumContainer from '@/components/Album/content.vue'
   import { getProfile } from '@/api/profile'
+
   import ProfileSearch from '@/components/Search/profile'
-  import Transfer from './transfer.vue'
+  import RelationProfile from './relationProfile.vue'
+  import { getCompany } from '@/api/company'
+  import RelationCompany from './relationCompany.vue'
   export default {
     name: 'Relation',
-    components: { AlbumContainer, ProfileSearch, Transfer },
+    components: {
+      AlbumContainer,
+      ProfileSearch,
+      RelationProfile,
+      RelationCompany,
+    },
     directives: {},
     props: {},
     data() {
       return {
         profiles: {
           title: 'Profile List',
+          loading: false,
+          finished: false,
+          checkedId: -1,
+          checkedIndex: -1,
+          totalCnt: 0,
+          links: null,
+          curCnt: 0,
+          data: [],
+          queryForm: {
+            page: 1,
+            size: 30,
+            confirmed: 1,
+          },
+        },
+        Companies: {
+          title: 'Company List',
           loading: false,
           finished: false,
           checkedId: -1,
@@ -86,6 +112,30 @@
           this.profiles.loading = false
         }, 300)
       },
+
+      async fetchCompany() {
+        console.log('CompanyList: fetchCompany')
+        this.Companies.loading = true
+        this.Companies.finished = false
+        await getCompany(this.Companies.queryForm).then((response) => {
+          console.log('getCompaniesChangeAvatar', response)
+          const { data, totalCnt, links } = response
+          this.Companies.data = [...this.Companies.data, ...data]
+          this.Companies.curCnt = this.Companies.data.length
+          this.Companies.totalCnt = totalCnt
+          this.Companies.links = links
+          if (this.Companies.links.next === null) {
+            // no more data
+            this.Companies.finished = true
+          }
+          this.$emit('companyData', this.Companies.data)
+        })
+        // move to the outside, incase of no response
+        setTimeout(() => {
+          this.Companies.loading = false
+        }, 300)
+      },
+
       onRouteJump(index, item) {
         console.log('recieved the child component value %d,%o', index, item)
       },

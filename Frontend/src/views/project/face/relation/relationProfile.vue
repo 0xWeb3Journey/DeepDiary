@@ -53,7 +53,7 @@
   import { baseURL } from '@/config'
 
   export default {
-    name: 'Relation',
+    name: 'RelationProfile',
     components: {},
     directives: {},
     props: {
@@ -138,6 +138,8 @@
           (option) => option.value === value
         ).label
         console.log('Relation: onChange', this.relationName)
+        this.SelectedId = []
+        this.relationForm = []
       },
 
       genPersonList(data) {
@@ -167,15 +169,15 @@
         )
         console.log('Relation: onSubmit', this.relationValue, this.relationName)
         // 收集所有记录的数据
-        const recordsData = []
+        // const recordsData = []
         for (let i = 0; i < this.SelectedId.length; i++) {
           const re_from = this.SelectedId[i]
           const re_to = userId
           const relation = this.relationValue
-          recordsData.push({ re_from, re_to, relation })
+          this.relationForm.push({ re_from, re_to, relation })
         }
         // this.relationForm = JSON.stringify(recordsData)
-        this.relationForm = recordsData
+        // this.relationForm = recordsData
       },
 
       async addRelation() {
@@ -198,10 +200,22 @@
           .then((response) => {
             // 请求成功处理
             console.log('Response:', response.data)
+            this.$message({
+              message: 'Successed binding the relation!',
+              type: 'success',
+            })
+            this.SelectedId = []
+            this.relationForm = []
           })
           .catch((error) => {
             // 请求失败处理
             console.error('Error:', error)
+            this.$message({
+              message: error,
+              type: 'error',
+            })
+            this.SelectedId = []
+            this.relationForm = []
           })
       },
       async delRelation() {

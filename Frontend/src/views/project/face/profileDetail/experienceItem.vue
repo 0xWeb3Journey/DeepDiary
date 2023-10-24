@@ -1,9 +1,9 @@
 <template>
   <div>
     <el-card shadow="hover">
-      <div slot="header" class="clearfix">
+      <div slot="header" class="header">
         <span>{{ itemLocal.name }}</span>
-
+        <el-tag>{{ itemLocal.company }}</el-tag>
         <Menu :menus="menus" @command="handleCommand"></Menu>
       </div>
       <div class="text item">
@@ -119,20 +119,21 @@
       console.log('ExperienceItem: component has been mounted --')
       // 创建 srcList，收集所有图片的 src
       //   if this.srcList is empty, then set it to default value
+      this.itemLocal = this.item
       console.log('ExperienceItem: item = ', this.item)
-      // if (this.item.images.length === 0) {
-      //   console.log('ExperienceItem: item.images is empty -- ')
-      // this.item.images = [
-      //   {
-      //     id: 1,
-      //     src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
-      //     thumb:
-      //       'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
-      //   },
-      // ]
-      // }
+      if (this.itemLocal.images.length === 0) {
+        console.log('ExperienceItem: item.images is empty -- ')
+        this.itemLocal.images = [
+          {
+            id: 1,
+            src: 'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
+            thumb:
+              'https://deep-diary.oss-accelerate.aliyuncs.com/media/sys_img/logo_lg.png',
+          },
+        ]
+      }
 
-      // this.srcList = this.item.images.map((image) => image.src)
+      this.srcList = this.itemLocal.images.map((image) => image.src)
     },
     activated() {
       console.log('ExperienceItem: component has been activated --')
@@ -161,5 +162,9 @@
 <style>
   .text {
     font-size: 12px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between; /* 将内容向右对齐 */
   }
 </style>

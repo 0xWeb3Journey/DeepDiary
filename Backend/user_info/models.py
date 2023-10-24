@@ -94,8 +94,10 @@ def user_upload_file(instance, filename):  # dir struct MEDIA/user/subfolder/fil
 class Company(models.Model):
     employees = models.ManyToManyField('Profile', through='Experience', related_name='companies')
     name = models.CharField(max_length=30, blank=True, verbose_name="公司名称", help_text="公司名称")
-    name_PyFull = models.CharField(max_length=60, blank=True, null=True, verbose_name="公司名称全拼", help_text="公司名称全拼")
-    name_PyInitial = models.CharField(max_length=20, blank=True, null=True, verbose_name="公司名称拼音首字母", help_text="公司名称拼音首字母")
+    name_PyFull = models.CharField(max_length=60, blank=True, null=True, verbose_name="公司名称全拼",
+                                   help_text="公司名称全拼")
+    name_PyInitial = models.CharField(max_length=20, blank=True, null=True, verbose_name="公司名称拼音首字母",
+                                      help_text="公司名称拼音首字母")
     avatar = models.ImageField(upload_to=user_upload_img, verbose_name="图片",
                                help_text='请上传图片',
                                null=True, blank=True,
@@ -207,7 +209,7 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
 
     def __str__(self):
         # return f'{self.id}_{self.name}'
-        return self.name
+        return f'{self.pk}_{self.username}_{self.name}_{self.faces.all().count()}'
         # return f'{self.get_position_display()}_{self.username}'
         # return f'{self.company.name}_{self.position}_{self.name}'
 
@@ -236,6 +238,22 @@ class Profile(AbstractUser):  # 直接继承django默认用户信息
     class Meta:
         ordering = ('-created_at',)
         get_latest_by = 'id'
+
+
+class Assert(models.Model):
+    profile = models.OneToOneField(
+        Profile,
+        related_name='asserts',
+        on_delete=models.CASCADE,
+        primary_key=True,
+    )
+    face_cnt = models.IntegerField(default=0, verbose_name="人脸数", help_text="人脸数")
+    img_cnt = models.IntegerField(default=0, verbose_name="图片数", help_text="图片数")
+    video_cnt = models.IntegerField(default=0, verbose_name="视频数", help_text="视频数")
+    audio_cnt = models.IntegerField(default=0, verbose_name="音频数", help_text="音频数")
+    diary_cnt = models.IntegerField(default=0, verbose_name="日记数", help_text="日记数")
+    gps_cnt = models.IntegerField(default=0, verbose_name="GPS数", help_text="GPS数")
+    friend_cnt = models.IntegerField(default=0, verbose_name="朋友数", help_text="朋友数")
 
 
 # 本模型主要记录朋友之间的关系，备注，描述等信息
@@ -312,8 +330,8 @@ class Demand(models.Model):
 
 
 class Experience(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='experiences')
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='experiences')
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True,  related_name='experiences')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True,  related_name='experiences')
 
     position = models.CharField(blank=True, verbose_name="job position",
                                 help_text="descript what position you are in charge for", max_length=100)
@@ -321,10 +339,10 @@ class Experience(models.Model):
                                   help_text="when is this experience started")
     end_date = models.DateField(null=True, blank=True, verbose_name="end_date",
                                 help_text="when is this experience end_date")
-    name = models.CharField(max_length=30, verbose_name="name", help_text="the title of this experience")
-    desc = models.CharField(max_length=300, verbose_name="description", null=True,
+    name = models.CharField(max_length=30, verbose_name="name", blank=True, help_text="the title of this experience")
+    desc = models.CharField(max_length=300, verbose_name="description", null=True, blank=True,
                             help_text="the brief description of this experience")
-    duty = models.CharField(max_length=300, verbose_name="responsibility", null=True,
+    duty = models.CharField(max_length=300, verbose_name="responsibility", null=True, blank=True,
                             help_text="the duty of this experience")
     achievement = models.CharField(max_length=100, blank=True, null=True, verbose_name="achievement",
                                    help_text="fill the achievement you got")
@@ -334,6 +352,9 @@ class Experience(models.Model):
 
     def __str__(self):
         return f"{self.profile.name} worked at {self.company.name} in charge of {self.name} from {self.start_date} to {self.end_date}"
+
+    class Meta:
+        unique_together = ('profile', 'company', 'name')
 
 
 class Image(models.Model):
@@ -349,7 +370,7 @@ class Image(models.Model):
                             default='sys_img/logo_lg.png')
     thumb = ImageSpecField(source='src',
                            # processors=[ResizeToFill(300, 300)],
-                           processors=[ResizeToFit(width=500, height=500)],
+                           processors=[ResizeToFit(width=200, height=200)],
                            # processors=[Thumbnail(width=300, height=300, anchor=None, crop=None, upscale=None)],
                            format='JPEG',
                            options={'quality': 80},

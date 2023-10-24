@@ -89,7 +89,7 @@ class Img(models.Model):
     #                             )
     thumb = ImageSpecField(source='src',
                            # processors=[ResizeToFill(300, 300)],
-                           processors=[ResizeToFit(width=500, height=500)],
+                           processors=[ResizeToFit(width=200, height=200)],
                            # processors=[Thumbnail(width=300, height=300, anchor=None, crop=None, upscale=None)],
                            format='JPEG',
                            options={'quality': 80},
@@ -111,15 +111,15 @@ class Img(models.Model):
     embedding = models.BinaryField(null=True, blank=True, verbose_name='图片特征',
                                    help_text='图片特征向量，用于以文搜图，以图搜图')
 
-    camera_brand = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机品牌", help_text='相机品牌')
-    camera_model = models.CharField(max_length=20, null=True, blank=True, verbose_name="相机型号", help_text='相机型号')
+    camera_brand = models.CharField(max_length=30, null=True, blank=True, verbose_name="相机品牌", help_text='相机品牌')
+    camera_model = models.CharField(max_length=30, null=True, blank=True, verbose_name="相机型号", help_text='相机型号')
 
     # 数据库更新日期
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="首次创建的时间", help_text='首次创建的时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     def __str__(self):
-        return self.name
+        return f'{self.pk}_{self.name}'
 
     def to_dict(self):
         return {'id': self.id,

@@ -1,6 +1,4 @@
 import bisect
-import json
-import pickle
 import random
 import string
 from datetime import datetime
@@ -11,7 +9,7 @@ import cv2
 import numpy as np
 import pyexiv2
 import torch
-from PIL import Image, ExifTags
+from PIL import Image
 from celery import shared_task
 from django.contrib.auth.hashers import make_password
 from django.core.files.storage import default_storage
@@ -24,7 +22,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from deep_diary.settings import cfg, calib
 from library.gps import GPS_format, GPS_to_coordinate, GPS_get_address
 from library.imagga import imagga_get
-from library.models import Img, Category, ImgCategory, Face, \
+from library.models import Img, Category, Face, \
     FaceLandmarks3D, FaceLandmarks2D, Kps, Stat, Address, Evaluate, Date
 from library.serializers import McsDetailSerializer, ColorSerializer, ColorBackgroundSerializer, \
     ColorForegroundSerializer, ColorImgSerializer, FaceSerializer
@@ -66,6 +64,8 @@ color_palette = {
     "grey": '#8c8c8c',
     "light pink": '#e6c1be',
 }
+
+
 # IMG_FUC_LIST = ['get_exif_info', 'get_tags', 'get_colors', 'get_categories', 'get_faces', 'get_caption',
 #                 'get_feature']
 #
@@ -120,9 +120,13 @@ class ImgProces:
             return None
         if read_type is None:
             read_type = ['cv2', 'PIL', 'pyexiv2']
-
+        # print(f"instance.src.name: {instance.src.name}")
         image_file = default_storage.open(instance.src.name)  # 方式二：读取本地或网络图片
         image_content = image_file.read()
+        # print(f"image_file: {image_file}")
+        # print(f"image_content: {image_content}")
+        # print('chardet.detect(image_content)', chardet.detect(image_content)['encoding'])
+
         image_content_obj = BytesIO(image_content)
         image_file.close()
         image = {
@@ -136,7 +140,12 @@ class ImgProces:
             elif type == 'PIL':
                 image[type] = Image.open(image_content_obj)
             elif type == 'pyexiv2':
-                image[type] = pyexiv2.ImageData(image_content)
+                # image[type] = pyexiv2.ImageData(image_content)
+                try:
+                    image[type] = pyexiv2.ImageData(image_content)
+                except RuntimeError as e:
+                    print(f'ERROR: {e}')
+                    image[type] = None
             else:
                 raise Exception(f'not support this type: {type}')
 
@@ -191,7 +200,7 @@ class ImgProces:
 
     def face_init(self):
         self.app = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
-        self.app.prepare(ctx_id=0, det_size=(640, 640))
+        self.app.prepare(ctx_id=0, det_size=(640, 640), det_thresh=calib['face']['det_threshold'])  # 默认det_thresh=0.5,
 
     @staticmethod
     def face_crop(image, bbox):
@@ -245,6 +254,7 @@ class ImgProces:
         :param rec2: (x0,y0,x1,y1)
         :return: 交并比IOU.
         """
+        # print(f'rec1 is {rec1}, rec2 is {rec2}')
         left_column_max = max(rec1[0], rec2[0])
         right_column_min = min(rec1[2], rec2[2])
         up_row_max = max(rec1[1], rec2[1])
@@ -287,6 +297,8 @@ class ImgProces:
         profile, created = Profile.objects.get_or_create(name=face_name, defaults=creation_params)
         if created:
             print(f'INFO: success created a new profile: {profile.name}')
+        else:
+            print(f'INFO: the profile already existed: {profile.name}')
 
         return profile, created
 
@@ -398,9 +410,9 @@ class ImgProces:
 
         # 1. 获取人脸名字
         names = []
+        bboxs = []
         face_name = 'unknown_' + ''.join(random.sample(string.ascii_letters + string.digits, 4))
         face_score = 0
-        enableLM = False  # 强制关闭LM方式
         if enableLM:  # 通过LM方式检测到了人脸
             names, bboxs = self.get_lm_face_info(img_ins)
         if len(names) > 0:
@@ -409,10 +421,11 @@ class ImgProces:
                 iou = self.compute_iou(bbox, face.bbox)  # 计算LM 人脸区域跟insight face 人脸区域的重合度
                 ious = np.append(ious, iou)
             idx = ious.argmax()
-            # print(f'INFO ious is {ious}')
-            # print(f'INFO names is {names}')
-            # print(f'INFO: the identified idx is {idx}')
+            print(f'INFO ious is {ious}')
+            print(f'INFO names is {names}')
+            print(f'INFO: the identified idx is {idx}， ious[idx]: {ious[idx]}')
             if ious[idx] > 0.3:  # 重合度超过30%
+                print(f"\033[1;32m INFO: estimated name is {names[idx]}, iou is{ious[idx]} \033[0m")
                 face_name = names[idx]
                 face_score = 1
 
@@ -873,137 +886,301 @@ class ImgProces:
         print(
             f'--------------------{instance.id} : clip categories have been store to the database---------------------------')
 
+    def get_date(self, instance, img_pyexiv2=None, img_pil=None):
+        print(f'INFO: -------------------start getting date info for img id {instance.id}--------------------')
+        # through pyexiv2 method
+        # img_read = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+        try:
+            exif = img_pyexiv2.read_exif()  # 读取元数据，这会返回一个字典
+        except (AttributeError,UnicodeDecodeError) as e:
+            print(f'INFO: get_date----->UnicodeDecodeError {e} ')
+            exif = None
+
+        if exif:
+            print(f'INFO: get_date----->exif is true ')
+            # deal with timing
+            date_str = exif.get('Exif.Photo.DateTimeOriginal', '1970:01:01 00:00:00')
+        else:
+            date_str = '1970:01:01 00:00:00'
+        date_dict = self.resolve_date(date_str)  # return the date instance
+        print(f'INFO: -------------------finish getting date info for img id {instance.id}--------------------')
+        return date_dict
+
+    def get_addr(self, instance, img_pyexiv2=None, img_pil=None):
+        print(f'INFO: -------------------start getting address info for img id {instance.id}--------------------')
+
+        addr = {}
+        # img_read = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+
+        try:
+            exif = img_pyexiv2.read_exif()  # 读取元数据，这会返回一个字典
+        except (AttributeError, UnicodeDecodeError) as e:
+            print(f'INFO: get_addr----->UnicodeDecodeError {e} ')
+            exif = None
+
+        if exif:
+            print(f'INFO: get_addr----->exif is true ')
+
+            longitude = GPS_format(exif.get('Exif.GPSInfo.GPSLongitude'), )
+            latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
+            altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
+            if type(altitude) == str:
+                alt = altitude.split('/')
+                altitude = float(alt[0]) / float(alt[1])
+
+            is_located = True if longitude and latitude else False
+
+            long_lati = None
+            if is_located:
+                long_lati = GPS_to_coordinate(longitude, latitude)
+                # TODO: need update the lnglat after transform the GPS info
+                longitude = round(long_lati[0], 6)  # only have Only 6 digits of precision for AMAP
+                latitude = round(long_lati[1], 6)
+                # print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
+                long_lati = f'{long_lati[0]},{long_lati[1]}'  # change to string
+                print(f'INFO: get_addr----->long_lati is {long_lati}')
+
+            location, district, city, province, country = GPS_get_address(long_lati)
+
+            addr = {
+                'longitude_ref': exif.get('Exif.GPSInfo.GPSLongitudeRef', 'E'),
+                'longitude': longitude,
+                'latitude_ref': exif.get('Exif.GPSInfo.GPSLatitudeRef', 'N'),
+                'latitude': latitude,
+                'altitude_ref': float(exif.get('Exif.GPSInfo.GPSAltitudeRef', 0.0)),
+                'altitude': altitude,
+                'is_located': is_located,
+                'country': country,
+                'province': province,
+                'city': city,
+                'district': district,
+                'location': location,
+            }
+        else:
+            # other method to get the addr info
+            print(f'INFO: get_addr----->exif is false ')
+        print(f'INFO: -------------------finish getting address info for img id {instance.id}--------------------')
+        return addr
+
+    def get_eval(self, instance, img_pyexiv2=None, img_pil=None):
+        print(f'INFO: -------------------start getting eval info for img id {instance.id}--------------------')
+        # img_read = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+
+        xmp = img_pyexiv2.read_xmp()  # 读取元数据，这会返回一个字典
+        rating = int(xmp.get('Xmp.xmp.Rating', 0))
+        rate = {
+            'rating': rating,
+        }
+        print(f'INFO: -------------------finish getting eval info for img id {instance.id}--------------------')
+        return rate
+
+    def get_base(self, instance, img_pyexiv2=None, img_pil=None):  # 传入img_pyexiv2和img_pil为了降低读取图片的次数，提高效率
+        print(f'INFO: -------------------start getting base info for img id {instance.id}--------------------')
+        # img_pyexiv2 = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+        # img_pil = self.read_img(instance, ['PIL']).get('PIL', None)
+
+        # # # 获取属性列表
+        # img_attributes = dir(img_pil)
+        # # # 遍历属性并打印
+        # for attr in img_attributes:
+        #     attr_value = getattr(img_pil, attr)
+        #     print(f"Attribute: {attr}, Value: {attr_value}")
+
+        try:
+            exif = img_pyexiv2.read_exif()  # 读取元数据，这会返回一个字典
+        except (AttributeError, UnicodeDecodeError) as e:
+            print(f'INFO: get_base----->UnicodeDecodeError {e} ')
+            exif = None
+        # exif = img_pyexiv2.read_exif()  # 读取元数据，这会返回一个字典
+        iptc = img_pyexiv2.read_iptc()  # 读取元数据，这会返回一个字典
+        xmp = img_pyexiv2.read_xmp()  # 读取元数据，这会返回一个字典
+        # print(f'INFO: exif is {json.dumps(exif, indent=4)}')
+        # print(f'INFO: iptc is {json.dumps(iptc, indent=4)}')
+        # print(f'INFO: xmp is {json.dumps(xmp, indent=4)}')
+
+        wid = int(exif.get('Exif.Image.ImageWidth', 0)) if exif and int(exif.get('Exif.Image.ImageWidth', 0)) else int(
+            img_pil.width)  # 其实本身已经是int类型的了
+        height = int(exif.get('Exif.Image.ImageLength', 0)) if exif and int(
+            exif.get('Exif.Image.ImageLength', 0)) else int(img_pil.height)  # 其实本身已经是int类型的了
+        print(wid, height)
+        aspect_ratio = height / wid if wid != 0 else 0
+        camera_brand = exif.get('Exif.Image.Make', '') if exif else ''
+        camera_model = exif.get('Exif.Image.Model', '') if exif else ''
+
+        title = iptc.get('iptc.Application2.ObjectName') if iptc else ''
+        caption = iptc.get('Iptc.Application2.Caption') if iptc else ''
+        lm_tags = iptc.get('Iptc.Application2.Keywords') if iptc else []
+
+        label = xmp.get('Xmp.xmp.Label') if xmp else ''
+
+        base = {
+            'wid': wid,
+            'height': height,
+            'aspect_ratio': aspect_ratio,
+            'camera_brand': camera_brand,
+            'camera_model': camera_model,
+            'title': title,
+            'caption': caption,
+            'label': label,
+            'is_exist': True,
+        }
+        print(f'INFO: -------------------finish getting base info for img id {instance.id}--------------------')
+        return base, lm_tags
+
     def get_exif_info(self, instance=None, force=False):
+
         # 1. 判断是否需要处理
         field = 'is_get_info'
         instance, stats, process = self.__is_need_process__(instance, force, field)
         if not process:
             return
+        img = self.read_img(instance, ['pyexiv2', 'PIL'])
+        img_pyexiv2 = img.get('pyexiv2', None)
+        img_pil = img.get('PIL', None)
+
+        # img_pyexiv2 = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+        # img_pil = self.read_img(instance, ['PIL']).get('PIL', None)
+
+        if not img_pyexiv2 or not img_pil:
+            return
 
         # 2. processing the image
-        print(f'INFO: **************img instance have been created, saving img info now...')
+        print(f'INFO: --------------------start dealing with get_exif_info------------')
         # stat, created = Stat.objects.get_or_create(img=instance)  # bind the one to one field image info
         addr, created = Address.objects.get_or_create(img=instance)
         eval, created = Evaluate.objects.get_or_create(img=instance)
         date, created = Date.objects.get_or_create(img=instance)
-        # instance.refresh_from_db()  # refresh from the DB
-        lm_tags = []
-        # 2.1 get the exif info by pyexiv2
-        # img_read = pyexiv2.Image(self.path) if self.path else pyexiv2.ImageData(self.read())  # 登记图片路径
-        img_read = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
 
-        exif = img_read.read_exif()  # 读取元数据，这会返回一个字典
-        iptc = img_read.read_iptc()  # 读取元数据，这会返回一个字典
-        xmp = img_read.read_xmp()  # 读取元数据，这会返回一个字典
-        # print(f'INFO: exif is {json.dumps(exif, indent=4)}')
-        # print(f'INFO: iptc is {json.dumps(iptc, indent=4)}')
-        # print(f'INFO: xmp is {json.dumps(xmp, indent=4)}')
-        #
-        # print(f'INFO: instance.src.url is {instance.src.url}')
-        # print(f'INFO: instance.src.name is {instance.src.name}')
-        # print(f'INFO: instance.src.size is {instance.src.size}')
+        date_dict = self.get_date(instance, img_pyexiv2=img_pyexiv2, img_pil=img_pil)
+        date.__dict__.update(date_dict)
+        date.save()
 
-        if exif:
-            # print(f'INFO: exif is true ')
-            # deal with timing
-            date_str = exif['Exif.Photo.DateTimeOriginal']
+        addr_dict = self.get_addr(instance, img_pyexiv2=img_pyexiv2, img_pil=img_pil)
+        addr.__dict__.update(addr_dict)
+        addr.save()
 
-            # date = set_img_date(date, date_str)  # return the date instance
-            date_dict = self.resolve_date(date_str)  # return the date instance
-            date.__dict__.update(date_dict)
+        eval_dict = self.get_eval(instance, img_pyexiv2=img_pyexiv2, img_pil=img_pil)
+        eval.__dict__.update(eval_dict)
+        eval.save()
 
-            # deal with address
-            addr.longitude_ref = exif.get('Exif.GPSInfo.GPSLongitudeRef')
-            if addr.longitude_ref:  # if have longitude info
-                addr.longitude = GPS_format(
-                    exif.get('Exif.GPSInfo.GPSLongitude'))  # exif.get('Exif.GPSInfo.GPSLongitude')
-                addr.latitude_ref = exif.get('Exif.GPSInfo.GPSLatitudeRef')
-                addr.latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
+        base_dict, lm_tags = self.get_base(instance, img_pyexiv2=img_pyexiv2, img_pil=img_pil)
+        instance.__dict__.update(base_dict)
+        instance.save()
 
-            addr.altitude_ref = exif.get('Exif.GPSInfo.GPSAltitudeRef')  # 有些照片无高度信息
-            if addr.altitude_ref:  # if have the altitude info
-                addr.altitude_ref = float(addr.altitude_ref)
-                addr.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
-                alt = addr.altitude.split('/')
-                addr.altitude = float(alt[0]) / float(alt[1])
-            addr.is_located = False
-            if addr.longitude and addr.latitude:
-                # 是否包含经纬度数据
-                addr.is_located = True
-                long_lati = GPS_to_coordinate(addr.longitude, addr.latitude)
-                # TODO: need update the lnglat after transform the GPS info
-                addr.longitude = round(long_lati[0], 6)  # only have Only 6 digits of precision for AMAP
-                addr.latitude = round(long_lati[1], 6)
-                # print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
-                long_lati = f'{long_lati[0]},{long_lati[1]}'  # change to string
-
-                addr.location, addr.district, addr.city, addr.province, addr.country = GPS_get_address(
-                    long_lati)
-
-            instance.wid = int(exif.get('Exif.Image.ImageWidth'))
-            instance.height = int(exif.get('Exif.Image.ImageLength'))
-            instance.aspect_ratio = instance.height / instance.wid
-            instance.camera_brand = exif.get('Exif.Image.Make')
-            instance.camera_model = exif.get('Exif.Image.Model')
-        else:
-            # print(f'INFO: exif is false ')
-            # # 2.2 get the exif info by PIL
-            img_pil = self.read_img(instance, ['PIL']).get('PIL', None)
-            # # 获取属性列表
-            # img_attributes = dir(img_pil)
-            #
-            # # 遍历属性并打印
-            # for attr in img_attributes:
-            #     attr_value = getattr(img_pil, attr)
-            #     print(f"Attribute: {attr}, Value: {attr_value}")
-            # print(type(img_pil.width))  # int 类型
-            instance.wid = int(img_pil.width)  # 其实本身已经是int类型的了
-            instance.height = int(img_pil.height)  # 其实本身已经是int类型的了
-            instance.aspect_ratio = instance.height / instance.wid
-
-        if iptc:
-            # print(f'INFO: iptc is true ')
-            instance.title = iptc.get('iptc.Application2.ObjectName')
-            instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
-            lm_tags = iptc.get('Iptc.Application2.Keywords')
-        else:
-            # print(f'INFO: iptc is false ')
-            pass
-
-        if xmp:
-            # print(f'INFO: xmp is true ')
-            instance.label = xmp.get('Xmp.xmp.Label')  # color mark
-            eval.rating = int(xmp.get('Xmp.xmp.Rating', 0))
-            # if eval.rating:
-            #     eval.rating = int(xmp.get('Xmp.xmp.Rating'))
-
-        else:
-            # print(f'INFO: xmp is false ')
-            pass
-
-        # 使用阿里云后端，这个无法直接访问
-        # instance.wid = instance.src.width
-        # instance.height = instance.src.height
-        # instance.aspect_ratio = instance.height / instance.wid
-        instance.is_exist = True
-        instance.save()  # save the image instance, already saved during save the author
+        print(lm_tags)
 
         if lm_tags:
-            # print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
-            # print(f'INFO: the instance id is {instance.id}')
-            # instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
             instance.tags.add(*lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+        print(f'INFO: --------------------finish dealing with get_exif_info------------')
 
         # 3. update the stats
         stats.is_publish = True
         stats.is_get_info = True
 
-        addr.save()
-        eval.save()
-        date.save()
         stats.save()
-        print(
-            f'--------------------{instance.id} :img infos have been store to the database---------------------------')
+
+        # if exif:
+        #     print(f'INFO: exif is true ')
+        #     # deal with timing
+        #     date_str = exif['Exif.Photo.DateTimeOriginal']
+        #
+        #     # date = set_img_date(date, date_str)  # return the date instance
+        #     date_dict = self.resolve_date(date_str)  # return the date instance
+        #     date.__dict__.update(date_dict)
+        #
+        #     # deal with address
+        #     addr.longitude_ref = exif.get('Exif.GPSInfo.GPSLongitudeRef')
+        #     if addr.longitude_ref:  # if have longitude info
+        #         addr.longitude = GPS_format(
+        #             exif.get('Exif.GPSInfo.GPSLongitude'))  # exif.get('Exif.GPSInfo.GPSLongitude')
+        #         addr.latitude_ref = exif.get('Exif.GPSInfo.GPSLatitudeRef')
+        #         addr.latitude = GPS_format(exif.get('Exif.GPSInfo.GPSLatitude'))
+        #
+        #     addr.altitude_ref = exif.get('Exif.GPSInfo.GPSAltitudeRef')  # 有些照片无高度信息
+        #     if addr.altitude_ref:  # if have the altitude info
+        #         addr.altitude_ref = float(addr.altitude_ref)
+        #         addr.altitude = exif.get('Exif.GPSInfo.GPSAltitude')  # 根据高度信息，最终解析成float 格式
+        #         alt = addr.altitude.split('/')
+        #         addr.altitude = float(alt[0]) / float(alt[1])
+        #     addr.is_located = False
+        #     if addr.longitude and addr.latitude:
+        #         # 是否包含经纬度数据
+        #         addr.is_located = True
+        #         long_lati = GPS_to_coordinate(addr.longitude, addr.latitude)
+        #         # TODO: need update the lnglat after transform the GPS info
+        #         addr.longitude = round(long_lati[0], 6)  # only have Only 6 digits of precision for AMAP
+        #         addr.latitude = round(long_lati[1], 6)
+        #         # print(f'instance.longitude {addr.longitude},instance.latitude {addr.latitude}')
+        #         long_lati = f'{long_lati[0]},{long_lati[1]}'  # change to string
+        #
+        #         addr.location, addr.district, addr.city, addr.province, addr.country = GPS_get_address(
+        #             long_lati)
+        #
+        #     instance.wid = int(exif.get('Exif.Image.ImageWidth'), 0)
+        #     instance.height = int(exif.get('Exif.Image.ImageLength'), 0)
+        #     if instance.wid and instance.height:
+        #         instance.aspect_ratio = instance.height / instance.wid
+        #     instance.camera_brand = exif.get('Exif.Image.Make')
+        #     instance.camera_model = exif.get('Exif.Image.Model')
+        # else:
+        #     # print(f'INFO: exif is false ')
+        #     # # 2.2 get the exif info by PIL
+        #     img_pil = self.read_img(instance, ['PIL']).get('PIL', None)
+        #     # # 获取属性列表
+        #     img_attributes = dir(img_pil)
+        #     #
+        #     # # 遍历属性并打印
+        #     for attr in img_attributes:
+        #         attr_value = getattr(img_pil, attr)
+        #         print(f"Attribute: {attr}, Value: {attr_value}")
+        #     # print(type(img_pil.width))  # int 类型
+        #     instance.wid = int(img_pil.width)  # 其实本身已经是int类型的了
+        #     instance.height = int(img_pil.height)  # 其实本身已经是int类型的了
+        #     instance.aspect_ratio = instance.height / instance.wid
+        #
+        # if iptc:
+        #     # print(f'INFO: iptc is true ')
+        #     instance.title = iptc.get('iptc.Application2.ObjectName')
+        #     instance.caption = iptc.get('Iptc.Application2.Caption')  # Exif.Image.ImageDescription
+        #     lm_tags = iptc.get('Iptc.Application2.Keywords')
+        # else:
+        #     # print(f'INFO: iptc is false ')
+        #     pass
+        #
+        # if xmp:
+        #     # print(f'INFO: xmp is true ')
+        #     instance.label = xmp.get('Xmp.xmp.Label')  # color mark
+        #     eval.rating = int(xmp.get('Xmp.xmp.Rating', 0))
+        #     # if eval.rating:
+        #     #     eval.rating = int(xmp.get('Xmp.xmp.Rating'))
+        #
+        # else:
+        #     # print(f'INFO: xmp is false ')
+        #     pass
+        #
+        # # 使用阿里云后端，这个无法直接访问
+        # # instance.wid = instance.src.width
+        # # instance.height = instance.src.height
+        # # instance.aspect_ratio = instance.height / instance.wid
+        # instance.is_exist = True
+        # instance.save()  # save the image instance, already saved during save the author
+        #
+        # if lm_tags:
+        #     # print(f'INFO: the lm_tags is {lm_tags}, type is {type(lm_tags)}')
+        #     # print(f'INFO: the instance id is {instance.id}')
+        #     # instance.tags.set(lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+        #     instance.tags.add(*lm_tags)  # 这里一定要在实例保存后，才可以设置外键，不然无法进行关联
+        #
+        # # 3. update the stats
+        # stats.is_publish = True
+        # stats.is_get_info = True
+        #
+        # addr.save()
+        # eval.save()
+        # date.save()
+        # stats.save()
+        # print(
+        #     f'--------------------{instance.id} :img infos have been store to the database---------------------------')
 
     def get_lm_face_info(self, instance):
         print(f'INFO: get_LM_face_info ... ')
@@ -1017,7 +1194,7 @@ class ImgProces:
             print(f'INFO: img is None')
             return names, bboxs
         xmp = img.read_xmp()  # 读取元数据，这会返回一个字典
-
+        # print(f'INFO: xmp is {json.dumps(xmp, indent=4)}')
         while is_have_face:
             item = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Type'.format(num)
             is_have_face = xmp.get(item, None)
@@ -1038,7 +1215,7 @@ class ImgProces:
                 bbox = self.face_zoom(lm_face_area, 1, instance.wid,
                                       instance.height)  # 转变成像素值，左上区域和右下区域坐标，跟insightface 保持一致
                 bboxs.append(bbox)
-        print(f'INFO: the LM names is {names}')
+        # print(f'INFO: the LM names is {names}, bbox is {bboxs}')
         return names, bboxs
 
     def get_faces(self, instance=None, force=False, save_type='instance'):  # 'instance', serializers
@@ -1048,6 +1225,7 @@ class ImgProces:
         instance, stats, process = self.__is_need_process__(instance, force, field)
         if not process:
             return
+        print(f'INFO: start get_faces ... the img id is : {instance.id}------------------------------')
         # 1.1 delete the old faces and relations to Profile
         if stats.is_face:
             print(f'INFO: the instance {instance.id} has been processed')
@@ -1263,7 +1441,7 @@ class ImgProces:
         if func_list is None:
             return
         # 1. get all the imgs
-        imgs = Img.objects.all()
+        imgs = Img.objects.filter(stats__is_deleted=False)
         # 2. Go through each img
         for (img_idx, img) in enumerate(imgs):
             print(f'--------------------INFO: This is img{img_idx}: {img.id} ---------------------')
@@ -1340,7 +1518,7 @@ class ImgProces:
         dates = instance.dates
         # 使用模型字段值构建日期对象
         # print(type(dates.year), type(dates.month), type(dates.day))
-        date_obj = datetime(int(dates.year),int(dates.month),int(dates.day))
+        date_obj = datetime(int(dates.year), int(dates.month), int(dates.day))
         field_list = [
             'date',
             date_obj.year,
@@ -1588,6 +1766,7 @@ class ImgProces:
                                                       avatar=fc_instance.src)
 
                 fc_instance.profile = profile
+                fc_instance.face_score = 1  # 人脸识别分数, 重命名后，说明经过人工确认，就是属于这个人的，因此概率为100%
                 fc_instance.save()
                 print(f'INFO: success created a new profile: {profile.name}')
 

@@ -125,6 +125,15 @@
       this.justifyInit()
       // this.checkDivHeight()
     },
+    activated() {
+      console.log('Gallery contetn: activated')
+      this.checkDivHeight()
+    },
+    deactivated() {
+      console.log('Gallery contetn: deactivated')
+      clearInterval(this.intervalId)
+      this.intervalId = null
+    },
     methods: {
       justifyInit: function () {
         $('#gallery')
@@ -191,7 +200,7 @@
           // Create an interval to check the div's height every 1 second
           this.intervalId = setInterval(() => {
             //init the height
-            this.$refs.gallery_container.style.height = 600 + 'px'
+            this.$refs.gallery_container.style.height = 1000 + 'px'
             // Check if the component is busy
             if (this.busy === false) {
               // Get the current scroll height of the div
@@ -255,7 +264,7 @@
 
 <style lang="css" scoped>
   .gallery_container {
-    height: 800px;
+    height: 1000px;
     overflow-y: auto;
   }
 </style>

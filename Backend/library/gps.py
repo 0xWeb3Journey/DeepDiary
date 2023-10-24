@@ -60,6 +60,8 @@ def GPS_get_address(long_lati):
     :param long_lati: 经纬度值
     :return:
     """
+    if not long_lati:
+        return None,None,None,None,None
     addr = []  # 5级地址，依次从小到大
     api_key = cfg['Amap_api_key']  # 高德账户API密钥
     url_get_position = 'https://restapi.amap.com/v3/geocode/regeo?key={}&location={}'

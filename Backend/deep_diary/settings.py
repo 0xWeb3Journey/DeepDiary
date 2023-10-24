@@ -33,7 +33,7 @@ with open(os.path.join(BASE_DIR, 'deep_diary', 'calibration.json')) as f:
 SECRET_KEY = 'django-insecure-0&&*)ta)v&qxbb!7yiz(pnz+%q2me614u21n3qoi!u1qozb56h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if cfg['debug'] == 'True' else False
+DEBUG = True if cfg['debug'] else False
 
 # 允许所有的IP访问网络服务
 ALLOWED_HOSTS = ['*']

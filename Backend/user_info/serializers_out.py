@@ -69,13 +69,26 @@ class ReContactBriefSerializer(serializers.ModelSerializer):
         fields = ['id', 're_from', 're_to', 'relation', 're_from__name', 're_to__name', 'relation__name']
 
 
+class ExperienceBriefSerializer(serializers.ModelSerializer):
+    # 本级属性
+    # experience_url = serializers.HyperlinkedIdentityField(view_name='experience-detail')
+    # company = serializers.CharField(source="company.name", read_only=True)
+    # company_PyInitial = serializers.CharField(source="company.name_PyInitial", read_only=True)
+    # images = ImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Experience
+        fields = ['id', 'profile', 'company', 'name']
+
+
 class ProfileBriefSerializer(serializers.ModelSerializer):
     """于文章列表中引用的嵌套序列化器"""
     # 本级属性
     profile_url = serializers.HyperlinkedIdentityField(view_name='profile-detail')
     thumb = serializers.ImageField(source="avatar", read_only=True)
 
-    value = serializers.SerializerMethodField()  # method 2: through method
+    # value = serializers.SerializerMethodField()  # method 2: through method
+    value = serializers.IntegerField(source='asserts.face_cnt', read_only=True)  # method 1: through field
     relation = serializers.SerializerMethodField()
 
     # 这里期望传入一个查询集：
@@ -121,6 +134,10 @@ class ProfileGraphSerializer(serializers.ModelSerializer):
 
 class ReContactListSerializer(serializers.ListSerializer):
     child = ReContactBriefSerializer()
+
+
+class ExperienceListSerializer(serializers.ListSerializer):
+    child = ExperienceBriefSerializer()
 
 
 class CompanyGraphSerializer(serializers.ModelSerializer):

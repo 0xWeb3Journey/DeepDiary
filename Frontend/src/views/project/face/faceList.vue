@@ -55,6 +55,7 @@
           queryForm: {
             page: 1,
             size: 25,
+            confirmed: '1',
             // profile__isnull: true,l
             // profile: 30,
             // det_score__gt: 0.8,

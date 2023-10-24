@@ -41,6 +41,30 @@
 
     <!-- advance search -->
     <div v-if="advanced" class="advancedSearch">
+      <!-- confirmed filter -->
+      <el-select
+        v-model="profileQuery.confirmed"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Is Confirmed?"
+        :loading="loading"
+        @change="onSearch"
+      >
+        <el-option
+          v-for="item in filterList.confirmed"
+          :key="item.name"
+          :label="item.name"
+          :value="item.value"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <!-- <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }}
+          </span> -->
+        </el-option>
+      </el-select>
+
       <!-- relation filter -->
       <el-select
         v-model="profileQuery.relation"
@@ -95,12 +119,84 @@
         clearable
         filterable
         default-first-option
-        placeholder="Is Defined a Relation?"
+        placeholder="Defined a Relation?"
         :loading="loading"
         @change="onSearch"
       >
         <el-option
           v-for="item in filterList.re_from_relations__isnull"
+          :key="item.name"
+          :label="item.name"
+          :value="item.value"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <!-- <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }} -->
+          <!-- </span> -->
+        </el-option>
+      </el-select>
+
+      <!-- faces__isnull filter -->
+      <el-select
+        v-model="profileQuery.faces__isnull"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Has Related Face?"
+        :loading="loading"
+        @change="onSearch"
+      >
+        <el-option
+          v-for="item in filterList.faces__isnull"
+          :key="item.name"
+          :label="item.name"
+          :value="item.value"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <!-- <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }} -->
+          <!-- </span> -->
+        </el-option>
+      </el-select>
+
+      <!-- companies__isnull filter -->
+      <el-select
+        v-model="profileQuery.companies__isnull"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Worked in Related Company?"
+        :loading="loading"
+        @change="onSearch"
+      >
+        <el-option
+          v-for="item in filterList.companies__isnull"
+          :key="item.name"
+          :label="item.name"
+          :value="item.value"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <!-- <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }} -->
+          <!-- </span> -->
+        </el-option>
+      </el-select>
+
+      <!-- companies__name filter -->
+      <el-select
+        v-model="profileQuery.companies__name"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Company Name"
+        :loading="loading"
+        @change="onSearch"
+      >
+        <el-option
+          v-for="item in filterList.companies__name"
           :key="item.name"
           :label="item.name"
           :value="item.value"
@@ -143,16 +239,52 @@
       return {
         profileQuery: {
           page: 1,
-          size: 25,
+          size: 50,
+          confirmed: 1,
           search: '',
           re_from_relations__isnull: '',
           re_to_relations__isnull: '',
-          // re_from_relations__re_to: 1,
+          re_to_relations__relation: '',
           profile: '',
           relation: '',
+          companies__name: '',
+          companies__isnull: '',
+          faces__isnull: '',
         },
 
-        filterList: {},
+        filterList: {
+          confirmed: [
+            { name: 'Unconfirmed', value: 0 },
+            { name: 'Confirmed', value: 1 },
+          ],
+          profile__name: [],
+          profile__isnull: [
+            { name: 'Has Related Profile', value: 0 },
+            { name: 'No Related Profile', value: 1 },
+          ],
+          det_score__gt: [0.9, 0.8, 0.7, 0.6, 0.5],
+          det_score__lt: [0.4, 0.5, 0.6, 0.7, 0.8],
+          face_score__gt: [0.9, 0.8, 0.7, 0.6, 0.5],
+          face_score__lt: [0.4, 0.5, 0.6, 0.7, 0.8],
+          gender: [
+            { name: 'Female', value: 0 },
+            { name: 'Male', value: 1 },
+          ],
+          pose_x__gt: [-20, -10, 0, 10, 20],
+          pose_x__lt: [-20, -10, 0, 10, 20],
+          pose_y__gt: [-20, -10, 0, 10, 20],
+          pose_y__lt: [-20, -10, 0, 10, 20],
+          pose_z__gt: [-20, -10, 0, 10, 20],
+          pose_z__lt: [-20, -10, 0, 10, 20],
+          wid__gt: [1000, 800, 600, 400, 200],
+          wid__lt: [1000, 800, 600, 400, 200],
+          state: [
+            { name: 'Normal', value: 0 },
+            { name: 'Forbidden', value: 1 },
+            { name: 'Deleted', value: 9 },
+          ],
+          relation: [],
+        },
 
         loading: false,
 

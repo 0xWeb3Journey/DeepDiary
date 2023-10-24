@@ -41,6 +41,29 @@
 
     <!-- advance search -->
     <div v-if="advanced" class="advancedSearch">
+      <!-- confirmed filter -->
+      <el-select
+        v-model="faceQuery.confirmed"
+        clearable
+        filterable
+        default-first-option
+        placeholder="Is Confirmed?"
+        :loading="loading"
+        @change="onSearch"
+      >
+        <el-option
+          v-for="item in filterList.confirmed"
+          :key="item.name"
+          :label="item.name"
+          :value="item.value"
+          :disabled="false"
+        >
+          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <!-- <span style="float: right; color: #8492a6; font-size: 13px">
+            {{ item.value }}
+          </span> -->
+        </el-option>
+      </el-select>
       <!-- relation filter -->
       <el-select
         v-model="faceQuery.relation"
@@ -481,6 +504,7 @@
           page: 1,
           size: 25,
           search: '',
+          confirmed: '1',
           profile__isnull: '',
           profile__name: '',
           profile: '',

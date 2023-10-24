@@ -1,6 +1,6 @@
 from celery import shared_task
 
-from user_info.models import Profile, Company
+from user_info.models import Profile, Company, Assert
 from utils.utils import get_pinyin
 
 
@@ -25,29 +25,16 @@ class ProfileProcess:
             print(f'--------------------{instance.id} :instance is not Profile---------------------------')
             return process
 
-        def __is_need_process__(self, instance=None, force=False, field=None):
-            """
-            判断是否需要处理
-            :param instance: 实例对象
-            :param force: 是否强制处理
-            :param field: 字段名
-            :return: process: 是否需要处理
-            """
-            process = False
-            # 1. 判断instance 是否是Profile 类型的实例
-            if not isinstance(instance, Company):
-                print(f'--------------------{instance.id} :instance is not Profile---------------------------')
-                return process
-
-            if field is not None and hasattr(instance, field):
-                value = getattr(instance, field)
-                if force:
-                    print(f'INFO: force stat is {force}')
-                    process = True
-                if not value:
-                    print(f'INFO: {field} is {value}')
-                    process = True
-            return process
+        if field is not None and hasattr(instance, field):
+            value = getattr(instance, field)
+            if force:
+                print(f'INFO: force stat is {force}')
+                process = True
+            if not value:
+                print(f'INFO: {field} is {value}')
+                process = True
+        else:
+            print(f'INFO: {field} is not exist')
         return process
 
     # @shared_task
@@ -60,6 +47,15 @@ class ProfileProcess:
 
         instance.full_pinyin, instance.lazy_pinyin = get_pinyin(instance.name)
         instance.save()
+
+        print(f'--------------------{instance.id} :process successes---------------------------')
+
+    def get_asserts(self, instance=None, force=False):
+        asserts, created = Assert.objects.get_or_create(profile=instance)  # bind the one to one field image info
+        # asserts.face_cnt = instance.faces.count()
+        # asserts.img_cnt = instance.imgs.count()
+        asserts.friend_cnt = instance.re_from_relations.count() + instance.re_to_relations.count()
+        asserts.save()
 
         print(f'--------------------{instance.id} :process successes---------------------------')
 
@@ -78,7 +74,7 @@ class ProfileProcess:
         print(
             f'-------------INFO: start loop the  funcs, dealing with profile --->{instance.id}, func_list is {func_list}---------------')
         if func_list is None:
-            func_list = ['get_pinyin']
+            func_list = ['get_pinyin', 'get_asserts']
         # 2. loop the function list
         for func_name in func_list:
             print(

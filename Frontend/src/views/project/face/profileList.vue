@@ -45,7 +45,11 @@
           data: [],
           queryForm: {
             page: 1,
-            size: 30,
+            size: 50,
+            confirmed: 1,
+            asserts__face_cnt__gt: 0,
+            ordering: 'id',
+            // ordering: '-asserts__face_cnt', 'id'//
           },
         },
         searchable: true,

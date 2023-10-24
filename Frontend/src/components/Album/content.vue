@@ -119,6 +119,15 @@
     mounted() {
       this.justifyInit()
     },
+    activated() {
+      console.log('Album contetn: activated')
+      this.checkDivHeight()
+    },
+    deactivated() {
+      console.log('Album contetn: deactivated')
+      clearInterval(this.intervalId)
+      this.intervalId = null
+    },
     methods: {
       justifyInit: function () {
         // $('#album')
@@ -188,7 +197,7 @@
               var scrollTop = divElement.scrollTop
 
               // Get the client height of the div
-              var divHeight = 800 //divElement.clientHeight  //800
+              var divHeight = 1000 //divElement.clientHeight  //800
 
               console.log(
                 'Gallery Contetn: checkDivHeight:divElement: The div is not filled.',
@@ -244,7 +253,7 @@
     overflow: auto;
   } */
   .album_container {
-    height: 800px; /* Set a fixed height to the container */
+    height: 1000px; /* Set a fixed height to the container */
     overflow-y: auto;
   }
 </style>
