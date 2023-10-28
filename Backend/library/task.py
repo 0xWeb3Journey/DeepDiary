@@ -1537,10 +1537,10 @@ class ImgProces:
         location = instance.address
         field_list = [
             'location',
-            location.country,
-            location.province,
-            location.city,
-            location.district,
+            location.country if location.country and location.country != '[]' else 'No GPS',
+            location.province if location.province and location.province != '[]' else 'No GPS',
+            location.city if location.city and location.city != '[]' else 'No GPS',
+            location.district if location.district and location.district != '[]' else 'No GPS',
         ]
         self.__add_levels_to_category__(instance=instance,
                                         field_list=field_list)

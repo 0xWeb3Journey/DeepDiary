@@ -228,50 +228,100 @@
       markerInit(e) {
         console.log('marker init: ', e)
       },
+      // clickMarker(e) {
+      //   console.log('marker click: ', e)
+      //   // this.map.setZoom(5)
+      //   let lng = e.lnglat.lng
+      //   let lat = e.lnglat.lat
+
+      //   console.log('cluster center:', lng, lat)
+
+      //   var lngMin = 360
+      //   var lngMax = 0
+      //   var latMin = 90
+      //   var latMax = 0
+      //   e.clusterData.forEach((element) => {
+      //     // console.log(element.lnglat.lng, element.lnglat.lat)
+
+      //     if (element.lnglat.lng > lngMax) {
+      //       lngMax = element.lnglat.lng
+      //     }
+      //     if (element.lnglat.lng < lngMin) {
+      //       lngMin = element.lnglat.lng
+      //     }
+      //     if (element.lnglat.lat > latMax) {
+      //       latMax = element.lnglat.lat
+      //     }
+      //     if (element.lnglat.lat < latMin) {
+      //       latMin = element.lnglat.lat
+      //     }
+      //   })
+      //   console.log('lng range is: ', lngMin, lngMax)
+      //   console.log('lat range is: ', latMin, latMax)
+      //   this.$store.commit('map/setSwiper', true)
+      //   console.log(this.$store.state.map.isShowSwiper)
+
+      //   var imgQuery = this.$store.state.img.queryForm
+      //   console.log('map.vue_clickMarker: imgQuery is: ', imgQuery)
+      //   imgQuery.address__longitude__range = `${lngMin},${lngMax}`
+      //   imgQuery.address__latitude__range = `${latMin},${latMax}`
+      //   this.$store.commit('img/setQuery', imgQuery)
+
+      //   // call the father component function
+      //   this.$emit('callbackComponent', {
+      //     function: 'loadImg',
+      //     data: imgQuery,
+      //   })
+      // },
       clickMarker(e) {
         console.log('marker click: ', e)
-        // this.map.setZoom(5)
-        let lng = e.lnglat.lng
-        let lat = e.lnglat.lat
 
-        console.log('cluster center:', lng, lat)
+        let clusterData = e.clusterData
 
-        var lngMin = 360
-        var lngMax = 0
-        var latMin = 90
-        var latMax = 0
-        e.clusterData.forEach((element) => {
-          // console.log(element.lnglat.lng, element.lnglat.lat)
+        if (clusterData.length > 0) {
+          // 使用数组的 reduce 方法来计算最小和最大经纬度
+          let bounds = clusterData.reduce(
+            (acc, element) => {
+              let { lnglat } = element
+              return {
+                lngMin: Math.min(acc.lngMin, lnglat.lng),
+                lngMax: Math.max(acc.lngMax, lnglat.lng),
+                latMin: Math.min(acc.latMin, lnglat.lat),
+                latMax: Math.max(acc.latMax, lnglat.lat),
+              }
+            },
+            {
+              lngMin: 360,
+              lngMax: 0,
+              latMin: 90,
+              latMax: 0,
+            }
+          )
 
-          if (element.lnglat.lng > lngMax) {
-            lngMax = element.lnglat.lng
-          }
-          if (element.lnglat.lng < lngMin) {
-            lngMin = element.lnglat.lng
-          }
-          if (element.lnglat.lat > latMax) {
-            latMax = element.lnglat.lat
-          }
-          if (element.lnglat.lat < latMin) {
-            latMin = element.lnglat.lat
-          }
-        })
-        console.log('lng range is: ', lngMin, lngMax)
-        console.log('lat range is: ', latMin, latMax)
-        this.$store.commit('map/setSwiper', true)
-        console.log(this.$store.state.map.isShowSwiper)
+          console.log(
+            'cluster center:',
+            (bounds.lngMin + bounds.lngMax) / 2,
+            (bounds.latMin + bounds.latMax) / 2
+          )
 
-        var imgQuery = this.$store.state.img.queryForm
-        console.log('map.vue_clickMarker: imgQuery is: ', imgQuery)
-        imgQuery.address__longitude__range = `${lngMin},${lngMax}`
-        imgQuery.address__latitude__range = `${latMin},${latMax}`
-        this.$store.commit('img/setQuery', imgQuery)
+          console.log('lng range is: ', bounds.lngMin, bounds.lngMax)
+          console.log('lat range is: ', bounds.latMin, bounds.latMax)
 
-        // call the father component function
-        this.$emit('callbackComponent', {
-          function: 'loadImg',
-          data: imgQuery,
-        })
+          this.$store.commit('map/setSwiper', true)
+          console.log(this.$store.state.map.isShowSwiper)
+
+          var imgQuery = this.$store.state.img.queryForm
+          console.log('map.vue_clickMarker: imgQuery is: ', imgQuery)
+          imgQuery.address__longitude__range = `${bounds.lngMin},${bounds.lngMax}`
+          imgQuery.address__latitude__range = `${bounds.latMin},${bounds.latMax}`
+          this.$store.commit('img/setQuery', imgQuery)
+
+          // call the father component function
+          this.$emit('callbackComponent', {
+            function: 'loadImg',
+            data: imgQuery,
+          })
+        }
       },
 
       // poi fuctions

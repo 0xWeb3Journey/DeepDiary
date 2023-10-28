@@ -1,4 +1,5 @@
 import json
+import os.path
 from io import BytesIO
 
 import cv2
@@ -216,16 +217,18 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
     def get_filtered_list(self, request, pk=None):
-        qs = self.filter_queryset(self.get_queryset())
-        norm_len = len(qs)
-        print(len(qs))
+        search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
+        # if search in one search model, then skip filter the filter list
+        if search_param:
+            qs = self.get_queryset()
+        else:
+            qs = self.filter_queryset(self.get_queryset())
 
         queryset = qs
         # ------------------------------------------------------------------------------
         """Entity Recognition"""
         """NLP Search"""
         if cfg["img"]["enable_nlp_search"]:  # 是否开启NLP search
-            search_param = request.query_params.get('search', '').replace('\x00', '')  # strip null characters
             if search_param:
                 norm_len = len(queryset)
                 print('search_param is enabled: ', search_param)
@@ -243,19 +246,28 @@ class ImgViewSet(viewsets.ModelViewSet):
         # ------------------------------------------------------------------------------
 
         # 2. 统计每个Profile在img_queryset出现的次数，记作value
-        profile_list = Profile.objects.filter(
+        profile_list = Profile.objects.exclude(name__startswith='unknown').filter(
             face_imgs__in=queryset
         ).annotate(value=Count('face_imgs')).distinct().values('name', 'value').order_by('-value')
+
         #
-        # TODO , 如下的serializer，返回的是全部结果，并非基于查询集的结果 , imgs__in=queryset
-        categories = Category.objects.filter(is_root=True).distinct()  # 这里不加.distinct()巨慢无比
-        # for cate in categories:
-        #     print(cate.name, cate.imgs.count())
-        # print(len(categories))
-        serializer = CategoryFilterListSerializer(categories, many=True, context={'imgs': queryset})
+
+        # 判断是否存在categories.json文件，如果存在，则读取，如果不存在，则生成
+        if os.path.exists('categories.json'):
+            with open('categories.json', 'r') as f:
+                categories = json.load(f)
+        else:
+            # TODO , 如下的serializer，返回的是全部结果，并非基于查询集的结果 , imgs__in=queryset
+            categories = Category.objects.filter(is_root=True).distinct()  # 这里不加.distinct()巨慢无比
+            serializer = CategoryFilterListSerializer(categories, many=True, context={'imgs': queryset})
+            categories = serializer.data
+            # categories 是json格式的数据，将其保存到本地
+            with open('categories.json', 'w') as f:
+                json.dump(categories, f)
+
         #
         data = {
-            'categories': serializer.data,  # filter(imgs__in=queryset),
+            'categories': categories,
             'fc_nums': Img.get_filtered_attr_nums(queryset, 'faces'),  # 这张照片包含的人脸数量
             'fc_name': profile_list,
 
@@ -271,15 +283,25 @@ class ImgViewSet(viewsets.ModelViewSet):
             'classification': Category.get_filtered_cate_children(queryset, name='clip_categories'),
             'group': Category.get_filtered_cate_children(queryset, name='group'),  # the queryset represent the imgs
 
-            'country': Category.get_filtered_cate_children(queryset, name='location', level=1),
-            'province': Category.get_filtered_cate_children(queryset, name='location', level=2),
-            'city': Category.get_filtered_cate_children(queryset, name='location', level=3),
-            'layout': Category.get_filtered_cate_children(queryset, name='layout'),
-            'size': Category.get_filtered_cate_children(queryset, name='size'),
+            # 'country': set(queryset.exclude(address__country__isnull=True).values_list('address__country', flat=True)),
+            # 'province': set(queryset.exclude(address__province__isnull=True).values_list('address__province', flat=True)),
+            'city': set(
+                queryset.exclude(address__city__isnull=True).exclude(address__city='[]').values_list('address__city',
+                                                                                                     flat=True)),
+
+            #
+            # 'country': Category.get_filtered_cate_children(queryset, name='location', level=1),
+            # 'province': Category.get_filtered_cate_children(queryset, name='location', level=2),
+            # 'city': Category.get_filtered_cate_children(queryset, name='location', level=3),
+
+            # 'layout': Category.get_filtered_cate_children(queryset, name='layout'),
+            'layout': ['Tall', 'Wide', 'Square'],
+            # 'size': Category.get_filtered_cate_children(queryset, name='size'),
             # 'license': ['Public domain', 'Free to share and use', 'Free to share and use commercially'],
-            # 'ordering': ['id', '-id', 'dates__capture_date', '-dates__capture_date']
+            'ordering': ['id', '-id', 'dates__capture_date', '-dates__capture_date']
 
         }
+
         # data['tags'] = list(data['tags'])
         # data['tags'].insert(0, 'All')
         # # 循环判断是否有all字段，如果没有，则转换成列表并插入
@@ -299,7 +321,8 @@ class ImgViewSet(viewsets.ModelViewSet):
     def graph(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
 
         # get the original id
-        node_img = ImgGraphSerializer(self.queryset.filter(faces__isnull=False), many=True, context={'request': request}).data
+        node_img = ImgGraphSerializer(self.queryset.filter(faces__isnull=False), many=True,
+                                      context={'request': request}).data
         node_profile = ProfileGraphSerializer(Profile.objects.all(), many=True,
                                               context={'request': request}).data  # 这里需要传入查询集
         node_company = CompanyGraphSerializer(Company.objects.all(), many=True).data
@@ -312,7 +335,6 @@ class ImgViewSet(viewsets.ModelViewSet):
         node_img = self.update_graph_node_id(node_img, 'img')
         node_profile = self.update_graph_node_id(node_profile, 'profile')
         node_company = self.update_graph_node_id(node_company, 'company')
-
 
         edges_img_profile = self.update_graph_edge_id(edges_img_profile, 'img', 'profile')
         edges_profile_profile = self.update_graph_edge_id(edges_profile_profile, 'profile', 'profile')
@@ -371,7 +393,6 @@ class ImgViewSet(viewsets.ModelViewSet):
         edges = [{**edge, 'from': prefix_from + str(edge['from']), 'to': prefix_to + str(edge['to'])} for edge in edges]
 
         return edges
-
 
 
 class ImgMcsViewSet(viewsets.ModelViewSet):
@@ -522,11 +543,9 @@ class FaceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
     def get_filtered_list(self, request, pk=None):
         user = self.request.user  # 获取当前登录用户的实例
-        qs = self.filter_queryset(self.get_queryset())
-        norm_len = len(qs)
-        print(len(qs))
-
-        queryset = qs
+        # qs = self.filter_queryset(self.get_queryset())
+        #
+        # queryset = qs
 
         related_str = []
         # 获取跟当前用户相关的人脸
@@ -548,8 +567,8 @@ class FaceViewSet(viewsets.ModelViewSet):
             # queryset = queryset.filter(profile__recontact__owner__isnull=True)
 
         # 2. 统计每个Profile在img_queryset出现的次数，记作value
-        profile_list = Profile.objects.annotate(value=Count('faces')).distinct().values('name', 'value').order_by(
-            '-value')
+        profile_list = (Profile.objects.annotate(value=Count('faces'))
+                        .distinct().values('name', 'value').order_by('-value'))
 
         data = {
             'confirmed': [

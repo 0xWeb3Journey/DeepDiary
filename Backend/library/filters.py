@@ -19,7 +19,7 @@ search_fields_img = {
     'id': ['exact', 'gte', 'lte'],
     # color
     'colors__image__closest_palette_color_parent': ['exact'],
-
+    #
     # category
     'categories__name': ['exact'],  #
     # address
@@ -29,15 +29,20 @@ search_fields_img = {
     'address__district': ['exact', 'contains'],
     'address__location': ['icontains'],
     # profile
-    'user__name': ['exact'],  #
-    'user__username': ['exact'],  #
+    'profiles__name': ['exact', 'icontains'],  #
+    'profiles__username': ['exact', 'icontains'],  #
+    'profiles__full_pinyin': ['exact', 'icontains'],  #
+    'profiles__lazy_pinyin': ['exact', 'icontains'],  #
+    'profiles__companies__name': ['exact', 'icontains'],  #
+    'profiles__companies__name_PyFull': ['exact', 'icontains'],  #
+    'profiles__companies__name_PyInitial': ['exact', 'icontains'],  #
     # date
-    'dates__year': ['exact', 'contains'],  #
-    'dates__month': ['exact', 'contains'],  #
-    'dates__day': ['exact', 'contains'],  #
+    'dates__year': ['exact'],  #
+    'dates__month': ['exact'],  #
+    'dates__day': ['exact'],  #
     'dates__capture_date': ['exact', 'contains'],  #
-
-    '$tags__name': ['exact', 'icontains'],  #
+    #
+    # 'tags__name': ['exact', 'icontains'],  # 搜索速度极慢
     # img
     'name': ['exact', 'icontains'],  #
     'title': ['exact', 'icontains'],  #
@@ -198,8 +203,8 @@ class ImgFilter(FilterSet):
 
     # color
     c_img = django_filters.CharFilter('colors', method='filter_img_colors')
-    c_fore = django_filters.CharFilter('colors', method='filter_fore_colors')
-    c_back = django_filters.CharFilter('colors', method='filter_back_colors')
+    # c_fore = django_filters.CharFilter('colors', method='filter_fore_colors')
+    # c_back = django_filters.CharFilter('colors', method='filter_back_colors')
 
     # faces
     # faces = FacesFilter()
@@ -212,7 +217,7 @@ class ImgFilter(FilterSet):
         model = Img  # 模型名
 
         fields = {
-            # 'id': ['exact', 'gte', 'lte'],
+            'id': ['exact', 'gte', 'lte'],
             # color
             'colors__image__closest_palette_color_parent': ['exact', 'icontains'],
             'colors__foreground__closest_palette_color_parent': ['exact', 'icontains'],
@@ -230,22 +235,27 @@ class ImgFilter(FilterSet):
             'address__location': ['icontains'],
             'address__longitude': ['gte', 'lte', 'range'],
             'address__latitude': ['gte', 'lte', 'range'],
-            # user
-            'user__name': ['exact'],  #
-            'user__username': ['exact'],  #
+            # profiles
+            'profiles__name': ['exact', 'icontains'],  #
+            'profiles__username': ['exact', 'icontains'],  #
+            'profiles__full_pinyin': ['exact', 'icontains'],  #
+            'profiles__lazy_pinyin': ['exact', 'icontains'],  #
+            'profiles__companies__name': ['exact', 'icontains'],  #
+            'profiles__companies__name_PyFull': ['exact', 'icontains'],  #
+            'profiles__companies__name_PyInitial': ['exact', 'icontains'],  #
             # date
             'dates__year': ['exact', 'gte', 'lte', 'contains'],  #
             'dates__month': ['exact', 'gte', 'lte', 'contains'],  #
             'dates__day': ['exact', 'gte', 'lte', 'contains', 'isnull'],  #
             'dates__capture_date': ['exact', 'gte', 'lte', 'contains', 'isnull', 'range'],
-            # http://127.0.0.1:8000/api/img/?dates__capture_date__isnull=true
+
             # evaluates
             'evaluates__rating': ['exact'],  #
             'evaluates__flag': ['exact'],  #
             'evaluates__total_views': ['exact', 'gte', 'lte'],  #
             'evaluates__likes': ['exact', 'gte', 'lte'],  #
             # tags
-            'tags': ['exact', 'icontains'],  #
+            # 'tags': ['exact', 'isnull'],  #
             'tags__name': ['exact', 'icontains'],  #
             # img
             'name': ['exact', 'icontains'],  #
@@ -295,14 +305,17 @@ class ImgFilter(FilterSet):
     def filter_categories(self, queryset, name, value):
         print('INFO: filter_categories--> start---------', name, value, type(value))
         if value:
+            #  多选方式
             categories = [cate.strip() for cate in value.split(',')]  # strip()去除首尾空格
-
-            # 方法一：通过filter实现
-            for item in categories:
-                # print('INFO: filter_categories-->', item, len(queryset))
-                queryset = queryset.filter(categories__name=item)
-
-            queryset = queryset.distinct()
+            #
+            # # 方法一：通过filter实现
+            # for item in categories:
+            #     # print('INFO: filter_categories-->', item, len(queryset))
+            #     queryset = queryset.filter(categories__name=item)
+            #
+            # queryset = queryset.distinct()
+            # 单选方式
+            queryset = queryset.filter(categories__name=categories.pop())
 
         return queryset
 

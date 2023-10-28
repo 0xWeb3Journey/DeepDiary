@@ -54,7 +54,7 @@
           data: [],
           queryForm: {
             page: 1,
-            size: 10,
+            size: 25,
             search: '',
             id: '',
             fc_nums: -1, //-1 ,means all, 6 means the fc_nums > 6

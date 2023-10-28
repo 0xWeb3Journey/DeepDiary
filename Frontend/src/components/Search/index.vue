@@ -45,7 +45,7 @@
     <!-- advance search -->
     <div v-if="advanced" class="advancedSearch">
       <!-- Category filter -->
-
+      <!-- categories -->
       <el-cascader
         v-model="imgQuery.categories"
         :options="filterList.categories"
@@ -63,7 +63,7 @@
         <template slot-scope="{ data }">
           <span>{{ data.label }}</span>
           <!-- <span v-if="!node.isLeaf">({{ data.count }})</span> -->
-          <span>({{ data.count }})</span>
+          <!-- <span>({{ data.count }})</span> -->
         </template>
       </el-cascader>
 
@@ -169,14 +169,14 @@
       >
         <el-option
           v-for="item in filterList.city"
-          :key="item.name"
-          :label="item.name"
-          :value="item.name"
+          :key="item"
+          :label="item"
+          :value="item"
           :disabled="false"
         >
-          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: left; color: #8492a6">{{ item }}</span>
           <span style="float: right; color: #8492a6; font-size: 13px">
-            {{ item.img_nums }}
+            <!-- {{ item.value }} -->
           </span>
         </el-option>
       </el-select>
@@ -222,7 +222,7 @@
           :value="item.name"
           :disabled="false"
         >
-          <span style="float: left; color: #8492a6">{{ item.name }}</span>
+          <span style="float: left; color: #8492a6">{{ item }}</span>
           <span style="float: right; color: #8492a6; font-size: 13px">
             {{ item.value }}
           </span>
@@ -347,7 +347,7 @@
       return {
         imgQuery: {
           page: 1,
-          size: 20,
+          size: 25,
           search: '',
           id: '',
           fc_nums: '',

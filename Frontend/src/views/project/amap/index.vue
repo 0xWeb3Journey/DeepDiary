@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- <ImgSearch @handleImgSearch="onImgSearch"></ImgSearch> -->
     <!-- 地图 -->
     <Map ref="map" :addrs="addrs" @callbackComponent="callbackComponent" />
 
@@ -15,6 +16,7 @@
   import Map from './map.vue'
   import ImgSlide from './imgSlide.vue'
   import { getImg, getAddress } from '@/api/gallery'
+  import ImgSearch from '@/components/Search'
   export default {
     name: 'PgAddress',
     components: { Map, ImgSlide },
@@ -80,6 +82,34 @@
         this.imgs = data
         this.totalCnt = totalCnt
         console.log('totalCnt is: %d', this.totalCnt)
+      },
+      //       async fetchImg() {
+      //   console.log('Gallery Index: fetchImg')
+      //   this.imgs.loading = true
+      //   this.imgs.finished = false
+      //   await getImg(this.imgs.queryForm).then((response) => {
+      //     console.log('Gallery Index: getImg', response)
+      //     const { data, totalCnt, links } = response
+      //     this.imgs.data = [...this.imgs.data, ...data]
+      //     this.imgs.curCnt = this.imgs.data.length
+      //     this.imgs.totalCnt = totalCnt
+      //     this.imgs.links = links
+      //     if (this.imgs.links.next === null) this.imgs.finished = true
+      //     console.log('Gallery Index: emit imgData')
+      //     this.$emit('imgData', this.imgs.data)
+      //     setTimeout(() => {
+      //       this.imgs.loading = false
+      //     }, 2000)
+      //   })
+      // },
+      onImgSearch(queryForm) {
+        console.log('recieve the queryForm info from the search component')
+        console.log(queryForm)
+        // this.imgs.queryForm = queryForm
+        // this.imgs.totalCnt = 0
+        // this.imgs.data = []
+        // this.fetchImg()
+        // this.loadMore()
       },
     },
   }

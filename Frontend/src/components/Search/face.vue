@@ -504,7 +504,7 @@
           page: 1,
           size: 25,
           search: '',
-          confirmed: '1',
+          confirmed: 1,
           profile__isnull: '',
           profile__name: '',
           profile: '',
@@ -529,17 +529,117 @@
         checked_fcGroup: '',
 
         filterList: {
-          profile__name: [
+          confirmed: [
             {
-              name: 'Avril',
-              value: 17,
+              name: 'Unconfirmed',
+              value: 0,
             },
             {
-              name: 'allison',
-              value: 7,
+              name: 'Confirmed',
+              value: 1,
+            },
+          ],
+          profile__name: [
+            {
+              name: '葛维冬',
+              value: 501,
+            },
+            {
+              name: '葛昱琛',
+              value: 457,
+            },
+            {
+              name: '韩莉',
+              value: 332,
+            },
+            {
+              name: 'unknown',
+              value: 279,
+            },
+            {
+              name: '叶四妹',
+              value: 68,
+            },
+            {
+              name: '葛顺法',
+              value: 63,
+            },
+            {
+              name: '马成学',
+              value: 59,
+            },
+            {
+              name: '张立华',
+              value: 56,
+            },
+            {
+              name: '葛菊英',
+              value: 40,
+            },
+            {
+              name: '葛丰炳',
+              value: 33,
+            },
+            {
+              name: '王呐',
+              value: 30,
+            },
+            {
+              name: '赵妮',
+              value: 15,
+            },
+            {
+              name: '刘欢',
+              value: 14,
+            },
+          ],
+          profile__isnull: [
+            {
+              name: 'Has Related Profile',
+              value: 0,
+            },
+            {
+              name: 'No Related Profile',
+              value: 1,
             },
           ],
           det_score__gt: [0.9, 0.8, 0.7, 0.6, 0.5],
+          det_score__lt: [0.4, 0.5, 0.6, 0.7, 0.8],
+          face_score__gt: [0.9, 0.8, 0.7, 0.6, 0.5],
+          face_score__lt: [0.4, 0.5, 0.6, 0.7, 0.8],
+          gender: [
+            {
+              name: 'Female',
+              value: 0,
+            },
+            {
+              name: 'Male',
+              value: 1,
+            },
+          ],
+          pose_x__gt: [-20, -10, 0, 10, 20],
+          pose_x__lt: [-20, -10, 0, 10, 20],
+          pose_y__gt: [-20, -10, 0, 10, 20],
+          pose_y__lt: [-20, -10, 0, 10, 20],
+          pose_z__gt: [-20, -10, 0, 10, 20],
+          pose_z__lt: [-20, -10, 0, 10, 20],
+          wid__gt: [1000, 800, 600, 400, 200],
+          wid__lt: [1000, 800, 600, 400, 200],
+          state: [
+            {
+              name: 'Normal',
+              value: 0,
+            },
+            {
+              name: 'Forbidden',
+              value: 1,
+            },
+            {
+              name: 'Deleted',
+              value: 9,
+            },
+          ],
+          relation: [],
         },
 
         list: [],

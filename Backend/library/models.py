@@ -279,8 +279,8 @@ class Category(MPTTModel):
         if level <= 1:  # represent the first level
             # rst = children.annotate(value=F('name')).\
             #     values('name', 'value').distinct().order_by('-value'),
-            rst = category.get_children().filter(imgs__in=queryset).annotate(value=Count('imgs')). \
-                values('name', 'value').distinct().order_by('-value'),
+            rst = category.get_children().filter(imgs__in=queryset).annotate(value=Count('imgs')).distinct(). \
+                values('name', 'value').order_by('-value'),
         else:
             # get_descendants = category.get_descendants()
             # print(len(get_descendants))
@@ -288,10 +288,9 @@ class Category(MPTTModel):
             # print(len(obj_level))
             # obj_level_in_imgs = obj_level.filter(imgs__in=queryset)
             # print(len(obj_level_in_imgs))
-
+            # .exclude(name='[]').exclude(name__isnull=True)
             rst = category.get_descendants().filter(level=level).filter(imgs__in=queryset).annotate(
-                value=Count('imgs')).values('name',
-                                            'value').distinct().order_by('-value'),
+                value=Count('imgs')).distinct().values('name', 'value').order_by('-value'),
         # 这里如果不加rst[0]，则返回有2个中括号[[]]
         # print('get_filtered_cate_children:', len(rst))
         return rst[0]  # or rst[0]

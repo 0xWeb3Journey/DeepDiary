@@ -106,7 +106,7 @@ class CategoryBriefSerializer(serializers.ModelSerializer):
 class CategoryFilterListSerializer(serializers.ModelSerializer):
     value = serializers.CharField(source="name", read_only=True)
     label = serializers.CharField(source="name", read_only=True)
-    count = serializers.SerializerMethodField()  # method 2: through method
+    # count = serializers.SerializerMethodField()  # 增加这个语句，查询会特别慢
     # Category模型有个外键imgs的查询集合，期望将此序列化器的结果，限制在这个查询集中，而不是所有的Img模型实例
     # children = RecursiveField(many=True, required=False)
 
@@ -132,7 +132,7 @@ class CategoryFilterListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['value', 'label', 'count', 'children']
+        fields = ['value', 'label', 'children']  # ,'count'
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
