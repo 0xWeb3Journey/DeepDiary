@@ -50,10 +50,13 @@ class ProfileProcess:
 
         print(f'--------------------{instance.id} :process successes---------------------------')
 
-    def get_asserts(self, instance=None, force=False):
+    @staticmethod
+    def get_asserts(instance=None, force=False):
+        if not instance:
+            return
         asserts, created = Assert.objects.get_or_create(profile=instance)  # bind the one to one field image info
-        # asserts.face_cnt = instance.faces.count()
-        # asserts.img_cnt = instance.imgs.count()
+        asserts.face_cnt = instance.faces.count()
+        asserts.img_cnt = instance.imgs.count()
         asserts.friend_cnt = instance.re_from_relations.count() + instance.re_to_relations.count()
         asserts.save()
 

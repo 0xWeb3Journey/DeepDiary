@@ -63,4 +63,15 @@
   .el-dropdown {
     margin: 0; /* Override default margin */
   }
+
+  .el-page-header {
+    /* font-size: 40px; */
+    line-height: 20px;
+    /* color: rgb(132, 21, 235); */
+  }
+  .el-page-header__content {
+    font-size: 14px; /* 设置合适的字体大小 */
+    line-height: 20px;
+    /* color: white; */
+  }
 </style>

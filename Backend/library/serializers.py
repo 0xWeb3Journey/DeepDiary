@@ -204,13 +204,14 @@ class ImgSerializer(serializers.ModelSerializer):
     thumb = serializers.ImageField(read_only=True)
     img_url = serializers.HyperlinkedIdentityField(view_name='img-detail')
     img = serializers.ImageField(source="src", read_only=True)
+    desc = serializers.CharField(source="__str__", read_only=True)  # 2. 使用source选项 直接指定外键模型下面的具体字段
 
     # mcs = McsSerializer(serializers.ModelSerializer, read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     # categories = CategorySerializer(read_only=True, many=True)
 
     class Meta:
         model = Img
-        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name', 'img', 'caption']  # 'faces', 'names','mcs', 'categories'
+        fields = ['user', 'id', 'src', 'thumb', 'tags', 'img_url', 'name', 'img', 'caption', 'desc']  # 'faces', 'names','mcs', 'categories'
 
     def to_representation(self, value):
         rst = {}

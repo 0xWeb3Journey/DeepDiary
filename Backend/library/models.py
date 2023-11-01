@@ -119,7 +119,9 @@ class Img(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     def __str__(self):
-        return f'{self.pk}_{self.name}'
+
+        return fr'<div class ="lightGallery-captions" > <h4> Photo by -  <a href="https://www.deep-diary.com" >{self.user.name} </a>  </h4> <p> Location -  {self.address.location} </p> </div>'
+        # return f'Name: {self.pk}_{self.name}'
 
     def to_dict(self):
         return {'id': self.id,

@@ -16,17 +16,21 @@
         @click="onClick($event, index, item)"
         @dblclick="onDoubleClick($event, index, item)"
       >
-        <el-tooltip
+        <!-- <el-tooltip
           :content="item.caption ? item.caption : 'No Caption'"
           placement="top"
-        >
-          <img
-            className="img-responsive"
-            :class="checkedIndex === index ? 'img-checked' : 'img-unchecked'"
-            :src="item.thumb"
-            :alt="item.name"
-          />
-        </el-tooltip>
+        > -->
+        <img
+          className="img-responsive"
+          :class="
+            checkedIndex === index
+              ? 'img-checked hvr-pulse grow'
+              : 'img-unchecked hvr-pulse grow'
+          "
+          :src="item.thumb"
+          :alt="item.name"
+        />
+        <!-- </el-tooltip> -->
 
         <div class="jg-caption">
           <el-badge :value="item.value" :max="99" class="item" type="primary">
@@ -56,6 +60,7 @@
   import 'justifiedGallery/dist/js/jquery.justifiedGallery.min'
   import 'justifiedGallery/dist/css/justifiedGallery.css'
   import infiniteScroll from 'vue-infinite-scroll'
+  import 'hover.css'
 
   export default {
     name: 'AlbumContainer',

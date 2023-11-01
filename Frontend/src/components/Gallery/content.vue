@@ -21,17 +21,21 @@
         <a
           v-for="item in items"
           :key="item.id"
-          class="gallery infinite-list-item"
+          class="gallery infinite-list-item hvr-pulse grow"
           className="gallery-item"
           :data-src="item.img"
+          :data-lg-size="item.size"
           :data-sub-html="item.desc"
         >
-          <el-tooltip
+          <!-- :data-lg-size="item.size" -->
+          <!-- :data-sub-html="item.desc" -->
+          <!-- data-sub-html="<div class='lightGallery-captions'> <h4>Photo by - <a href='http://localhost:81/#/img?id=556&title=IMG_20190502_142642.jpg' >Diego Guzmán </a></h4> <p> Location - Fushimi Ward, Kyoto, Japa</p></div>" -->
+          <!-- <el-tooltip
             :content="item.caption ? item.caption : 'No Caption'"
             placement="top"
-          >
-            <img className="img-responsive" :src="item.thumb" />
-          </el-tooltip>
+          > -->
+          <img className="img-responsive" :src="item.thumb" />
+          <!-- </el-tooltip> -->
         </a>
       </div>
 
@@ -59,7 +63,7 @@
 
   import 'justifiedGallery/dist/js/jquery.justifiedGallery.min'
   import 'justifiedGallery/dist/css/justifiedGallery.css'
-
+  import 'hover.css'
   import VabUpload from '@/components/VabUpload'
 
   export default {
@@ -152,6 +156,7 @@
         window.gallery = lightGallery(lgGallery, {
           // dynamic: true,
           addClass: 'gallery',
+          subHtmlSelectorRelative: true,
           autoplayFirstVideo: false,
           pager: false,
           galleryId: 'nature',
@@ -165,11 +170,20 @@
           ],
           thumbnail: true,
           slideShowInterval: 2000,
+          speed: 500,
+          mode: 'lg-slide',
+          // Append caption inside the slide item
+          // This way you can make use of lightGallery active slide class names to add animation
+          appendSubHtmlTo: '.lg-item',
+          // Delay slide transition to complete captions animations
+          // before navigating to different slides (Optional)
+          // You can find caption animation demo on the captions demo page
+          slideDelay: 0,
           mobileSettings: {
-            controls: false,
-            showCloseIcon: false,
-            download: false,
-            rotate: false,
+            controls: true,
+            showCloseIcon: true,
+            download: true,
+            rotate: true,
           },
         })
       },

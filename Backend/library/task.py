@@ -15,6 +15,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import transaction, IntegrityError
+from django.db.models import F
 from insightface.app import FaceAnalysis
 from lavis.models import load_model_and_preprocess
 from sklearn.metrics.pairwise import cosine_similarity
@@ -26,7 +27,8 @@ from library.models import Img, Category, Face, \
     FaceLandmarks3D, FaceLandmarks2D, Kps, Stat, Address, Evaluate, Date
 from library.serializers import McsDetailSerializer, ColorSerializer, ColorBackgroundSerializer, \
     ColorForegroundSerializer, ColorImgSerializer, FaceSerializer
-from user_info.models import Profile
+from user_info.models import Profile, Assert
+from user_info.task import ProfileProcess
 from utils.mcs_storage import upload_file_pay
 from utils.utils import get_pinyin
 
@@ -438,8 +440,11 @@ class ImgProces:
             print(f'INFO: estimated face name based on exist feats now  ... ')
             profile, face_score = self.face_recognition(face.normed_embedding)
             if not profile:
-                profile, created = self.create_new_profile(img_ins, face, face_name)
-            # face_name, sim = get_face_name(face.normed_embedding)  # 通过跟人脸特征库的比较，推理出相关人脸名称
+                # profile, created = self.create_new_profile(img_ins, face, face_name)
+                print(f"\033[1;32m INFO: couldn't find the similar face \033[0m")
+            else:
+                print(f"\033[1;32m INFO: estimated name is {profile.name}, which is from insightface \033[0m")
+
 
         return profile, face_score
 
@@ -1246,7 +1251,9 @@ class ImgProces:
         img = self.read_img(instance, ['cv2', 'PIL'])
         img_cv2 = img.get('cv2', None)
         img_pil = img.get('PIL', None)
+
         faces = self.app.get(img_cv2)
+        print(f'INFO: get_faces ... the img id is : {instance.id}, total face numbers is {len(faces)}------------------------------')
 
         for face in faces:
             pose = face.pose.astype(np.float16)
@@ -1303,6 +1310,20 @@ class ImgProces:
                                     np.round(face.landmark_3d_68).astype(np.int16)],
                 }
                 self.save_face_serializers(data)
+
+            # 如果profile 存在，则将外键asserts中的face_cnt+1
+            # process = ProfileProcess()
+            # process.get_asserts(instance=profile)
+            ProfileProcess.get_asserts(instance=profile)
+            # if profile:
+            #     # 查找或创建asserts对象
+            #     asserts, created = Assert.objects.get_or_create(profile=profile)
+            #     # 将外键asserts中的face_cnt+
+            #     # asserts.face_cnt = F('face_cnt')+1
+            #     # asserts.img_cnt = F('img_cnt')+1
+            #     asserts.face_cnt = profile.faces.count()
+            #     asserts.img_cnt = profile.imgs.count()
+            #     asserts.save()
 
         # 3. update the stats
         stats.is_face = True
@@ -1772,6 +1793,21 @@ class ImgProces:
 
             except IntegrityError:
                 print('ERROR: Failed to create a new profile. IntegrityError occurred.')
+            # 更新人物资产
+            # 如果profile 存在，则将外键asserts中的face_cnt+1
+            # 查找或创建asserts对象
+            # process = ProfileProcess()
+            # process.get_asserts(instance=profile)
+            ProfileProcess.get_asserts(instance=profile)
+
+            # asserts, created = Assert.objects.get_or_create(profile=profile)
+            # # 将外键asserts中的face_cnt+
+            # # asserts.face_cnt = F('face_cnt')+1
+            # # asserts.img_cnt = F('img_cnt')+1
+            # asserts.face_cnt = profile.faces.count()
+            # asserts.img_cnt = profile.imgs.count()
+            # asserts.save()
+
         return profile, fc_instance
 
     def add_parent_category(self, instance=None):

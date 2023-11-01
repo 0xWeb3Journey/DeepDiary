@@ -33,6 +33,18 @@ export const constantRoutes = [
     component: () => import('@/views/404'),
     hidden: true,
   },
+  // {
+  //   path: 'img',
+  //   name: 'Img',
+  //   hidden: true,
+  //   component: () => import('@/views/project/img'),
+  //   meta: {
+  //     title: 'Img Detail',
+  //     icon: 'marker',
+  //     // permissions: ['admin'],
+  //     noKeepAlive: false,
+  //   },
+  // },
 ]
 
 export const asyncRoutes = [
