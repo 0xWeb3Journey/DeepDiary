@@ -82,6 +82,9 @@ class ImgProces:
         instance: 图片实体
         procedure: 处理流程，为列表格式['face', 'object', 'caption', 'key point', 'extraction', 'auto tag', 'color', 'classification']
         """
+        self.img_exiv2 = None
+        self.img_pil = None
+        self.img_cv2 = None
         self.app = None
         if procedure is None:
             procedure = ['face', 'object', 'caption', 'key point', 'extraction', 'auto tag', 'color', 'classification',
@@ -90,8 +93,8 @@ class ImgProces:
         self.instance = instance
         self.path = path
         self.procedure = procedure
-        # self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.device = torch.device("cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cpu")
 
     @staticmethod
     def read(instance=None):
@@ -125,9 +128,6 @@ class ImgProces:
         # print(f"instance.src.name: {instance.src.name}")
         image_file = default_storage.open(instance.src.name)  # 方式二：读取本地或网络图片
         image_content = image_file.read()
-        # print(f"image_file: {image_file}")
-        # print(f"image_content: {image_content}")
-        # print('chardet.detect(image_content)', chardet.detect(image_content)['encoding'])
 
         image_content_obj = BytesIO(image_content)
         image_file.close()
@@ -142,7 +142,6 @@ class ImgProces:
             elif type == 'PIL':
                 image[type] = Image.open(image_content_obj)
             elif type == 'pyexiv2':
-                # image[type] = pyexiv2.ImageData(image_content)
                 try:
                     image[type] = pyexiv2.ImageData(image_content)
                 except RuntimeError as e:
@@ -200,9 +199,17 @@ class ImgProces:
         else:
             raise Exception(face_serializer.errors)
 
-    def face_init(self):
+    def face_init(self, instance=None):
+        if not instance:
+            return False
         self.app = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
         self.app.prepare(ctx_id=0, det_size=(640, 640), det_thresh=calib['face']['det_threshold'])  # 默认det_thresh=0.5,
+        img = self.read_img(instance, ['cv2', 'PIL', 'pyexiv2'])
+        self.img_cv2 = img.get('cv2', None)
+        self.img_pil = img.get('PIL', None)
+        self.img_exiv2 = img.get('pyexiv2', None)
+
+        return True
 
     @staticmethod
     def face_crop(image, bbox):
@@ -272,37 +279,43 @@ class ImgProces:
             return S_cross / (S1 + S2 - S_cross)
 
     def create_new_profile(self, img_ins, face, face_name):
-        img_pil = self.read_img(img_ins, ['PIL']).get('PIL', None)
-        bbox = np.round(face.bbox).astype(np.int16)
-        username = face_name
+        #  尝试获取face_name对应的profile，如果不存在，则创建一个新的profile
         try:
-            # 创建一个新用户profile对象，设定默认密码为666，加密保存，User中is_active设置为0， username设置成name，
-            # 如果username已经存在相同字段，则在name后面增加4位随机数，再次创建保存
-            while Profile.objects.filter(username=username).exists():
-                # 生成4位随机数，并与name拼接
-                random_suffix = str(random.randint(1000, 9999))
-                username = f'{face_name}{random_suffix}'
-            print(f'INFO: will created a new profile, the name is : {username}')
-        except IntegrityError:
-            print('ERROR: Failed to create a new profile. IntegrityError occurred.')
-
-        full_pinyin, lazy_pinyin = get_pinyin(face_name)
-        creation_params = {
-            'username': username,
-            'password': make_password('deep-diary666'),
-            'name': face_name,
-            'full_pinyin': full_pinyin,
-            'lazy_pinyin': lazy_pinyin,
-            'avatar': self.face_crop(img_pil, bbox),  # 需要对avatar进行赋值
-            'embedding': face.normed_embedding.astype(np.float16).tobytes(),
-        }
-        profile, created = Profile.objects.get_or_create(name=face_name, defaults=creation_params)
-        if created:
-            print(f'INFO: success created a new profile: {profile.name}')
-        else:
+            profile = Profile.objects.get(name=face_name)
             print(f'INFO: the profile already existed: {profile.name}')
+            return profile, False
+        except Profile.DoesNotExist:
+            # 处理不存在结果的情况
+            bbox = np.round(face.bbox).astype(np.int16)
+            username = face_name
+            try:
+                # 创建一个新用户profile对象，设定默认密码为666，加密保存，User中is_active设置为0， username设置成name，
+                # 如果username已经存在相同字段，则在name后面增加4位随机数，再次创建保存
+                while Profile.objects.filter(username=username).exists():
+                    # 生成4位随机数，并与name拼接
+                    random_suffix = str(random.randint(1000, 9999))
+                    username = f'{face_name}{random_suffix}'
+                print(f'INFO: will create a new profile, the username is : {username}, name is {face_name}')
+            except IntegrityError:
+                print('ERROR: Failed to create a new profile. IntegrityError occurred.')
 
-        return profile, created
+            full_pinyin, lazy_pinyin = get_pinyin(face_name)
+            creation_params = {
+                'username': username,
+                'password': make_password('deep-diary666'),
+                'name': face_name,
+                'full_pinyin': full_pinyin,
+                'lazy_pinyin': lazy_pinyin,
+                'avatar': self.face_crop(self.img_pil, bbox),  # 需要对avatar进行赋值
+                'embedding': face.normed_embedding.astype(np.float16).tobytes(),
+            }
+            # 根据creation_params创建一个新的profile
+            profile = Profile.objects.create(**creation_params)
+            print(f'INFO: success created a new profile: {profile.name}')
+            return profile, True
+        except Profile.MultipleObjectsReturned:
+            # 处理多个结果的情况
+            pass
 
     @staticmethod
     def img_recognition(text):  # 'instance', serializers
@@ -367,7 +380,9 @@ class ImgProces:
         profile = None
         face_score = 0
         # 1. 提取出Profile模型中所有embedding，记作embeddings，并进行转换
-        embeddings = Profile.objects.values_list('embedding', flat=True)
+        profiles = Profile.objects.exclude(name__startswith='unknown')
+        print(f'INFO: the named profiles count is {profiles.count()}')
+        embeddings = profiles.values_list('embedding', flat=True)
         embeddings = [np.frombuffer(embedding, dtype=np.float16) for embedding in embeddings if embedding]
 
         # 判断embedding是否为空
@@ -389,12 +404,12 @@ class ImgProces:
 
         # 如果top1相似度>0.4，则更新profile和face_score
         if max_similarity_score > calib['face']['reco_threshold']:
-            profile = Profile.objects.all()[int(max_similarity_index)]
+            profile = profiles[int(max_similarity_index)]
             face_score = max_similarity_score
             print(f'INFO: recognition result: {profile}--', face_score)
         else:
             # 新创建一个profile
-            print(f'INFO: recognition result: unknown--, will create a new profile')
+            print(f'INFO: recognition result: unknown--', face_score)
 
         return profile, face_score
 
@@ -413,8 +428,12 @@ class ImgProces:
         # 1. 获取人脸名字
         names = []
         bboxs = []
-        face_name = 'unknown_' + ''.join(random.sample(string.ascii_letters + string.digits, 4))
+
+        profile = None
         face_score = 0
+        is_need_recognition = True
+        # face_name = 'unknown_' + ''.join(random.sample(string.ascii_letters + string.digits, 4))
+        # enableLM = False  # 关闭LM方式
         if enableLM:  # 通过LM方式检测到了人脸
             names, bboxs = self.get_lm_face_info(img_ins)
         if len(names) > 0:
@@ -427,24 +446,23 @@ class ImgProces:
             print(f'INFO names is {names}')
             print(f'INFO: the identified idx is {idx}， ious[idx]: {ious[idx]}')
             if ious[idx] > 0.3:  # 重合度超过30%
-                print(f"\033[1;32m INFO: estimated name is {names[idx]}, iou is{ious[idx]} \033[0m")
+                print(f"\033[1;32m INFO: LM estimated name is {names[idx]}, iou is {ious[idx]} \033[0m")
                 face_name = names[idx]
                 face_score = 1
+                # 检查Profile 数据库中是否包含此人脸名字
+                profile, created = self.create_new_profile(img_ins, face, face_name)
+                is_need_recognition = False
+            else:  # 最大重合度为0, 可能LM未包含bbox的信息
+                print(f"\033[1;32m INFO: can not match the bbox, will start face_recognition \033[0m")
+                is_need_recognition = True
 
-            print(f"\033[1;32m INFO: estimated name is {face_name}, which is from LM \033[0m")
-            # 检查Profile 数据库中是否包含此人脸名字
-            profile, created = self.create_new_profile(img_ins, face, face_name)
-
-        else:  # 通过LM方式未检测到人脸
-            print(f'INFO: there is no LM_face_info detected ... ')
-            print(f'INFO: estimated face name based on exist feats now  ... ')
+        if is_need_recognition:
             profile, face_score = self.face_recognition(face.normed_embedding)
             if not profile:
                 # profile, created = self.create_new_profile(img_ins, face, face_name)
                 print(f"\033[1;32m INFO: couldn't find the similar face \033[0m")
             else:
                 print(f"\033[1;32m INFO: estimated name is {profile.name}, which is from insightface \033[0m")
-
 
         return profile, face_score
 
@@ -897,7 +915,7 @@ class ImgProces:
         # img_read = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
         try:
             exif = img_pyexiv2.read_exif()  # 读取元数据，这会返回一个字典
-        except (AttributeError,UnicodeDecodeError) as e:
+        except (AttributeError, UnicodeDecodeError) as e:
             print(f'INFO: get_date----->UnicodeDecodeError {e} ')
             exif = None
 
@@ -1045,7 +1063,6 @@ class ImgProces:
 
         # img_pyexiv2 = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
         # img_pil = self.read_img(instance, ['PIL']).get('PIL', None)
-
         if not img_pyexiv2 or not img_pil:
             return
 
@@ -1188,13 +1205,13 @@ class ImgProces:
         #     f'--------------------{instance.id} :img infos have been store to the database---------------------------')
 
     def get_lm_face_info(self, instance):
-        print(f'INFO: get_LM_face_info ... ')
+        print(f'INFO: get_LM_face_info STARTED ... ')
         num = 1  # xmp 内容下表从1开始
         is_have_face = True
         names = []
         bboxs = []
-        # img_read = pyexiv2.ImageData(self.read(instance))  # 登记图片路径
-        img = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+        # img = self.read_img(instance, ['pyexiv2']).get('pyexiv2', None)
+        img = self.img_exiv2
         if img is None:
             print(f'INFO: img is None')
             return names, bboxs
@@ -1204,7 +1221,7 @@ class ImgProces:
             item = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Type'.format(num)
             is_have_face = xmp.get(item, None)
             if is_have_face:
-                print(f'INFO: LM face detected')
+                # print(f'INFO: LM face detected')
                 idx_name = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Name'.format(num)
                 idx_h = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Area/stArea:h'.format(num)
                 idx_w = 'Xmp.mwg-rs.Regions/mwg-rs:RegionList[{:d}]/mwg-rs:Area/stArea:w'.format(num)
@@ -1216,11 +1233,12 @@ class ImgProces:
                 names.append(name)
                 lm_face_area = [xmp.get(idx_x), xmp.get(idx_y), xmp.get(idx_w), xmp.get(idx_h)]  # 0~1 之间的字符
                 lm_face_area = np.array(lm_face_area).astype(float)  # 0~1 之间的浮点，中心区域，人脸长，宽
-                # bbox = face_zoom(lm_face_area, 1, instance.src.width, instance.src.height)  # 转变成像素值，左上区域和右下区域坐标，跟insightface 保持一致
                 bbox = self.face_zoom(lm_face_area, 1, instance.wid,
                                       instance.height)  # 转变成像素值，左上区域和右下区域坐标，跟insightface 保持一致
                 bboxs.append(bbox)
         # print(f'INFO: the LM names is {names}, bbox is {bboxs}')
+        print(f'INFO: get_LM_face_info END ... ')
+
         return names, bboxs
 
     def get_faces(self, instance=None, force=False, save_type='instance'):  # 'instance', serializers
@@ -1240,7 +1258,8 @@ class ImgProces:
             instance.faces.all().delete()
 
         # 2. processing the image
-        self.face_init()
+        if not self.face_init(instance=instance):
+            return  # 如果没有初始化成功，直接返回
         # image_content = self.read(instance)
         # image_content_obj = BytesIO(image_content)
         # 
@@ -1248,12 +1267,13 @@ class ImgProces:
         # image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
         # img_pil = Image.open(image_content_obj)
 
-        img = self.read_img(instance, ['cv2', 'PIL'])
-        img_cv2 = img.get('cv2', None)
-        img_pil = img.get('PIL', None)
+        # img = self.read_img(instance, ['cv2', 'PIL'])
+        # img_cv2 = img.get('cv2', None)
+        # img_pil = img.get('PIL', None)
 
-        faces = self.app.get(img_cv2)
-        print(f'INFO: get_faces ... the img id is : {instance.id}, total face numbers is {len(faces)}------------------------------')
+        faces = self.app.get(self.img_cv2)
+        print(
+            f'INFO: get_faces ... the img id is : {instance.id}, total face numbers is {len(faces)}------------------------------')
 
         for face in faces:
             pose = face.pose.astype(np.float16)
@@ -1270,7 +1290,7 @@ class ImgProces:
                     'det_score': face.det_score,
                     'face_score': face_score,
                     'is_confirmed': True if face_score > 0.8 else False,
-                    'src': self.face_crop(img_pil, bbox),  # 需要对src进行赋值
+                    'src': self.face_crop(self.img_pil, bbox),  # 需要对src进行赋值
                     'age': face.age,
                     'gender': face.gender,
                     'embedding': face.normed_embedding.astype(np.float16).tobytes(),

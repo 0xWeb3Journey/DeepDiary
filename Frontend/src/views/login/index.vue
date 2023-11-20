@@ -191,8 +191,8 @@
 <style lang="scss" scoped>
   .login-container {
     height: 100vh;
-    background: url('~@/assets/login_images/background.jpeg') center center
-      fixed no-repeat;
+    background: url('~@/assets/login_images/background.jpg') center center fixed
+      no-repeat;
     background-size: cover;
 
     .title {

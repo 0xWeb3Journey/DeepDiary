@@ -119,8 +119,12 @@ class Img(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     def __str__(self):
-
-        return fr'<div class ="lightGallery-captions" > <h4> Photo by -  <a href="https://www.deep-diary.com" >{self.user.name} </a>  </h4> <p> Location -  {self.address.location} </p> </div>'
+        # 判断是否存在address这个属性
+        if hasattr(self, 'address'):
+            location = self.address.location
+        else:
+            location = 'No GPS'
+        return fr'<div class ="lightGallery-captions" > <h4> Photo by -  <a href="https://www.deep-diary.com" >{self.user.name} </a>  </h4> <p> Location -  {location} </p> </div>'
         # return f'Name: {self.pk}_{self.name}'
 
     def to_dict(self):

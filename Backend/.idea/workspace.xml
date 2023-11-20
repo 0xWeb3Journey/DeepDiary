@@ -1482,10 +1482,12 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_info/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/task.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/components/Gallery/content.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/components/Gallery/content.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/honglou2_narrow.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/public/honglou2_narrow.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/login_images/background.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/assets/login_images/background.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/styles/variables.scss" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/styles/variables.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/login/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/login/index.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1552,7 +1554,7 @@
       <recent name="D:\BlueDoc\deep_diary\media\face_info\unknown" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.tests (1)">
+  <component name="RunManager" selected="Python.tests (2)">
     <configuration name="detect" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="deep_diary" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -1575,27 +1577,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="diaryai" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Backend" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utils" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/diaryai.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="tests (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -1609,6 +1590,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/library/tests.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="tests (2)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Backend" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tags" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tags/tests.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1675,19 +1677,19 @@
     </configuration>
     <list>
       <item itemvalue="Python.detect" />
+      <item itemvalue="Python.tests (2)" />
       <item itemvalue="Python.tests (1)" />
       <item itemvalue="Python.utils" />
-      <item itemvalue="Python.diaryai" />
       <item itemvalue="Python.tests" />
       <item itemvalue="Python tests.Python tests in tests.py" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.tests (2)" />
         <item itemvalue="Python.tests (1)" />
         <item itemvalue="Python.utils" />
         <item itemvalue="Python tests.Python tests in tests.py" />
         <item itemvalue="Python.tests" />
-        <item itemvalue="Python.diaryai" />
       </list>
     </recent_temporary>
   </component>
@@ -1760,11 +1762,6 @@
           <option name="timeStamp" value="77" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/library/task.py</url>
-          <line>1404</line>
-          <option name="timeStamp" value="78" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/library/tests.py</url>
           <line>92</line>
           <option name="timeStamp" value="94" />
@@ -1777,6 +1774,11 @@
           <url>file://$PROJECT_DIR$/user_info/serializers_out.py</url>
           <line>134</line>
           <option name="timeStamp" value="101" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/library/task.py</url>
+          <line>1424</line>
+          <option name="timeStamp" value="102" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
