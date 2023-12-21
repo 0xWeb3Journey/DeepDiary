@@ -1,16 +1,14 @@
 # library/serializers.py
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
-from rest_framework.fields import SerializerMethodField
 
 from library.models import Img, Category, ImgMcs, Color, ColorItem, ColorBackground, ColorForeground, ColorImg, \
     ImgCategory, Address, Evaluate, Date, Kps, FaceLandmarks2D, Face, FaceLandmarks3D, Stat
-from library.serializers_out import FaceBriefSerializer, ColorBriefSerializer
+from library.serializers_out import FaceBriefSerializer, ColorBriefSerializer, CategoryBriefSerializer, \
+    ColorBackgroundBriefSerializer, ColorForegroundBriefSerializer, ColorImgBriefSerializer
 # 自定义TagSerializerField，将多个tag用英文逗号隔开。
 from tags.serializers import TagSerializerField
-from user_info.models import Profile
 from user_info.serializers_out import ProfileBriefSerializer
-from utils.serializers import RecursiveField
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -266,6 +264,10 @@ class ImgDetailSerializer(ImgSerializer):  # 直接继承ImgSerializer也是可�
     stats = StatSerializer(read_only=True)  # this name should be the same as model related name
     mcs = McsSerializer(read_only=True)  # read_only=True, 如果不添加这个配置项目，则必须要mcs这个字段
     colors = ColorBriefSerializer(read_only=True)  # this name should be the same as model related name
+    cbacks = ColorBackgroundBriefSerializer(many=True, read_only=True)
+    cfores = ColorForegroundBriefSerializer(many=True, read_only=True)
+    cimgs = ColorImgBriefSerializer(many=True, read_only=True)
+    categories = CategoryBriefSerializer(read_only=True, many=True)  # this name should be the same as model related name
 
     def get_names(self, obj):
         # 获取与当前 Img 实例关联的所有 Profile 实例的名称

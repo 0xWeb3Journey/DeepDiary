@@ -1,9 +1,13 @@
+import base64
 import json
 import os.path
 from io import BytesIO
 
 import cv2
 import numpy as np
+from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import TemporaryUploadedFile, InMemoryUploadedFile
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
@@ -15,15 +19,19 @@ from taggit.models import Tag
 from deep_diary.settings import calib, cfg
 from library.filters import ImgFilter, CategoryFilter, AddressFilter, FaceFilter, search_fields_face, search_fields_img
 from library.models import Img, Category, Address, Stat, Evaluate, Date, ImgMcs, Face
+from library.operation.img_operation import ImgOperation
 from library.pagination import GalleryPageNumberPagination, AddressNumberPagination, FacePageNumberPagination
 from library.serializers import ImgSerializer, ImgDetailSerializer, ImgCategorySerializer, McsSerializer, \
     CategorySerializer, AddressSerializer, CategoryDetailSerializer, FaceSerializer, FaceBriefSerializer
 from library.serializers_out import CategoryBriefSerializer, ImgGraphSerializer, CategoryFilterListSerializer, \
     FaceGraphSerializer
-from library.task import ImgProces, check_img_info, check_all_img_info
+from library.tasks import trace_function, \
+    post_process, process_all, CeleryTaskManager, upload_file_task
 from user_info.models import Profile, ReContact, relation_strings, RELATION_OPTION, Experience, Company
 from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerializer, ReContactGraphSerializer, \
     ExperienceGraphSerializer, CompanyGraphSerializer
+from user_info.task_manager import UserInfoTaskManager
+from utilities.common import get_process_cmd
 #
 # class CategoryViewSet(viewsets.ModelViewSet):
 #     queryset = Category.objects.all()
@@ -33,7 +41,22 @@ from user_info.serializers_out import ProfileGraphSerializer, ProfileBriefSerial
 #     filter_class = CategoryFilter  # 过滤类
 #     filter_backends = [DjangoFilterBackend, filters.SearchFilter,
 #                        filters.OrderingFilter]  # 模糊过滤，注意的是，这里的url参数名变成了?search=搜索内容
-from utils.pagination import GeneralPageNumberPagination
+from utilities.pagination import GeneralPageNumberPagination
+
+from django.core.files import File
+
+
+def convert_inmemoryuploadedfile_to_file(inmemory_uploaded_file):
+    # 读取 InMemoryUploadedFile 对象的内容
+    content = inmemory_uploaded_file.read()
+
+    # 创建一个新的 File 对象，将内容和文件名传递给构造函数
+    django_file = File(BytesIO(content), name=inmemory_uploaded_file.name)
+
+    # 确保重置 InMemoryUploadedFile 对象的文件指针，以防之后还需要使用
+    inmemory_uploaded_file.seek(0)
+
+    return django_file
 
 
 class ImgCategoryViewSet(viewsets.ModelViewSet):
@@ -66,15 +89,38 @@ class ImgViewSet(viewsets.ModelViewSet):
 
     ordering_fields = ['id', 'dates__capture_date']  # 这里的字段，需要总上面定义字段中选择
 
+    @trace_function
     def perform_create(self, serializer):
-        print(f"INFO:Img start perform_create, {self.request.user}")
-        print(f"INFO:Img file, {self.request.FILES}")
+        user = self.request.user
         file = self.request.FILES.get("src")
-        f_path = file.temporary_file_path()
-        print(f"INFO:temporary_file_path, {f_path}")
+        file_name = file.name
+        # 从验证数据中移除文件，然后保存实例
+        serializer.validated_data.pop('src', None)
+        img_ins = serializer.save(user=user)
 
-        instance = serializer.save(user=self.request.user)
-        check_img_info.delay(instance)
+        # 处理文件，准备传递给Celery任务
+        temp_file_path = None
+        if isinstance(file, InMemoryUploadedFile):
+            print(f'INFO:Img type is {type(file)}')
+
+            # 检查临时目录是否存在，如果不存在，创建它
+            temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp')
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            # 保存文件到临时目录
+            temp_file_path = os.path.join(temp_dir, file_name)
+            print(f'INFO:Temp file path: {temp_file_path}')
+            with open(temp_file_path, 'wb+') as f:
+                for chunk in file.chunks():
+                    f.write(chunk)
+
+        elif isinstance(file, TemporaryUploadedFile):
+            print(f'INFO:Img type is {type(file)}')
+            # 传递文件路径给任务
+            temp_file_path = file.temporary_file_path()
+
+        CeleryTaskManager(enabled=True).upload_file_task(temp_file_path, file_name, img_ins.id)
 
     def perform_update(self, serializer):  # 应该在调用的模型中添加
         data = self.request.data
@@ -119,7 +165,7 @@ class ImgViewSet(viewsets.ModelViewSet):
             if search_param:
                 norm_len = len(queryset)
                 print('search_param is enabled: ', search_param)
-                search_queryset = ImgProces.img_recognition(search_param)
+                search_queryset = ImgOperation.img_recognition(search_param)
                 print('search_result is: ', len(search_queryset))
 
                 # 将自然语言搜索跟原始搜索进行合并
@@ -139,68 +185,35 @@ class ImgViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def img_pre_process(self):
-        # 从request中获取参数
-        param = self.request.query_params
-        print(f'INFO:-> param: {param}')
-
-        force = param.get("force", None)
-        get_list_org = param.get("get_list", None)
-        add_list_org = param.get("add_list", None)
-
-        # get_exif_info 必须第一个，因为是这个函数创建了stat实例
-        # param得到的都是字符类型，需要转换成bool类型
-        force = True if force == '1' else False  # force = 1, True, force = 0, False
-        get_list = [item.strip() for item in get_list_org.split(',') if item != '']  # 去掉空字符串
-        add_list = [item.strip() for item in add_list_org.split(',') if item != '']
-
-        if get_list_org == 'all':
-            print('INFO:-> get_list_org == all')
-            get_list = cfg["img"]["process_list"]
-        if add_list_org == 'all':
-            print('INFO:-> add_list_org == all')
-            add_list = cfg["img"]["add_list"]
-        print(f'INFO:-> param force: {force}')
-        print(f'INFO:-> param get_list: {get_list_org}')
-        print(f'INFO:-> param add_list: {add_list_org}')
-        return force, get_list, add_list
-
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
-    def init(self, request, pk=None):
-        print('------------------init the system------------------')
-        img_process = ImgProces()
-        img_process.category_init()
-        return Response({"msg": "init success"})
-
-    @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
+    @trace_function
     def batch_img_process(self, request, pk=None):
         print('------------------batch_img_test------------------')
-        force, get_list, add_list = self.img_pre_process()
+        # 从request中获取参数
+        query_params = self.request.query_params
+        print(f'INFO:-> param: {query_params}')
+        force, get_list, add_list = get_process_cmd(query_params)
 
-        # img_process = ImgProces()
-        # img_process.get_all_img(img_process, func_list=get_list, force=force)
-        # img_process.add_all_img_to_category(img_process, func_list=add_list)
-
-        check_all_img_info.delay(get_list=get_list, add_list=add_list, force=force)
+        process_all(processor_types=get_list, force=force)
+        CeleryTaskManager(enabled=True).process_all(processor_types=get_list,
+                                                    force=force)
         return Response({"msg": "batch_img_test success"})
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
+    @trace_function
     def img_process(self, request, pk=None):  # 当detail=True 的时候，需要指定第三个参数，如果未指定look_up, 默认值为pk，如果指定，该值为loop_up的值
         print('------------------img_process------------------')
         instance = self.get_object()  # 获取详情的实例对象
-        force, get_list, add_list = self.img_pre_process()
+        # 从request中获取参数
+        query_params = self.request.query_params
+        print(f'INFO:-> param: {query_params}')
+        force, get_list, add_list = get_process_cmd(query_params)
 
-        # img_process = ImgProces(instance=instance)
-        # if get_list:
-        #     print(f'INFO:-> param get_list: {get_list}')
-        #     img_process.get_img.delay(img_process, instance=instance, func_list=get_list, force=force)
-        # if add_list:
-        #     print(f'INFO:-> param add_list: {add_list}')
-        #     img_process.add_img_to_category.delay(img_process, instance=instance, func_list=add_list)
-        #
-        # print('------------------img_process finished------------------')
+        # 调用异步任务
+        CeleryTaskManager(enabled=True).post_process(instance.id,
+                                                     processor_types=get_list,
+                                                     force=force)
 
-        check_img_info(instance=instance, get_list=get_list, add_list=add_list, force=force)
         return Response({"msg": 'img_process finished'})
 
     @action(detail=False, methods=['get'])  # will be used in the list view since the detail = false
@@ -232,7 +245,7 @@ class ImgViewSet(viewsets.ModelViewSet):
             if search_param:
                 norm_len = len(queryset)
                 print('search_param is enabled: ', search_param)
-                search_queryset = ImgProces.img_recognition(search_param)
+                search_queryset = ImgOperation.img_recognition(search_param)
                 print('search_result is: ', len(search_queryset))
 
                 # 将自然语言搜索跟原始搜索进行合并
@@ -500,8 +513,10 @@ class FaceViewSet(viewsets.ModelViewSet):
         print(f'当前访问人脸的用户是 =  {self.request.user}')
 
         fc = self.get_object()
-        process = ImgProces()
-        profile, fc_instance = process.face_rename(fc, self.request.data.get('name', None))
+        user_info_task_manager = UserInfoTaskManager()
+        profile, fc_instance = user_info_task_manager.operation_manager.face_rename(fc,
+                                                                                    self.request.data.get('name', None))
+
         serializer.validated_data["profile"] = profile
         serializer.save()  # 保存更新的实例对象
 

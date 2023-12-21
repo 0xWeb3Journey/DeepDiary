@@ -1,0 +1,92 @@
+INFO 2023-12-05 22:16:06,605 backends locatin: /static/
+ERROR 2023-12-05 22:16:14,786 base_processor ERROR: Unsupported image type
+INFO 2023-12-05 22:16:54,919 backends locatin: /static/
+ERROR 2023-12-05 22:17:05,383 base_processor ERROR: Unsupported image type
+INFO 2023-12-05 22:20:47,084 backends locatin: /static/
+ERROR 2023-12-05 22:20:55,705 base_processor ERROR: Unsupported image type
+INFO 2023-12-05 22:48:54,807 backends locatin: /static/
+ERROR 2023-12-05 22:49:00,590 base_processor [1;33mget the img:d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg, path,d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg.[0m
+INFO 2023-12-05 22:49:40,177 backends locatin: /static/
+ERROR 2023-12-05 22:49:45,703 base_processor [1;33mget the img:d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg, path,d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg.[0m
+ERROR 2023-12-05 22:49:46,200 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-05 22:49:46,348 backends content length: 1596605, requestid: 656F388AFA3285CDE5053336
+INFO 2023-12-05 22:49:46,585 tasks INFO: Processing image 1/1 (ID: 622, processor_type: exif).
+ERROR 2023-12-05 22:49:46,587 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:49:46,587 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:49:46,587 base_processor [1;33mget the img:None, None,None.[0m
+INFO 2023-12-05 22:49:46,704 tasks INFO: Processing image 1/1 (ID: 622, processor_type: face).
+ERROR 2023-12-05 22:49:46,704 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:49:46,704 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:49:46,704 base_processor [1;33mget the img:None, None,None.[0m
+INFO 2023-12-05 22:49:49,757 api Exception: {'status': 404, 'x-oss-request-id': '656F388DFA3285CDE5053CD1', 'details': {'Code': 'NoSuchKey', 'Message': 'The specified key does not exist.', 'RequestId': '656F388DFA3285CDE5053CD1', 'HostId': 'deep-diary.oss-accelerate.aliyuncs.com', 'Key': 'media/face/db6874e5-6bbb-4757-a.jpg', 'EC': '0026-00000001', 'RecommendDoc': 'https://api.aliyun.com/troubleshoot?q=0026-00000001'}}
+INFO 2023-12-05 22:49:49,845 api Exception: {'status': 404, 'x-oss-request-id': '656F388DFA3285CDE5053D0E', 'details': {'Code': 'NoSuchKey', 'Message': 'The specified key does not exist.', 'RequestId': '656F388DFA3285CDE5053D0E', 'HostId': 'deep-diary.oss-accelerate.aliyuncs.com', 'Key': 'media/face/ea3fe7af-d925-466e-9.jpg', 'EC': '0026-00000001', 'RecommendDoc': 'https://api.aliyun.com/troubleshoot?q=0026-00000001'}}
+INFO 2023-12-05 22:49:49,924 tasks INFO: Processing image 1/1 (ID: 622, processor_type: tag).
+ERROR 2023-12-05 22:49:49,924 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:49:49,925 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:49:49,925 base_processor [1;33mget the img:None, None,None.[0m
+INFO 2023-12-05 22:49:52,289 tasks INFO: Processing image 1/1 (ID: 622, processor_type: color).
+ERROR 2023-12-05 22:49:52,289 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:49:52,289 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:49:52,289 base_processor [1;33mget the img:None, None,None.[0m
+INFO 2023-12-05 22:49:55,987 tasks INFO: Processing image 1/1 (ID: 622, processor_type: category).
+ERROR 2023-12-05 22:49:55,987 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:49:55,987 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:49:55,987 base_processor [1;33mget the img:None, None,None.[0m
+INFO 2023-12-05 22:49:59,680 tasks INFO: Processing image 1/1 (ID: 622, processor_type: clip_classification).
+ERROR 2023-12-05 22:49:59,681 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:49:59,681 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:49:59,682 base_processor [1;33mget the img:None, None,None.[0m
+INFO 2023-12-05 22:49:59,696 model Loading pretrained ViT-B-32 from OpenAI.
+INFO 2023-12-05 22:50:09,546 tasks INFO: Processing image 1/1 (ID: 622, processor_type: feature).
+ERROR 2023-12-05 22:50:09,546 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:50:09,546 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:50:09,546 base_processor [1;33mget the img:None, None,None.[0m
+INFO 2023-12-05 22:50:14,497 tasks INFO: Processing image 1/1 (ID: 622, processor_type: caption).
+ERROR 2023-12-05 22:50:14,497 base_processor [1;33mERROR: No image provided.[0m
+ERROR 2023-12-05 22:50:14,497 base_processor [1;33mERROR: Unsupported image type, <class 'NoneType'>,None.[0m
+ERROR 2023-12-05 22:50:14,497 base_processor [1;33mget the img:None, None,None.[0m
+WARNING 2023-12-05 22:50:28,947 _http '(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /bert-base-uncased/resolve/main/vocab.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x0000014F09255130>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 193df8ba-5591-4427-854c-97cb5493bded)')' thrown while requesting HEAD https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
+INFO 2023-12-05 22:50:31,837 base_model Missing keys []
+INFO 2023-12-05 22:50:31,838 base_model load checkpoint from https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP/blip_coco_caption_base.pth
+INFO 2023-12-05 22:50:38,092 tasks INFO: Image ID 622 processing completed. 100.00% of total images processed.
+INFO 2023-12-06 20:23:47,079 backends locatin: /static/
+ERROR 2023-12-06 20:23:57,803 base_processor [1;33mget the img:d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg, path,d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg.[0m
+ERROR 2023-12-06 20:24:05,564 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:06,138 backends content length: 1596605, requestid: 657067E7309B9C8513522B6F
+INFO 2023-12-06 20:24:06,546 tasks INFO: Processing image 1/1 (ID: 622, processor_type: exif).
+ERROR 2023-12-06 20:24:06,549 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:06,608 tasks INFO: Processing image 1/1 (ID: 622, processor_type: face).
+ERROR 2023-12-06 20:24:06,608 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:14,305 api Exception: {'status': 404, 'x-oss-request-id': '657067EF309B9C8513523DB2', 'details': {'Code': 'NoSuchKey', 'Message': 'The specified key does not exist.', 'RequestId': '657067EF309B9C8513523DB2', 'HostId': 'deep-diary.oss-accelerate.aliyuncs.com', 'Key': 'media/face/71348a68-3274-480f-8.jpg', 'EC': '0026-00000001', 'RecommendDoc': 'https://api.aliyun.com/troubleshoot?q=0026-00000001'}}
+INFO 2023-12-06 20:24:14,426 api Exception: {'status': 404, 'x-oss-request-id': '657067EF309B9C8513523E51', 'details': {'Code': 'NoSuchKey', 'Message': 'The specified key does not exist.', 'RequestId': '657067EF309B9C8513523E51', 'HostId': 'deep-diary.oss-accelerate.aliyuncs.com', 'Key': 'media/face/d58d0017-1304-44e1-9.jpg', 'EC': '0026-00000001', 'RecommendDoc': 'https://api.aliyun.com/troubleshoot?q=0026-00000001'}}
+INFO 2023-12-06 20:24:14,500 tasks INFO: Processing image 1/1 (ID: 622, processor_type: tag).
+ERROR 2023-12-06 20:24:14,500 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:17,703 tasks INFO: Processing image 1/1 (ID: 622, processor_type: color).
+ERROR 2023-12-06 20:24:17,704 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:20,805 tasks INFO: Processing image 1/1 (ID: 622, processor_type: category).
+ERROR 2023-12-06 20:24:20,806 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:23,426 tasks INFO: Processing image 1/1 (ID: 622, processor_type: clip_classification).
+ERROR 2023-12-06 20:24:23,427 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:23,435 model Loading pretrained ViT-B-32 from OpenAI.
+INFO 2023-12-06 20:24:32,751 tasks INFO: Processing image 1/1 (ID: 622, processor_type: feature).
+ERROR 2023-12-06 20:24:32,753 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:24:36,621 tasks INFO: Processing image 1/1 (ID: 622, processor_type: caption).
+ERROR 2023-12-06 20:24:36,622 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+WARNING 2023-12-06 20:24:50,523 _http '(MaxRetryError("HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded with url: /bert-base-uncased/resolve/main/vocab.txt (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x000001EA3DE73610>, 'Connection to huggingface.co timed out. (connect timeout=10)'))"), '(Request ID: 7330820d-2a5d-4d88-85b4-1e0ae6b15f5d)')' thrown while requesting HEAD https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
+INFO 2023-12-06 20:24:53,125 base_model Missing keys []
+INFO 2023-12-06 20:24:53,125 base_model load checkpoint from https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP/blip_coco_caption_base.pth
+INFO 2023-12-06 20:24:59,032 tasks INFO: Image ID 622 processing completed. 100.00% of total images processed.
+INFO 2023-12-06 20:30:50,567 backends locatin: /static/
+ERROR 2023-12-06 20:31:05,141 base_processor [1;33mget the img:d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg, path,d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg.[0m
+ERROR 2023-12-06 20:31:05,644 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:31:05,752 backends content length: 1596605, requestid: 6570698A6CF4DEF6B14DC780
+INFO 2023-12-06 20:31:06,090 tasks INFO: Processing image 1/1 (ID: 622, processor_type: category).
+ERROR 2023-12-06 20:31:06,106 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:32:12,988 tasks INFO: Image ID 622 processing completed. 100.00% of total images processed.
+INFO 2023-12-06 20:48:43,611 backends locatin: /static/
+ERROR 2023-12-06 20:48:54,613 base_processor [1;33mget the img:d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg, path,d:\BlueDoc\DiaryWin\source\img\ÒÑÉÏ´«\IMG_20200815_151915.jpg.[0m
+ERROR 2023-12-06 20:48:55,568 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:48:55,776 backends content length: 1596605, requestid: 65706DB819FB127BD05F54D6
+INFO 2023-12-06 20:48:56,283 tasks INFO: Processing image 1/1 (ID: 622, processor_type: category).
+ERROR 2023-12-06 20:48:56,295 base_processor [1;33mget the img:Name: 622_blue\img\20150703_121248_n1S5at3.jpg, instance,https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/20150703_121248_n1S5at3.jpg.[0m
+INFO 2023-12-06 20:48:58,962 tasks INFO: Image ID 622 processing completed. 100.00% of total images processed.

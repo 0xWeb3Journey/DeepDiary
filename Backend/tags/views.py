@@ -3,7 +3,7 @@ from rest_framework import viewsets, filters
 from taggit.models import Tag
 # Create your views here.
 from tags.serializers import TagSerializer
-from utils.permissions import IsAdminUserOrReadOnly
+from utilities.permissions import IsAdminUserOrReadOnly
 
 
 class TagViewSet(viewsets.ModelViewSet):

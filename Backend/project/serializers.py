@@ -6,7 +6,7 @@ from rest_framework import serializers
 from project.models import Project, Product, Tooling, Outsourcing, Purchase, Delivery, Resume, Issue, \
     LINE_DIFFICULT_OPTION, TOOLING_TYPE_OPTION, STAGE_OPTION, ISSUE_TYPE_OPTION
 from user_info.models import Profile
-from utils.serializers import DisplayChoiceField
+from utilities.serializers import DisplayChoiceField
 
 
 class IssueSerializer(serializers.ModelSerializer):

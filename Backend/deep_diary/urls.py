@@ -32,7 +32,7 @@ from project.views import ProjectViewSet, ProductViewSet, ToolingViewSet, Outsou
 from tags.views import TagViewSet
 from user_info.views import UserViewSet, CompanyViewSet, ProfileViewSet, ReContactViewSet, ExperienceViewSet, \
     ResourceViewSet, DemandViewSet, ImageViewSet
-from utils.views import AdViewSet
+from ad.views import AdViewSet
 
 router = DefaultRouter()
 

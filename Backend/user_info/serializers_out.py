@@ -1,8 +1,6 @@
-from django.contrib.auth.models import AnonymousUser
 from rest_framework import serializers
 
 from user_info.models import Profile, ReContact, RELATION_OPTION, Experience, Company
-from utils.serializers import DisplayChoiceField
 
 
 class RelationChoiceField(serializers.ChoiceField):  # 获取choice 属性值方式一, 重写Field 类

@@ -1,10 +1,8 @@
-from django.db.models import Count
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from library.models import Face, ColorBackground, ColorForeground, ColorItem, ColorImg, Color, Category, Img
 from tags.serializers import TagSerializerField
-from utils.serializers import RecursiveField
 
 
 class FaceBriefSerializer(serializers.ModelSerializer):
@@ -62,13 +60,11 @@ class ColorImgBriefSerializer(ColorItemBriefSerializer):
 
 
 class ColorBriefSerializer(serializers.ModelSerializer):
-    background = ColorBackgroundBriefSerializer(many=True, read_only=True)
-    foreground = ColorForegroundBriefSerializer(many=True, read_only=True)
-    image = ColorImgBriefSerializer(many=True, read_only=True)
 
     class Meta:
         model = Color
-        fields = '__all__'
+        fields = ['color_variance', 'object_percentage']
+        # fields = '__all__'
 
 
 class CategoryBriefSerializer(serializers.ModelSerializer):

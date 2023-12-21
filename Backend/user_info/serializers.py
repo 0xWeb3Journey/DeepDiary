@@ -4,7 +4,7 @@ from rest_framework import serializers
 from library.serializers_out import FaceBriefSerializer
 from tags.serializers import TagSerializerField
 from user_info.models import Profile, Company, ROLES_OPTION, Demand, Resource, Experience, RELATION_OPTION, Image
-from utils.serializers import DisplayChoiceField
+from utilities.serializers import DisplayChoiceField
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):

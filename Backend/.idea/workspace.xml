@@ -5,7 +5,63 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4acd7ed1-4ca0-428d-8883-4cb205b67558" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/library/migrations/0051_auto_20231126_2137.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/addr_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/category_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/color_backgound_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/color_foreground_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/color_img_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/color_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/date_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/eval_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/face_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/img_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/mcs_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/operation_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/stat_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/tag_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/operation/utility_methods.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/base_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/caption_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/category_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/clip_calssification_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/color_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/exif_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/face_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/feature_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/imagga.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/mcs_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/processor_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/process/tag_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/task_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/library/tasks.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/assert_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/base_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/company_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/demand_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/experience_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/operation_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/profile_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/operation/resource_operation.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/processor/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/processor/base_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/processor/company_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/processor/processor_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/processor/profile_processor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/task_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/user_info/tasks.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utilities/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utilities/common.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utilities/migrations/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utilities/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/comment/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/comment/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/celery.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/celery.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/celeryconfig.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/celeryconfig.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deep_diary/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/deep_diary/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.circleci/config.yml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_test_list.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/.dev_scripts/batch_train_list.txt" beforeDir="false" />
@@ -1481,13 +1537,90 @@
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/slurm_train.sh" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/test.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/env/src/mmdet/tools/train.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/filters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/library/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/dist/honglou2_narrow.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/public/honglou2_narrow.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/assets/login_images/background.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/assets/login_images/background.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/styles/variables.scss" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/styles/variables.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/src/views/login/index.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/views/login/index.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/serializers_out.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/serializers_out.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/task_bk.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tags/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/tags/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/serializers_out.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/serializers_out.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/task.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/task_bk.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_info/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_info/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/operation/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/aiui.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/aiui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/demo.pcm" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/demo.pcm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/diaryai.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/diaryai.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/disp.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/disp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/iat.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/iat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/iat_pcm_16k.pcm" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/iat_pcm_16k.pcm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/img_process.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/img_process.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/mcs_storage.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/mcs_storage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/migrations/0002_auto_20220827_2038.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/migrations/0003_alter_ad_options.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/migrations/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/library/operation/base_operation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/pagination.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/pagination.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/permissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/permissions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/ad/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/tests.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/tts.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/tts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/voice.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/voice.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/voice.wav" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/voice.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/weather.pcm" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/weather.pcm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/app.57005078.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/app.57005078.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-01c843bc.5f144641.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-01c843bc.5f144641.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-0b4404b9.9c5e4c82.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-0b4404b9.9c5e4c82.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-1788f7ae.b49050b7.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-1788f7ae.b49050b7.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-17973d4a.43f82304.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-17973d4a.43f82304.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-18d9098d.015c54f9.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-18d9098d.015c54f9.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-1c891e7c.70f89580.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-1c891e7c.70f89580.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-2b4a9e00.9ae68471.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-2b4a9e00.9ae68471.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-33f16360.c126fb60.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-3e91421f.e42d5748.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-3e91421f.e42d5748.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-78e20226.fbc86938.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-78e20226.fbc86938.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-873204a0.b8387f05.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-873204a0.b8387f05.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-9e7c9e88.7f59d447.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-9e7c9e88.7f59d447.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-b80bd188.ea4ad350.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-b80bd188.ea4ad350.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-cb255eb8.9d3ed0e5.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/chunk-cb255eb8.9d3ed0e5.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/element-ui.0e3a750b.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/element-ui.0e3a750b.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-chunk-253ae210.6d6d0a8f.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-chunk-253ae210.6d6d0a8f.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-chunk-70aabc29.78056233.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-chunk-70aabc29.78056233.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-chunk-ec8c427e.3339d45f.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-chunk-ec8c427e.3339d45f.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-layouts.5815a601.css" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/css/vab-layouts.5815a601.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/app.f9f3bcf5.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-01c843bc.a29b6a1c.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-01c843bc.a29b6a1c.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-0b4404b9.2d3086ef.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-0b4404b9.2d3086ef.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-1788f7ae.86736076.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-1788f7ae.86736076.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-17973d4a.fe20730f.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-17973d4a.fe20730f.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-18d9098d.72c382b7.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-18d9098d.72c382b7.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-1c891e7c.3936077f.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-1c891e7c.3936077f.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-214bdd1a.38bebc9b.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-214bdd1a.38bebc9b.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-2b4a9e00.58dc92ce.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-2b4a9e00.58dc92ce.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-2f4aebcc.fa64592b.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-2f4aebcc.fa64592b.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-33f16360.f8da9fbe.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-3e91421f.2a9c1892.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-3e91421f.2a9c1892.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-78e20226.f60f4ac3.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-78e20226.f60f4ac3.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-873204a0.8230b3f8.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-873204a0.8230b3f8.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-9e7c9e88.646100a5.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-9e7c9e88.646100a5.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-b80bd188.b2a6d4bc.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-b80bd188.b2a6d4bc.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-cb255eb8.c3ee79aa.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/chunk-cb255eb8.c3ee79aa.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/element-ui.6c77b9ee.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/element-ui.6c77b9ee.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-253ae210.0f63701d.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-253ae210.0f63701d.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-70aabc29.3a5292e4.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-70aabc29.3a5292e4.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-d90d15e1.669d85e4.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-d90d15e1.669d85e4.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-ec8c427e.730b10bf.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-chunk-ec8c427e.730b10bf.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-layouts.a19414ae.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/dist/static/js/vab-layouts.a19414ae.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/src/config/net.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1541,10 +1674,10 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\BlueDoc\DeepDiary\Backend\user_info" />
-      <recent name="D:\BlueDoc\DeepDiary\Backend\library" />
-      <recent name="D:\BlueDoc\DeepDiary\Backend" />
-      <recent name="D:\BlueDoc\DeepDiary\Backend\utils" />
-      <recent name="D:\BlueDoc\DeepDiary\Backend\wechat" />
+      <recent name="D:\BlueDoc\DeepDiary\Backend\user_info\operation" />
+      <recent name="D:\BlueDoc\DeepDiary\Backend\library\operation" />
+      <recent name="D:\BlueDoc\DeepDiary\Backend\library\process" />
+      <recent name="D:\BlueDoc\DeepDiary\Backend\ad" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\BlueDoc\DeepDiary\Backend\utils" />
@@ -1554,7 +1687,7 @@
       <recent name="D:\BlueDoc\deep_diary\media\face_info\unknown" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.tests (2)">
+  <component name="RunManager" selected="Python.tests (1)">
     <configuration name="detect" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="deep_diary" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -1569,6 +1702,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/face/detect.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="task_manager" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Backend" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/library" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/library/task_manager.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -1598,67 +1752,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="tests (2)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for tests.ImgProcessTest" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tags" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/library" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tags/tests.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.ImgProcessTest&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="tests" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for tests.ImgProcessTest.test_read_img_instance" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="Backend" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/face" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/library" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/face/tests.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="utils" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Backend" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/utils" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/utils/utils.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;tests.ImgProcessTest.test_read_img_instance&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <configuration name="Python tests in tests.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
@@ -1677,19 +1796,19 @@
     </configuration>
     <list>
       <item itemvalue="Python.detect" />
-      <item itemvalue="Python.tests (2)" />
+      <item itemvalue="Python.task_manager" />
       <item itemvalue="Python.tests (1)" />
-      <item itemvalue="Python.utils" />
-      <item itemvalue="Python.tests" />
+      <item itemvalue="Python tests.Python tests for tests.ImgProcessTest" />
+      <item itemvalue="Python tests.Python tests for tests.ImgProcessTest.test_read_img_instance" />
       <item itemvalue="Python tests.Python tests in tests.py" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.tests (2)" />
         <item itemvalue="Python.tests (1)" />
-        <item itemvalue="Python.utils" />
+        <item itemvalue="Python.task_manager" />
+        <item itemvalue="Python tests.Python tests for tests.ImgProcessTest.test_read_img_instance" />
+        <item itemvalue="Python tests.Python tests for tests.ImgProcessTest" />
         <item itemvalue="Python tests.Python tests in tests.py" />
-        <item itemvalue="Python.tests" />
       </list>
     </recent_temporary>
   </component>
@@ -1760,25 +1879,6 @@
           <url>file://$PROJECT_DIR$/user_info/serializers.py</url>
           <line>161</line>
           <option name="timeStamp" value="77" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/library/tests.py</url>
-          <line>92</line>
-          <option name="timeStamp" value="94" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/library/tests.py</url>
-          <option name="timeStamp" value="95" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/user_info/serializers_out.py</url>
-          <line>134</line>
-          <option name="timeStamp" value="101" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/library/task.py</url>
-          <line>1424</line>
-          <option name="timeStamp" value="102" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

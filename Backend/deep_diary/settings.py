@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'comment',
     'tags',
     'project',
-    'utils',
+    'utilities',
+    'ad',
 
     'rest_framework',
     'django_filters',  # 过滤api接口数据
@@ -207,7 +208,7 @@ FACE_INFO_ROOT = os.path.join(MEDIA_ROOT, 'face_info')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-FILE_UPLOAD_MAX_MEMORY_SIZE = 1024  # 默认设置为5M
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1024  # 6 * 1024 * 1024  # 默认设置为5M
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -308,7 +309,6 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
 }
 
-
 if DEBUG:
     # django debug toolbar
     INSTALLED_APPS.append('debug_toolbar')
@@ -330,3 +330,33 @@ if DEBUG:
             'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         }
     }
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',  # 指定日志文件的路径
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {  #
+        '': {  # 表示捕获所有日志，无来源
+            'handlers': ['file'],
+            'level': 'INFO',  # 日志级别： DEBUG, INFO, WARNING, ERROR, CRITICAL - 您可以根据消息的重要性选择合适的级别
+            'propagate': True,
+        },
+    },
+}

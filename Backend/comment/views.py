@@ -5,7 +5,7 @@ from comment.serializers import CommentSerializer
 
 
 # Create your views here.
-from utils.permissions import IsOwnerOrReadOnly
+from utilities.permissions import IsOwnerOrReadOnly
 
 
 class CommentViewSet(viewsets.ModelViewSet):

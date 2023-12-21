@@ -18,7 +18,7 @@ from user_info.models import Profile, string_to_int_mapping, ReContact
 search_fields_img = {
     'id': ['exact', 'gte', 'lte'],
     # color
-    'colors__image__closest_palette_color_parent': ['exact'],
+    'cimgs__closest_palette_color_parent': ['exact'],
     #
     # category
     'categories__name': ['exact'],  #
@@ -202,7 +202,7 @@ class ImgFilter(FilterSet):
     # tags = django_filters.CharFilter('tags', method='filter_tags')  # method 2
 
     # color
-    c_img = django_filters.CharFilter('colors', method='filter_img_colors')
+    c_img = django_filters.CharFilter('cimgs', method='filter_img_colors')
     # c_fore = django_filters.CharFilter('colors', method='filter_fore_colors')
     # c_back = django_filters.CharFilter('colors', method='filter_back_colors')
 
@@ -219,9 +219,9 @@ class ImgFilter(FilterSet):
         fields = {
             'id': ['exact', 'gte', 'lte'],
             # color
-            'colors__image__closest_palette_color_parent': ['exact', 'icontains'],
-            'colors__foreground__closest_palette_color_parent': ['exact', 'icontains'],
-            'colors__background__closest_palette_color_parent': ['exact', 'icontains'],
+            'cimgs__closest_palette_color_parent': ['exact', 'icontains'],
+            'cfores__closest_palette_color_parent': ['exact', 'icontains'],
+            'cbacks__closest_palette_color_parent': ['exact', 'icontains'],
             # category
             'categories__name': ['exact'],  #
             # 'categories__type': ['exact'],  #
@@ -353,7 +353,7 @@ class ImgFilter(FilterSet):
             # qs = qs.select_related('colors').filter(colors__image__closest_palette_color_parent__in=names)
             print(f'filter_image_colors--> the original qs count is  {qs.count()} before filter, names is {names} ')
             for item in names:  # through and logical
-                qs = qs.filter(colors__image__closest_palette_color_parent=item)
+                qs = qs.filter(cimgs__closest_palette_color_parent=item)
             qs = qs.distinct()
         print(f'filter_image_colors--> the original qs count is  {qs.count()}')
         return qs

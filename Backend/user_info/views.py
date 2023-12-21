@@ -1,5 +1,4 @@
 # user_info/views.py
-import json
 
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
@@ -14,17 +13,12 @@ from user_info.filters import ProfileFilter, RelationFilter, search_fields_profi
 from user_info.models import Profile, Company, ReContact, relation_strings, string_to_int_mapping, Experience, Resource, \
     Demand, Image
 from user_info.serializers import UserRegisterSerializer, ProfileSerializer, CompanySerializer, \
-    UserDetailSerializer, ResourceSerializer, DemandSerializer, ExperienceSerializer, ImageSerializer
-from user_info.serializers_out import ProfileBriefSerializer, ReContactGraphSerializer, ReContactBriefSerializer, \
-    ReContactListSerializer, ExperienceGraphSerializer, ExperienceListSerializer, ExperienceBriefSerializer
-from user_info.task import ProfileProcess, CompanyProcess
-# class UserRegisterViewSet(viewsets.ModelViewSet):
-#     queryset = Profile.objects.all()
-#     serializer_class = UserRegisterSerializer
-#     lookup_field = 'username'  # 要和序列化器中对应起来
-from utils.pagination import GeneralPageNumberPagination
-from utils.permissions import get_user_info
-from utils.utils import get_pinyin
+    UserDetailSerializer, ResourceSerializer, DemandSerializer, ImageSerializer
+from user_info.serializers_out import ProfileBriefSerializer, ReContactBriefSerializer, \
+    ReContactListSerializer, ExperienceListSerializer, ExperienceBriefSerializer
+from utilities.common import get_pinyin
+from utilities.pagination import GeneralPageNumberPagination
+from utilities.permissions import get_user_info
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -293,8 +287,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
         print('------------------batch_img_test------------------')
         force, get_list = self.profile_pre_process()
 
-        profile_process = ProfileProcess()
-        profile_process.get_all_profile(profile_process, func_list=get_list, force=force)
+        # profile_process = ProfileProcess()
+        # profile_process.get_all_profile(profile_process, func_list=get_list, force=force)
         return Response({"msg": "batch_img_test success"})
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
@@ -305,8 +299,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
         force, get_list = self.profile_pre_process()
 
-        prof_process = ProfileProcess()
-        prof_process.get_profile(prof_process, instance=instance, func_list=get_list, force=force)
+        # prof_process = ProfileProcess()
+        # prof_process.get_profile(prof_process, instance=instance, func_list=get_list, force=force)
         return Response({"msg": 'profile_process finished'})
 
     @action(detail=False, methods=['get'])  # 在详情中才能使用这个自定义动作
@@ -350,8 +344,8 @@ class CompanyViewSet(viewsets.ModelViewSet):
         print('------------------batch_img_test------------------')
         force, get_list = self.request_pre_process()
 
-        company_process = CompanyProcess()
-        company_process.get_all_company(company_process, func_list=get_list, force=force)
+        # company_process = CompanyProcess()
+        # company_process.get_all_company(company_process, func_list=get_list, force=force)
         return Response({"msg": "batch_img_test success"})
 
     @action(detail=True, methods=['get'])  # 在详情中才能使用这个自定义动作
@@ -362,8 +356,8 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
         force, get_list = self.request_pre_process()
 
-        prof_process = CompanyProcess()
-        prof_process.get_company(prof_process, instance=instance, func_list=get_list, force=force)
+        # prof_process = CompanyProcess()
+        # prof_process.get_company(prof_process, instance=instance, func_list=get_list, force=force)
         return Response({"msg": 'company_process finished'})
 
 

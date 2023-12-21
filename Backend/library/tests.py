@@ -1,94 +1,66 @@
-# import io
-# import mimetypes
-# from operator import itemgetter
-#
-# import clip
-# import numpy as np
-# import torch
+import os
+
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
+django.setup()
+from deep_diary.settings import cfg
+
+from utilities.mcs_storage import upload_file_pay
+
+
 # from django.test import TestCase
-# import django
-#
-# # Create your tests here.
-# import os
+from library.models import Img
+from library.tasks import CeleryTaskManager, logger_test
+from library.task_manager import LibraryTaskManager
+from user_info.task_manager import UserInfoTaskManager
 
-
-
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'deep_diary.settings')
-# django.setup()
-# from library.models import Img
-
-
-
-
-# class MyModelTestCase(TestCase):
+# class ImgProcessTest(TestCase):
 #     def setUp(self):
-#         # 设置测试环境
-#         # 创建测试数据
-#         pass
+#         # 创建测试用户和图片
 #
-#     def test_something(self):
-#         # 编写测试代码
-#         pass
+#         self.img_instance = Img.objects.get(id=1799)
 #
-#     def test_another_thing(self):
-#         # 编写测试代码
-#         pass
+#     def test_read_img_instance(self):
+#         # 测试读取Img实例
+#         img_processor = ImgProces(instance=self.img_instance)
+#         result = img_processor.read(self.img_instance)
+#
+#         self.assertIsNotNone(result[0], "img_exiv2 should not be None")
+#         self.assertIsNotNone(result[1], "img_pil should not be None")
+#         self.assertIsNotNone(result[2], "img_cv2 should not be None")
+#         self.assertIsNotNone(result[3], "base64 should not be None")
+#
+#     # 以下是其他测试用例，用于测试本地路径、网络图片和二进制文件流等
+#     # ...
 
 
-# search_params = 'allison is standing on the ground in Ningbo province, China.'
-#
-#
-# from transformers import AutoTokenizer, AutoModelForTokenClassification
-# from transformers import pipeline
-#
-# tokenizer = AutoTokenizer.from_pretrained("dslim/bert-base-NER")
-# model = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
-# nlp = pipeline("ner", model=model, tokenizer=tokenizer)
-#
-# text = "Blue was standing on the ground in Ningbo province, China in year 2023."
-#
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-# model, preprocess = clip.load("ViT-B/32", device=device)
-#
-# text_token = clip.tokenize(text).to(device)
-#
-# preds = nlp(text)
-# preds = [
-#     {
-#         "entity": pred["entity"],
-#         "score": round(pred["score"], 4),
-#         "index": pred["index"],
-#         "word": pred["word"],
-#         "start": pred["start"],
-#         "end": pred["end"],
-#     }
-#     for pred in preds
-# ]
-# print(*preds, sep="\n")
+# 运行测试
 
 #
-# def update_graph_node_id(nodes, prefix):
-#     """
-#     目的： 考虑到不同模块节点的id可能会一样，因此需要更新图谱中的id，将原来的id替换成新的id， 可以实现模块前缀+id的形式
-#           e.g. img node 中有 id = 1， profile中也有id= 1, 那对应的edge中的from_id 和 to_id 都需要更新
-#     param: nodes:更新前的 nodes 列表
-#     param: prefix: 模块前缀
-#     return: nodes 更新后的nodes
-#     example: nodes = self.update_graph_node_id(nodes, prefix='img')
-#     """
-#     nodes_updated = [{**node, 'id': prefix + str(node['id'])} for node in nodes]
-#     # nodes_updated = [{**node, 'id': 'img'} for node in nodes]
-#     return nodes_updated
-#
-#
-# nodes=[
-#     {
-#         "id": 538,
-#     },
-#     {
-#         "id": 537,
-#     }
-# ]
-#
-# nodes_updated = update_graph_node_id(nodes, 'img')
-# print(nodes_updated)
+if __name__ == '__main__':
+    # ImgProcessTest()
+
+    # 以下是测试用例，用于测试本地路径、网络图片和二进制文件流等
+    # img_instance = Img.objects.all().first()
+    img_instance = Img.objects.get(id=622)
+    path = r'd:\BlueDoc\DiaryWin\source\img\已上传\IMG_20200815_151915.jpg'
+    url = 'https://deep-diary.oss-accelerate.aliyuncs.com/media/blue/img/IMG_20200815_151915.jpg'
+    # 根据上面的path图片，帮我构建如下3个类的实例，作为测试用例
+
+    user_info_task_manager = UserInfoTaskManager()
+    library_task_manager = LibraryTaskManager(path, img_instance, user_info_task_manager=user_info_task_manager)
+    # library_task_manager.operation_manager.category_get_and_add('color_background')
+    # library_task_manager.operation_manager.category_get_and_add('color_foreground')
+    # library_task_manager.operation_manager.category_get_and_add('color_img')
+    # library_task_manager.operation_manager.category_get_and_add(['img', 'face'])
+    # library_task_manager.operation_manager.clear_existed_data(['tag'])
+    # library_task_manager.operation_manager.clear_existed_data('color')
+    # library_task_manager.process_and_save('exif', force=True)
+    # library_task_manager.process_and_save('category', force=True)
+
+    # tasks = ['exif', 'face', 'tag', 'color', 'category', 'clip_classification', 'feature', 'caption']
+    tasks = ['category']
+    CeleryTaskManager(enabled=False).post_process(img_instance.id, f_path=img_instance, processor_types=tasks, force=True)
+    # CeleryTaskManager(enabled=False).category_get_and_add(img_instance.id, processor_types=['color_img', 'img', 'addr'], force=True)
+
+    print('done')

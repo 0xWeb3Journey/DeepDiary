@@ -12,7 +12,7 @@ const network = {
   //消息框消失时间
   messageDuration: 3000,
   //最长请求时间
-  requestTimeout: 30000,
+  requestTimeout: 120000,
   //操作正常code，支持String、Array、int多种类型
   successCode: [200, 0],
   //登录失效code

@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime
 
 from PIL import Image
@@ -18,6 +19,7 @@ from project.models import Issue
 
 # Create your models here.
 from user_info.models import Profile
+from utilities.common import generate_unique_name
 
 STATE_OPTION = (
     (0, "正常"),
@@ -36,7 +38,6 @@ DET_METHOD_OPTION = (
     (2, "Others"),
 )
 
-
 def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/file
     sub_folder = "img"
     instance.name = filename
@@ -46,7 +47,7 @@ def user_directory_path(instance, filename):  # dir struct MEDIA/user/subfolder/
     # os.path.join will be wrong: blue\img\1970\1\1\avatar.jpg
     # user_img_path = os.path.join(instance.user.username, sub_folder, date_path, filename)
     user_img_path = '{0}/{1}/{2}'.format(instance.user.username, sub_folder, filename)
-    print('照片存放路径为：' + user_img_path)  # dir struct MEDIA/user/subfolder/file
+    # print('照片存放路径为：' + user_img_path)  # dir struct MEDIA/user/subfolder/file
 
     return user_img_path
 
@@ -95,7 +96,7 @@ class Img(models.Model):
                            options={'quality': 80},
                            )
 
-    name = models.CharField(default='unnamed', max_length=40, null=True, blank=True, unique=True,
+    name = models.CharField(default=generate_unique_name, max_length=40, null=True, blank=True, unique=True,
                             verbose_name="图片名", help_text='')  # unique=False, 方便调试
     type = models.CharField(max_length=10, null=True, blank=True, verbose_name="图片格式", help_text='图片格式')
     wid = models.IntegerField(default=0, blank=True, verbose_name="图片宽度", help_text='图片宽度')
@@ -124,8 +125,8 @@ class Img(models.Model):
             location = self.address.location
         else:
             location = 'No GPS'
-        return fr'<div class ="lightGallery-captions" > <h4> Photo by -  <a href="https://www.deep-diary.com" >{self.user.name} </a>  </h4> <p> Location -  {location} </p> </div>'
-        # return f'Name: {self.pk}_{self.name}'
+        # return fr'<div class ="lightGallery-captions" > <h4> Photo by -  <a href="https://www.deep-diary.com" >{self.user.name} </a>  </h4> <p> Location -  {location} </p> </div>'
+        return f'Name: {self.pk}_{self.src.name}'
 
     def to_dict(self):
         return {'id': self.id,
@@ -176,20 +177,22 @@ class Stat(models.Model):
     is_path_exist = models.BooleanField(blank=True, default=True, verbose_name="路径是否存在",
                                         help_text='路径是否存在')
     is_deleted = models.BooleanField(blank=True, default=False, verbose_name="是否删除", help_text='是否删除')
-    is_get_info = models.BooleanField(blank=True, default=False, verbose_name="是否提取了图片元数据",
+    is_has_exif = models.BooleanField(blank=True, default=True, verbose_name="是否有exif信息",
+                                      help_text='是否有exif信息')
+    is_get_exif = models.BooleanField(blank=True, default=False, verbose_name="是否提取了图片元数据",
                                       help_text='是否提取了图片元数据')
-    is_store_mcs = models.BooleanField(blank=True, default=False, verbose_name="是否已经保存到mcs",
-                                       help_text='是否已经保存到mcs')
-    is_auto_tag = models.BooleanField(blank=True, default=False, verbose_name="是否已经完成自动标注",
-                                      help_text='是否已经完成自动标注')
+    is_get_mcs = models.BooleanField(blank=True, default=False, verbose_name="是否已经保存到mcs",
+                                     help_text='是否已经保存到mcs')
+    is_get_tag = models.BooleanField(blank=True, default=False, verbose_name="是否已经完成自动标注",
+                                     help_text='是否已经完成自动标注')
     is_get_color = models.BooleanField(blank=True, default=False, verbose_name="是否完成颜色提取",
                                        help_text='是否完成颜色提取')
-    is_get_cate = models.BooleanField(blank=True, default=False, verbose_name="是否完成自动分类",
+    is_get_category = models.BooleanField(blank=True, default=False, verbose_name="是否完成自动分类",
                                       help_text='是否完成自动分类')
-    is_face = models.BooleanField(blank=True, default=False, verbose_name="是否完成人脸识别",
-                                  help_text='是否完成人脸识别')
-    is_object = models.BooleanField(blank=True, default=False, verbose_name="是否完成目标识别",
-                                    help_text='是否完成目标识别')
+    is_get_face = models.BooleanField(blank=True, default=False, verbose_name="是否完成人脸识别",
+                                      help_text='是否完成人脸识别')
+    is_get_obj = models.BooleanField(blank=True, default=False, verbose_name="是否完成目标识别",
+                                     help_text='是否完成目标识别')
     is_get_caption = models.BooleanField(blank=True, default=False, verbose_name="是否完成了图转文",
                                          help_text='是否完成了图转文')
     is_get_feature = models.BooleanField(blank=True, default=False, verbose_name="是否完成图片特征的提取",
@@ -247,7 +250,7 @@ class Category(MPTTModel):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="最后更新的时间", help_text='最后更新的时间')
 
     class Meta:
-        # ordering = ['-id']
+        ordering = ['-id']
         unique_together = ('parent', 'name',)
 
     def __str__(self):
@@ -526,18 +529,18 @@ class ColorItem(models.Model):
 
 
 class ColorBackground(ColorItem):
-    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='background',
-                              verbose_name="BackgroundColor")
+    img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='cbacks',
+                            verbose_name="BackgroundColor")
 
 
 class ColorForeground(ColorItem):
-    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='foreground',
-                              verbose_name="ColorForeground")
+    img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='cfores',
+                            verbose_name="ColorForeground")
 
 
 class ColorImg(ColorItem):
-    color = models.ForeignKey(Color, on_delete=models.CASCADE, related_name='image',
-                              verbose_name="ColorImg")
+    img = models.ForeignKey(Img, on_delete=models.CASCADE, related_name='cimgs',
+                            verbose_name="ColorImg")
 
 
 class Face(models.Model):
